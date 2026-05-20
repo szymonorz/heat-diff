@@ -1,0 +1,10 @@
+*.qcow2
+*.img
+*.iso
+seed/
+vm.log
+
+*.o
+*.tmp
+
+*.mp4
