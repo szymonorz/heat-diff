@@ -15,7 +15,7 @@ INSTALL_DIR="$HOME/chapel-${CHAPEL_VERSION}"
 # 1. Install build dependencies
 # ──────────────────────────────────────────────
 echo ">>> Installing build dependencies..."
-sudo apt-get update
+#sudo apt-get update
 sudo apt-get install -y \
     gcc g++ make m4 perl python3 python3-dev python3-pip \
     bash git pkg-config \
@@ -35,7 +35,7 @@ fi
 # ──────────────────────────────────────────────
 # 2. Download and extract Chapel
 # ──────────────────────────────────────────────
-cd "$HOME"
+#cd "$HOME"
 
 if [[ -f "$CHAPEL_TAR" ]] && ! gzip -t "$CHAPEL_TAR" 2>/dev/null; then
     echo ">>> Existing tarball is corrupted, removing..."
