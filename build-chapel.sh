@@ -9,7 +9,7 @@ set -eo pipefail
 CHAPEL_VERSION="2.7.0"
 CHAPEL_TAR="chapel-${CHAPEL_VERSION}.tar.gz"
 CHAPEL_URL="https://github.com/chapel-lang/chapel/releases/download/${CHAPEL_VERSION}/${CHAPEL_TAR}"
-INSTALL_DIR="$HOME/chapel-${CHAPEL_VERSION}"
+INSTALL_DIR="$PWD/chapel-${CHAPEL_VERSION}"
 
 # ──────────────────────────────────────────────
 # 1. Install build dependencies
