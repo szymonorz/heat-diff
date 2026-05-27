@@ -9,7 +9,7 @@ config const nx = 20, ny = 20, nz = 20,
              hotThickness = 2,
              debug = false;
 
-const domain3D = stencilDist.createDomain({0..<nx, 0..<ny, 0..<nz});
+const domain3D = stencilDist.createDomain({0..<nx, 0..<ny, 0..<nz}, fluff=(1,1,1));
 const interior  = domain3D.expand(-1);
 
 var u: [domain3D] real = 1.0;
@@ -32,6 +32,7 @@ if debug then startCommDiagnostics();
 
 for step in 1..numSteps {
   for sub in 1..subSteps {
+    un.updateFluff();
     forall (i,j,k) in interior do
       u[i,j,k] = un[i,j,k]
                 + ax * (un[i-1,j,k] - 2*un[i,j,k] + un[i+1,j,k])
