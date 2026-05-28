@@ -1,6 +1,7 @@
 use Render3D;
 use StencilDist;
 use CommDiagnostics;
+use Time;
 
 config const nx = 20, ny = 20, nz = 20,
              numSteps = 100,
@@ -8,6 +9,10 @@ config const nx = 20, ny = 20, nz = 20,
              alpha = 0.25,
              hotThickness = 2,
              debug = false;
+
+var initTimer, computeTimer: stopwatch;
+
+initTimer.start();
 
 const domain3D = stencilDist.createDomain({0..<nx, 0..<ny, 0..<nz}, fluff=(1,1,1));
 const interior  = domain3D.expand(-1);
@@ -28,7 +33,12 @@ const ax  = alpha * dt / (dx*dx),
       ay  = alpha * dt / (dy*dy),
       az  = alpha * dt / (dz*dz);
 
+initTimer.stop();
+writeln("Initialization time: ", initTimer.elapsed(), " s");
+
 if debug then startCommDiagnostics();
+
+computeTimer.start();
 
 for step in 1..numSteps {
   for sub in 1..subSteps {
@@ -45,7 +55,11 @@ for step in 1..numSteps {
   renderFrame(un);
 }
 
+computeTimer.stop();
+
 if debug {
   stopCommDiagnostics();
   printCommDiagnosticsTable();
 }
+
+writeln("Computation time:    ", computeTimer.elapsed(), " s");
