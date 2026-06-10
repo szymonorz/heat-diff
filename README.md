@@ -29,16 +29,18 @@ Solves the 2D heat equation on a `StencilDist` domain with a configurable heatsi
 
 ### 3D (`src/3d.chpl`)
 
-Solves the 3D heat equation on a `StencilDist` domain with a hot slab along one face. Includes a 3D voxel renderer with perspective projection and edge wireframe.
+Solves the 3D heat equation on a `StencilDist` domain with a hot slab along one face. Each step, every locale writes **only its own block** to a local binary dump (`dumpDir/frame_<step>_loc_<id>.bin`) — no gather, no rendering on the compute path. Rendering happens afterward in `src/aggregate3d.chpl`, a single-locale post-processor that reassembles the dumps and reuses the `Render3D` voxel renderer (perspective projection + edge wireframe).
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `nx`, `ny`, `nz` | 20 | Grid dimensions |
-| `numSteps` | 100 | Time steps |
-| `subSteps` | 10 | Sub-iterations per render frame |
+| `numSteps` | 100 | Time steps (one dumped frame per step) |
 | `alpha` | 0.25 | Thermal diffusivity |
 | `hotThickness` | 2 | Thickness of the hot slab |
+| `dumpDir` | frames | Per-locale dump directory (created on each host) |
 | `debug` | false | Print GASNet comm diagnostics |
+
+A swap-based variant, `src/3d_swap.chpl`, is identical except it uses `un <=> u` each step instead of ping-pong buffering, kept for performance comparison (see Performance notes).
 
 3D renderer options (module `Render3D`):
 
@@ -51,6 +53,23 @@ Solves the 3D heat equation on a `StencilDist` domain with a hot slab along one 
 | `rotX`, `rotY` | -0.5, 0.0 | Camera rotation |
 | `pointSize` | 3 | Voxel dilation radius |
 | `cubeScale` | 1.0 | Cube display scale |
+
+## Performance notes
+
+### Array swap (`un <=> u`) is O(1), not a copy
+
+The 3D solver uses ping-pong buffering (`src/3d.chpl`) to avoid a per-step `un <=> u`. It turns out this is **not** a meaningful optimization: Chapel's array swap operator (`operator <=>` in `$CHPL_HOME/modules/internal/ChapelArray.chpl`) first attempts `doiOptimizedSwap`, which swaps the arrays' internal **data pointers in O(1)**. The O(N) element-wise `forall` copy is only a fallback for distributions that don't implement the optimized path — and `StencilDist` (like `BlockDist`) does implement it. So the swap moves no bulk data and performs no communication; it just swaps each locale's local-buffer pointers.
+
+The amount of data moved is therefore O(1) either way. But the two regimes differ once you cross locales, because `doiOptimizedSwap` runs a `coforall loc in Locales do on loc { ... }` to swap each locale's pointer — that per-step cross-locale on-clause/barrier is not free on a high-latency interconnect:
+
+| Configuration | swap cost / step | ping-pong vs swap (total) |
+|---|---|---|
+| Single locale, 120³, `--fast` | ≈ 3 µs (≈0.1% of compute) | identical |
+| 2 locales (udp VMs), 64³, 30 steps | ≈ 0.2–2 ms (noisy) | **0.894 s vs 0.998 s** (~12% faster, 3 reps) |
+
+So ping-pong (`3d.chpl`) is a small but consistent win on this multilocale **udp** setup — it avoids the per-step cross-locale swap coordination. On a real interconnect (InfiniBand/Aries) that overhead shrinks toward the single-locale (negligible) case. Either way, absolute per-step wall-clock is dominated by the data dump (I/O, ~15 ms) and `updateFluff` (halo exchange, ~8–11 ms); the swap is the smallest term.
+
+> Note: the GASNet **udp** conduit `ECONGESTION`-aborts on large halo exchanges (128³ died after 2 steps on the 2-VM cluster). Keep multilocale grids modest (≤64³) on these VMs, or raise `GASNET_NETWORKDEPTH_TOTAL`.
 
 ## Prerequisites
 

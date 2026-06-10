@@ -94,20 +94,22 @@ if debug then startCommDiagnostics();
 computeTimer.start();
 
 for step in 1..numSteps {
-  var fluffT, computeT, saveT: stopwatch;
-  const writeToU = (step % 2 == 1);
+  var fluffT, computeT, swapT, saveT: stopwatch;
 
-  if writeToU then stepOnce(u, un, fluffT, computeT);
-  else             stepOnce(un, u, fluffT, computeT);
+  stepOnce(u, un, fluffT, computeT);
+
+  swapT.start();
+  un <=> u;
+  swapT.stop();
 
   saveT.start();
-  if writeToU then dumpLocal(u, step);
-  else             dumpLocal(un, step);
+  dumpLocal(un, step);
   saveT.stop();
 
   writeln("step ", step,
           "  updateFluff=", fluffT.elapsed(), " s",
           "  compute=",     computeT.elapsed(), " s",
+          "  swap=",        swapT.elapsed(), " s",
           "  save=",        saveT.elapsed(), " s");
 }
 
@@ -120,11 +122,7 @@ if debug {
 
 if trackMem then reportMem("after run");
 
-if numSteps % 2 == 1 then
-  writeln("final field: min=", min reduce u,  " max=", max reduce u,
-          " sum=", + reduce u);
-else
-  writeln("final field: min=", min reduce un, " max=", max reduce un,
-          " sum=", + reduce un);
+writeln("final field: min=", min reduce un, " max=", max reduce un,
+        " sum=", + reduce un);
 
 writeln("Computation time:    ", computeTimer.elapsed(), " s");
