@@ -14,6 +14,7 @@
 use Render3D;        // reused unchanged: renderFrame(u: [] real) where rank == 3
 use IO;
 use FileSystem;
+use Subprocess;
 
 config const dumpDir   = "collected";
 config const nx = 20, ny = 20, nz = 20;
@@ -24,9 +25,8 @@ proc main() throws {
     var full: [0..<nx, 0..<ny, 0..<nz] real;
     var found = 0;
 
-    for path in glob(dumpDir + "/frame_" + f:string + "_loc_*.bin") {
-      var r = openReader(path, locking=false);
-
+    // read one slab from reader r into full (header layout matches dumpLocal)
+    proc readInto(ref r) throws {
       var frameIdx, locId: int;
       r.readBinary(frameIdx);
       r.readBinary(locId);
@@ -45,9 +45,21 @@ proc main() throws {
       const blockDom = {lo[0]..hi[0], lo[1]..hi[1], lo[2]..hi[2]};
       var block: [blockDom] real;
       r.readBinary(block);
-      r.close();
-
       full[blockDom] = block;
+    }
+
+    // matches both .bin and .bin.gz
+    for path in glob(dumpDir + "/frame_" + f:string + "_loc_*.bin*") {
+      if path.endsWith(".gz") {
+        var sub = spawnshell("gunzip -c '" + path + "'", stdout=pipeStyle.pipe);
+        var r = sub.stdout;
+        readInto(r);
+        sub.wait();
+      } else {
+        var r = openReader(path, locking=false);
+        readInto(r);
+        r.close();
+      }
       found += 1;
     }
 

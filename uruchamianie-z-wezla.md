@@ -96,13 +96,20 @@ cd "$INSTALL_DIR"
 - **Katalog zrzutów (`--dumpDir`) jest czyszczony automatycznie** na początku każdego
   uruchomienia (każda lokacja kasuje i odtwarza swój lokalny katalog) — nie trzeba
   kasować go ręcznie.
+- **Kompresja ramek (domyślnie WŁĄCZONA).** Każda ramka jest strumieniowo kompresowana
+  przez `gzip` w locie (pliki `..._loc_<id>.bin.gz`). Pole jest gładkie, więc kompresja
+  jest ogromna — w teście 40³ jedna ramka spadła z **512 kB do ~2,7 kB (≈190×)**, zapis
+  bezstratny (po `gunzip` bajtowo identyczny z surowym `.bin`). Agregator automatycznie
+  wykrywa `.gz` i czyta przez `gunzip`. Wyłączenie: **`--compress=false`** (wtedy surowe
+  `.bin`).
 - **Miejsce na dysku / błąd zapisu `ENOSPC` (error 28).** Solver zapisuje jedną ramkę na
-  krok na lokację; objętość per-lokacja ≈ `numSteps × (liczba_lokalnych_komórek × 8 B)`.
-  Przy dużej siatce i wielu krokach łatwo zapełnić dysk węzła — wtedy zapis pada z
-  `qio_channel_final_flush ... error 28` (brak miejsca) na danej lokacji. Sprawdź `df -h`
-  na węźle, kieruj `--dumpDir` na zasobny filesystem i/lub ograniczaj liczbę ramek flagą
-  **`--dumpEvery=N`** (zapis co N-ty krok; ramki numerowane kolejno, więc agregator dalej
-  je znajdzie — przy `--dumpEvery=N` użyj `--numFrames = numSteps/N`). Przykład:
+  krok na lokację; objętość per-lokacja ≈ `numSteps × (liczba_lokalnych_komórek × 8 B)`
+  (przed kompresją). Przy dużej siatce i wielu krokach bez kompresji łatwo zapełnić dysk
+  węzła — zapis pada wtedy z `qio_channel_final_flush ... error 28` (brak miejsca).
+  Środki zaradcze: zostaw kompresję włączoną, kieruj `--dumpDir` na zasobny filesystem
+  (sprawdź `df -h`), i/lub ograniczaj liczbę ramek flagą **`--dumpEvery=N`** (zapis co
+  N-ty krok; ramki numerowane kolejno, więc agregator dalej je znajdzie — przy
+  `--dumpEvery=N` użyj `--numFrames = numSteps/N`). Przykład:
   ```bash
   ./run-heat3d.sh --nx=400 --ny=400 --nz=400 --numSteps=100 --dumpEvery=10 \
                   --dumpDir="$INSTALL_DIR/frames"

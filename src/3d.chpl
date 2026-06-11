@@ -4,6 +4,7 @@ use MemDiagnostics;
 use Time;
 use IO;
 use FileSystem;
+use Subprocess;
 
 config const nx = 20, ny = 20, nz = 20,
              numSteps = 100,
@@ -13,6 +14,7 @@ config const nx = 20, ny = 20, nz = 20,
 
 config const dumpDir = "frames";
 config const dumpEvery = 1;
+config const compress = true;
 config const trackMem = false;
 
 proc reportMem(msg: string) {
@@ -62,24 +64,34 @@ proc dumpLocal(ref field, frameIdx: int) throws {
   coforall loc in Locales do on loc {
     const ld = field.localSubdomain();
     try { mkdir(dumpDir, parents=true); } catch { }
-    const path = dumpDir + "/frame_" + frameIdx:string +
-                 "_loc_" + here.id:string + ".bin";
-    var w = openWriter(path, locking=false);
-
-    w.writeBinary(frameIdx);
-    w.writeBinary(here.id);
-    for d in 0..2 {
-      w.writeBinary(field.domain.dim(d).low);
-      w.writeBinary(field.domain.dim(d).high);
-    }
-    for d in 0..2 {
-      w.writeBinary(ld.dim(d).low);
-      w.writeBinary(ld.dim(d).high);
-    }
-
+    const base = dumpDir + "/frame_" + frameIdx:string + "_loc_" + here.id:string + ".bin";
     var block: [ld] real = field[ld];
-    w.writeBinary(block);
-    w.close();
+
+    proc writeAll(ref w) throws {
+      w.writeBinary(frameIdx);
+      w.writeBinary(here.id);
+      for d in 0..2 {
+        w.writeBinary(field.domain.dim(d).low);
+        w.writeBinary(field.domain.dim(d).high);
+      }
+      for d in 0..2 {
+        w.writeBinary(ld.dim(d).low);
+        w.writeBinary(ld.dim(d).high);
+      }
+      w.writeBinary(block);
+    }
+
+    if compress {
+      var sub = spawnshell("gzip -c > '" + base + ".gz'", stdin=pipeStyle.pipe);
+      var w = sub.stdin;
+      writeAll(w);
+      w.close();
+      sub.wait();
+    } else {
+      var w = openWriter(base, locking=false);
+      writeAll(w);
+      w.close();
+    }
   }
 }
 
