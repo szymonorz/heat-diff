@@ -142,10 +142,10 @@ else
     echo "    WARNING: aggregator copy failed"
 fi
 
-# Generate a -nl launcher for <binary> at <script> on the master.
+# Generate a -nl launcher for <binary> at <script> (written locally on this node).
 gen_run_script() {
     local bin="$1" script="$2"
-    ssh $SSH_OPTS "$SSH_USER@$MASTER_IP" bash -c "'cat > \"$script\"'" <<RUNSCRIPT
+    cat > "$script" <<RUNSCRIPT
 #!/usr/bin/env bash
 export CHPL_HOME="${INSTALL_DIR}/chapel-2.7.0"
 export PATH="\$CHPL_HOME/bin/linux64-x86_64:\$CHPL_HOME/util:\$PATH"
@@ -158,7 +158,7 @@ export CHPL_RT_NUM_THREADS_PER_LOCALE=\$(nproc)
 cd "${INSTALL_DIR}"
 ./${bin} -nl ${NUM_LOCALES} "\$@"
 RUNSCRIPT
-    ssh $SSH_OPTS "$SSH_USER@$MASTER_IP" "chmod +x '$script'" 2>/dev/null
+    chmod +x "$script"
 }
 
 RUN_SCRIPT="${INSTALL_DIR}/run-${BINARY_NAME}.sh"
@@ -176,7 +176,7 @@ gen_run_script "$SWAP_NAME"   "$SWAP_RUN_SCRIPT"
 # NOT the dev->cluster $SSH_PORT.
 AGG_SCRIPT="${INSTALL_DIR}/aggregate-${BINARY_NAME}.sh"
 
-ssh $SSH_OPTS "$SSH_USER@$MASTER_IP" bash -c "'cat > \"$AGG_SCRIPT\"'" <<AGGSCRIPT
+cat > "$AGG_SCRIPT" <<AGGSCRIPT
 #!/usr/bin/env bash
 export CHPL_HOME="${INSTALL_DIR}/chapel-2.7.0"
 export PATH="\$CHPL_HOME/bin/linux64-x86_64:\$CHPL_HOME/util:\$PATH"
@@ -198,17 +198,17 @@ done
 ./${AGG_NAME} --render=true --dumpDir=collected "\$@"
 AGGSCRIPT
 
-ssh $SSH_OPTS "$SSH_USER@$MASTER_IP" "chmod +x '$AGG_SCRIPT'" 2>/dev/null
+chmod +x "$AGG_SCRIPT"
 
 echo ""
-echo ">>> Run scripts created on $MASTER_IP:"
+echo ">>> Run scripts created locally:"
 echo "    $RUN_SCRIPT       (ping-pong, no swap)"
 echo "    $SWAP_RUN_SCRIPT  (swap variant, for comparison)"
-echo "    SSH in and run the solver(s) at the same grid size to benchmark:"
-echo "    ssh ${SSH_USER}@${MASTER_IP} '$RUN_SCRIPT --nx=50 --ny=50 --nz=50 --numSteps=100'"
-echo "    ssh ${SSH_USER}@${MASTER_IP} '$SWAP_RUN_SCRIPT --nx=50 --ny=50 --nz=50 --numSteps=100'"
+echo "    Run the solver(s) at the same grid size to benchmark:"
+echo "    $RUN_SCRIPT --nx=50 --ny=50 --nz=50 --numSteps=100"
+echo "    $SWAP_RUN_SCRIPT --nx=50 --ny=50 --nz=50 --numSteps=100"
 echo ""
-echo ">>> Aggregate script created on $MASTER_IP: $AGG_SCRIPT"
+echo ">>> Aggregate script created locally: $AGG_SCRIPT"
 echo "    After the run, collect slabs from all locales and render the movie:"
-echo "    ssh ${SSH_USER}@${MASTER_IP} '$AGG_SCRIPT --nx=50 --ny=50 --nz=50 --numFrames=100'"
-echo "    (the resulting heat3d.mp4 lands in $INSTALL_DIR on $MASTER_IP)"
+echo "    $AGG_SCRIPT --nx=50 --ny=50 --nz=50 --numFrames=100"
+echo "    (the resulting heat3d.mp4 lands in $INSTALL_DIR)"

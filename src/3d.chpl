@@ -12,6 +12,7 @@ config const nx = 20, ny = 20, nz = 20,
              debug = false;
 
 config const dumpDir = "frames";
+config const dumpEvery = 1;
 config const trackMem = false;
 
 proc reportMem(msg: string) {
@@ -60,6 +61,7 @@ proc stepOnce(ref dst, ref src, ref fluffTimer, ref computeTimer) {
 proc dumpLocal(ref field, frameIdx: int) throws {
   coforall loc in Locales do on loc {
     const ld = field.localSubdomain();
+    try { mkdir(dumpDir, parents=true); } catch { }
     const path = dumpDir + "/frame_" + frameIdx:string +
                  "_loc_" + here.id:string + ".bin";
     var w = openWriter(path, locking=false);
@@ -86,6 +88,7 @@ writeln("Initialization time: ", initTimer.elapsed(), " s");
 if trackMem then reportMem("after init (u+un allocated)");
 
 coforall loc in Locales do on loc {
+  try { if exists(dumpDir) then rmTree(dumpDir); } catch { }
   try { mkdir(dumpDir, parents=true); } catch { }
 }
 
@@ -93,6 +96,7 @@ if debug then startCommDiagnostics();
 
 computeTimer.start();
 
+var frame = 0;
 for step in 1..numSteps {
   var fluffT, computeT, saveT: stopwatch;
   const writeToU = (step % 2 == 1);
@@ -101,8 +105,11 @@ for step in 1..numSteps {
   else             stepOnce(un, u, fluffT, computeT);
 
   saveT.start();
-  if writeToU then dumpLocal(u, step);
-  else             dumpLocal(un, step);
+  if step % dumpEvery == 0 {
+    frame += 1;
+    if writeToU then dumpLocal(u, frame);
+    else             dumpLocal(un, frame);
+  }
   saveT.stop();
 
   writeln("step ", step,

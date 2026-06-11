@@ -93,6 +93,29 @@ cd "$INSTALL_DIR"
 
 ## Uwagi
 
+- **Katalog zrzutów (`--dumpDir`) jest czyszczony automatycznie** na początku każdego
+  uruchomienia (każda lokacja kasuje i odtwarza swój lokalny katalog) — nie trzeba
+  kasować go ręcznie.
+- **Miejsce na dysku / błąd zapisu `ENOSPC` (error 28).** Solver zapisuje jedną ramkę na
+  krok na lokację; objętość per-lokacja ≈ `numSteps × (liczba_lokalnych_komórek × 8 B)`.
+  Przy dużej siatce i wielu krokach łatwo zapełnić dysk węzła — wtedy zapis pada z
+  `qio_channel_final_flush ... error 28` (brak miejsca) na danej lokacji. Sprawdź `df -h`
+  na węźle, kieruj `--dumpDir` na zasobny filesystem i/lub ograniczaj liczbę ramek flagą
+  **`--dumpEvery=N`** (zapis co N-ty krok; ramki numerowane kolejno, więc agregator dalej
+  je znajdzie — przy `--dumpEvery=N` użyj `--numFrames = numSteps/N`). Przykład:
+  ```bash
+  ./run-heat3d.sh --nx=400 --ny=400 --nz=400 --numSteps=100 --dumpEvery=10 \
+                  --dumpDir="$INSTALL_DIR/frames"
+  ```
+- **Podawaj ścieżkę bezwzględną** dla `--dumpDir` (np. `--dumpDir="$INSTALL_DIR/frames"`).
+  Ścieżka względna jest rozwiązywana względem CWD procesu, a **zdalna lokacja (worker) ma
+  zwykle inne CWD** (katalog domowy) — może to prowadzić do zapisu w nieoczekiwanym lub
+  niezapisywalnym miejscu i błędu zapisu (SIGABRT na zdalnej lokacji). Solver dodatkowo
+  tworzy katalog tuż przed zapisem na każdej lokacji, ale ścieżka bezwzględna eliminuje
+  problem u źródła.
+- Po zmianach w kodzie (`src/*.chpl`) trzeba ponownie uruchomić `compile-and-distribute.sh`,
+  by binaria na węzłach były aktualne; skrypty `run-*.sh`/`aggregate-*.sh` są teraz
+  zapisywane **lokalnie** w `$INSTALL_DIR` (bez SSH do samego siebie).
 - **`CHPL_HOME` = `$INSTALL_DIR/chapel-2.7.0`** — oba skrypty zawsze dodają podkatalog
   `chapel-2.7.0`; dlatego w `distribute-chapel.sh` i `compile-and-distribute.sh` używaj
   **tego samego `-d`**.
