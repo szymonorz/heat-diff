@@ -69,12 +69,46 @@ The amount of data moved is therefore O(1) either way. But the two regimes diffe
 
 So ping-pong (`3d.chpl`) is a small but consistent win on this multilocale **udp** setup — it avoids the per-step cross-locale swap coordination. On a real interconnect (InfiniBand/Aries) that overhead shrinks toward the single-locale (negligible) case. Either way, absolute per-step wall-clock is dominated by the data dump (I/O, ~15 ms) and `updateFluff` (halo exchange, ~8–11 ms); the swap is the smallest term.
 
-> Note: the GASNet **udp** conduit `ECONGESTION`-aborts on large halo exchanges (128³ died after 2 steps on the 2-VM cluster). Keep multilocale grids modest (≤64³) on these VMs, or raise `GASNET_NETWORKDEPTH_TOTAL`.
+> Note: the GASNet **udp** conduit `ECONGESTION`-aborts on large halo exchanges under
+> many-to-one incast or any packet loss (e.g. 1000³ across 9× 1 Gb nodes dies at step 1). The
+> robust fix is the **mpi conduit** (`--conduit mpi`, see below): it carries active messages over
+> MPI/TCP, so a flooded/lossy link applies backpressure instead of aborting. On a clean network
+> the two conduits perform within noise of each other.
 
 ## Prerequisites
 
 - Chapel 2.7.0 (built with `CHPL_COMM=gasnet`, `CHPL_LLVM=none`)
+- Build tools: `gcc g++ make m4 perl python3 cmake wget` + `gmp.h` (no package manager is
+  assumed — the scripts check and tell you the install command for your distro)
 - ffmpeg (for video rendering)
+- For `--conduit mpi`: nothing extra — MPICH is built from source and distributed automatically
+
+## Cluster build, distribute & run (`--conduit udp|mpi`)
+
+One flag drives the whole pipeline. `udp` (default) is fast on a clean LAN; `mpi` survives
+packet loss / incast at scale (see the note above).
+
+```bash
+# 1. Build Chapel + distribute the compiled tree to every node in the hostfile.
+#    Run on the node with the OLDEST glibc (its binaries run on newer-glibc nodes).
+#    --conduit mpi also auto-builds MPICH (from source) and ships it to all nodes.
+./distribute-chapel.sh                -f hosts.txt -d /home/chapel/workspace/chapel
+./distribute-chapel.sh --conduit mpi  -f hosts.txt -d /home/chapel/workspace/chapel-mpi
+
+# 2. Compile heat3d, distribute the binaries, and generate a conduit-aware run launcher.
+#    Hostfile lists ALL nodes, master first (one locale per node for 1000³ on real hardware).
+./compile-and-distribute.sh                -f hosts-both.txt -d /home/chapel/workspace/chapel
+./compile-and-distribute.sh --conduit mpi  -f hosts-both.txt -d /home/chapel/workspace/chapel-mpi
+
+# 3. Run via the generated launcher (sets the right env per conduit):
+#    udp -> GASNET_SSH_SERVERS;  mpi -> mpirun + per-rank interface wrapper.
+/home/chapel/workspace/chapel-mpi/run-heat3d.sh --nx=1000 --ny=1000 --nz=1000 --numSteps=100
+```
+
+`-d` must match between the two scripts (and differ per conduit so udp/mpi installs coexist).
+`build-mpi.sh` and the MPI distribution are idempotent (skipped if already present), so re-runs
+are cheap. `run-nl.sh` is a **testbed-only** helper for oversubscribing many locales across a
+couple of physical nodes; production launches use the generated `run-<bin>.sh`.
 
 ## VM Setup
 
