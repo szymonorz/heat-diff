@@ -1,6 +1,5 @@
 use StencilDist;
-use CommDiagnostics;
-use MemDiagnostics;
+use Diagnostics;
 use Time;
 use IO;
 use FileSystem;
@@ -13,15 +12,10 @@ config const nx = 20, ny = 20, nz = 20,
              debug = false;
 
 config const dumpDir = "frames";
-config const dumpEvery = 1;
+config const dumpEvery = 100;
 config const compress = true;
 config const trackMem = false;
-
-proc reportMem(msg: string) {
-  for loc in Locales do on loc do
-    writeln("[mem] ", msg, " locale ", here.id, ": ",
-            memoryUsed():real / (1024*1024), " MB");
-}
+config const commLog = false;
 
 var initTimer, computeTimer: stopwatch;
 
@@ -104,7 +98,13 @@ coforall loc in Locales do on loc {
   try { mkdir(dumpDir, parents=true); } catch { }
 }
 
-if debug then startCommDiagnostics();
+const bytesPerStep = haloBytesPerStep(u, {0..<nx, 0..<ny, 0..<nz});
+if commLog then
+  writeln("[comm] ", bytesPerStep, " B/step across ", numLocales, " locale(s)");
+
+if debug || commLog then startCommDiagnostics();
+
+var prevComm: commSnapshot;
 
 computeTimer.start();
 
@@ -128,6 +128,14 @@ for step in 1..numSteps {
           "  updateFluff=", fluffT.elapsed(), " s",
           "  compute=",     computeT.elapsed(), " s",
           "  save=",        saveT.elapsed(), " s");
+
+  if commLog {
+    const c = currentComm();
+    writeln("  comm[", step, "] put=", c.put-prevComm.put, " get=", c.get-prevComm.get,
+            " on=", c.ons-prevComm.ons, " amo=", c.amo-prevComm.amo,
+            " | data=", bytesPerStep, " B/step  cum=", bytesPerStep*step, " B");
+    prevComm = c;
+  }
 }
 
 computeTimer.stop();
@@ -146,4 +154,4 @@ else
   writeln("final field: min=", min reduce un, " max=", max reduce un,
           " sum=", + reduce un);
 
-writeln("Computation time:    ", computeTimer.elapsed(), " s");
+writeln("Execution time:    ", computeTimer.elapsed(), " s");

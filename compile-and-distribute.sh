@@ -92,11 +92,11 @@ fi
 # ──────────────────────────────────────────────
 echo ">>> Conduit: $CONDUIT   CHPL_HOME=${CHPL_HOME:-<from PATH>}"
 echo ">>> Compiling ${BINARY_NAME} (ping-pong)..."
-chpl --fast --main-module 3d "$SRC_DIR/3d.chpl" -o "$BINARY_NAME"
+chpl --fast --main-module 3d "$SRC_DIR/3d.chpl" "$SRC_DIR/Diagnostics.chpl" -o "$BINARY_NAME"
 echo ">>> Compiling ${SWAP_NAME} (swap variant)..."
 chpl --fast --main-module 3d_swap "$SRC_DIR/3d_swap.chpl" -o "$SWAP_NAME"
 echo ">>> Compiling ${AGG_NAME} (single-locale post-processor)..."
-chpl --fast --main-module aggregate3d "$SRC_DIR/aggregate3d.chpl" "$SRC_DIR/Render3D.chpl" -o "$AGG_NAME"
+chpl --fast --main-module aggregate3d "$SRC_DIR/aggregate3d.chpl" "$SRC_DIR/ImageUtils.chpl" -o "$AGG_NAME"
 echo ">>> Compilation successful"
 ls -la "${BINARY_NAME}" "${BINARY_NAME}_real" "${SWAP_NAME}" "${SWAP_NAME}_real" "${AGG_NAME}" "${AGG_NAME}_real"
 

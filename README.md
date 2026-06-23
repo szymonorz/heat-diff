@@ -29,7 +29,7 @@ Solves the 2D heat equation on a `StencilDist` domain with a configurable heatsi
 
 ### 3D (`src/3d.chpl`)
 
-Solves the 3D heat equation on a `StencilDist` domain with a hot slab along one face. Each step, every locale writes **only its own block** to a local binary dump (`dumpDir/frame_<step>_loc_<id>.bin`) — no gather, no rendering on the compute path. Rendering happens afterward in `src/aggregate3d.chpl`, a single-locale post-processor that reassembles the dumps and reuses the `Render3D` voxel renderer (perspective projection + edge wireframe).
+Solves the 3D heat equation on a `StencilDist` domain with a hot slab along one face. Each step, every locale writes **only its own block** to a local binary dump (`dumpDir/frame_<step>_loc_<id>.bin`) — no gather, no rendering on the compute path. Rendering happens afterward in `src/aggregate3d.chpl`, a single-locale post-processor that reassembles the dumps and reuses the `ImageUtils` voxel renderer (perspective projection + edge wireframe).
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
@@ -42,12 +42,12 @@ Solves the 3D heat equation on a `StencilDist` domain with a hot slab along one 
 
 A swap-based variant, `src/3d_swap.chpl`, is identical except it uses `un <=> u` each step instead of ping-pong buffering, kept for performance comparison (see Performance notes).
 
-3D renderer options (module `Render3D`):
+3D renderer options (module `ImageUtils`):
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `-sRender3D.render` | false | Enable MP4 output |
-| `movieName` | heat3d.mp4 | Output filename |
+| `-sImageUtils.render` | false | Enable MP4 output |
+| `movieName` | heat.mp4 | Output filename (pass `--movieName=heat3d.mp4` to keep the old name) |
 | `imageH`, `imageW` | 512 | Frame resolution |
 | `camDist` | 2.0 | Camera distance |
 | `rotX`, `rotY` | -0.5, 0.0 | Camera rotation |
@@ -136,7 +136,8 @@ export CHPL_HOME=~/chapel-2.7.0
 source $CHPL_HOME/util/setchplenv.bash
 
 cd src
-chpl --main-module 3d 3d.chpl Render3D.chpl ImageUtils.chpl -o heat3d
+chpl --main-module 3d 3d.chpl Diagnostics.chpl -o heat3d
+chpl --main-module aggregate3d aggregate3d.chpl ImageUtils.chpl -o aggregate3d
 chpl 1d.chpl ImageUtils.chpl -o heat1d
 ```
 
@@ -151,5 +152,5 @@ export GASNET_SSH_SERVERS=localhost
 ./heat1d -nl 1 --n=100 --numSteps=500 -sImageUtils.render=true
 
 # 3D with rendering
-./heat3d -nl 1 --nx=30 --ny=30 --nz=30 --numSteps=50 -sRender3D.render=true
+./aggregate3d --render=true --nx=30 --ny=30 --nz=30 --numFrames=50   # renders the dumped frames
 ```
