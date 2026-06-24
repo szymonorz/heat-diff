@@ -16,6 +16,7 @@ AGG_NAME="aggregate3d"
 INSTALL_DIR=""
 MPI_DIR=""
 CONDUIT="udp"
+SKIP_COMPILE=false
 
 usage() {
     cat <<EOF
@@ -33,6 +34,8 @@ Options:
   -m, --mpi-dir DIR    MPI prefix for --conduit mpi (default: <dirname DIR>/mpi)
   -o, --output NAME    Binary name (default: heat3d)
   -V, --chapel-version V  Chapel version of the toolchain at -d (default: ${CHAPEL_VERSION}, or \$CHAPEL_VERSION)
+  -s, --skip-compile   Reuse the binaries already in \$PWD; skip the chpl build, just distribute
+                       and (re)generate the run/aggregate scripts
   -h, --help           Show this help
 
 Examples:
@@ -52,6 +55,7 @@ while [[ $# -gt 0 ]]; do
         -m|--mpi-dir) MPI_DIR="$2"; shift 2 ;;
         -o|--output) BINARY_NAME="$2"; shift 2 ;;
         -V|--chapel-version) CHAPEL_VERSION="$2"; shift 2 ;;
+        -s|--skip-compile) SKIP_COMPILE=true; shift ;;
         -h|--help) usage ;;
         -*) echo "Unknown option: $1" >&2; exit 1 ;;
         *)  echo "Unknown argument: $1" >&2; exit 1 ;;
@@ -78,34 +82,51 @@ done < "$HOSTFILE"
 if [[ -z "$INSTALL_DIR" ]]; then INSTALL_DIR="/home/${SSH_USER}"; fi
 if [[ -z "$MPI_DIR" ]]; then MPI_DIR="$(dirname "$INSTALL_DIR")/mpi"; fi
 
-# ──────────────────────────────────────────────
-# 0. Activate the matching Chapel toolchain
-# ──────────────────────────────────────────────
-CHPL_HOME_DIR="${INSTALL_DIR}/${CHAPEL_DIR}"
-if [[ -f "$CHPL_HOME_DIR/util/setchplenv.bash" ]]; then
-    export CHPL_HOME="$CHPL_HOME_DIR"
-    [[ "$CONDUIT" == "mpi" ]] && export PATH="$MPI_DIR/bin:$PATH"
-    source "$CHPL_HOME/util/setchplenv.bash" >/dev/null 2>&1
-elif ! command -v chpl >/dev/null 2>&1; then
-    echo "Error: chpl not found and $CHPL_HOME_DIR missing. Build/distribute Chapel first." >&2
-    exit 1
-fi
+if [[ "$SKIP_COMPILE" == false ]]; then
+    # ──────────────────────────────────────────────
+    # 0. Activate the matching Chapel toolchain
+    # ──────────────────────────────────────────────
+    CHPL_HOME_DIR="${INSTALL_DIR}/${CHAPEL_DIR}"
+    if [[ -f "$CHPL_HOME_DIR/util/setchplenv.bash" ]]; then
+        export CHPL_HOME="$CHPL_HOME_DIR"
+        [[ "$CONDUIT" == "mpi" ]] && export PATH="$MPI_DIR/bin:$PATH"
+        source "$CHPL_HOME/util/setchplenv.bash" >/dev/null 2>&1
+    elif ! command -v chpl >/dev/null 2>&1; then
+        echo "Error: chpl not found and $CHPL_HOME_DIR missing. Build/distribute Chapel first." >&2
+        exit 1
+    fi
 
-# ──────────────────────────────────────────────
-# 1. Compile
-# ──────────────────────────────────────────────
-# CHPL_TARGET_CPU is not set here: chpl reads it from $CHPL_HOME/chplconfig (baked in at build
-# time by distribute-chapel.sh), so --fast/--specialize tunes to whatever the runtime was built
-# for. Setting it here instead would risk a "runtime not built for this configuration" error.
-echo ">>> Conduit: $CONDUIT   CHPL_HOME=${CHPL_HOME:-<from PATH>}"
-echo ">>> Compiling ${BINARY_NAME} (ping-pong)..."
-chpl --fast --main-module 3d "$SRC_DIR/3d.chpl" "$SRC_DIR/Diagnostics.chpl" -o "$BINARY_NAME"
-echo ">>> Compiling ${SWAP_NAME} (swap variant)..."
-chpl --fast --main-module 3d_swap "$SRC_DIR/3d_swap.chpl" -o "$SWAP_NAME"
-echo ">>> Compiling ${AGG_NAME} (single-locale post-processor)..."
-chpl --fast --main-module aggregate3d "$SRC_DIR/aggregate3d.chpl" "$SRC_DIR/ImageUtils.chpl" -o "$AGG_NAME"
-echo ">>> Compilation successful"
-ls -la "${BINARY_NAME}" "${BINARY_NAME}_real" "${SWAP_NAME}" "${SWAP_NAME}_real" "${AGG_NAME}" "${AGG_NAME}_real"
+    # ──────────────────────────────────────────────
+    # 1. Compile
+    # ──────────────────────────────────────────────
+    # CHPL_TARGET_CPU is not set here: chpl reads it from $CHPL_HOME/chplconfig (baked in at build
+    # time by distribute-chapel.sh), so --fast/--specialize tunes to whatever the runtime was built
+    # for. Setting it here instead would risk a "runtime not built for this configuration" error.
+    echo ">>> Conduit: $CONDUIT   CHPL_HOME=${CHPL_HOME:-<from PATH>}"
+    echo ">>> Compiling ${BINARY_NAME} (ping-pong)..."
+    chpl --fast --main-module 3d "$SRC_DIR/3d.chpl" "$SRC_DIR/Diagnostics.chpl" -o "$BINARY_NAME"
+    echo ">>> Compiling ${SWAP_NAME} (swap variant)..."
+    chpl --fast --main-module 3d_swap "$SRC_DIR/3d_swap.chpl" -o "$SWAP_NAME"
+    echo ">>> Compiling ${AGG_NAME} (single-locale post-processor)..."
+    chpl --fast --main-module aggregate3d "$SRC_DIR/aggregate3d.chpl" "$SRC_DIR/ImageUtils.chpl" -o "$AGG_NAME"
+    echo ">>> Compilation successful"
+    ls -la "${BINARY_NAME}" "${BINARY_NAME}_real" "${SWAP_NAME}" "${SWAP_NAME}_real" "${AGG_NAME}" "${AGG_NAME}_real"
+else
+    # ──────────────────────────────────────────────
+    # 0/1. Skip compile: reuse existing binaries in $PWD (must already be built here)
+    # ──────────────────────────────────────────────
+    echo ">>> Conduit: $CONDUIT   (--skip-compile: reusing existing binaries in $PWD)"
+    MISSING=()
+    for b in "${BINARY_NAME}" "${BINARY_NAME}_real" "${SWAP_NAME}" "${SWAP_NAME}_real" "${AGG_NAME}" "${AGG_NAME}_real"; do
+        [[ -f "$b" ]] || MISSING+=("$b")
+    done
+    if [[ ${#MISSING[@]} -gt 0 ]]; then
+        echo "Error: --skip-compile but these binaries are missing in $PWD: ${MISSING[*]}" >&2
+        echo "  Run once without --skip-compile to build them first." >&2
+        exit 1
+    fi
+    echo ">>> Reusing binaries: ${BINARY_NAME}, ${SWAP_NAME}, ${AGG_NAME}"
+fi
 
 # ──────────────────────────────────────────────
 # 2. Distribute binaries (+ iface wrapper for mpi)
