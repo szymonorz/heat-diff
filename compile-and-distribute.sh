@@ -165,7 +165,11 @@ export MPIRUN_CMD="mpirun -n %N -hosts ${HOSTS_COMMA} ${INSTALL_DIR}/mpi-iface-w
 export CHPL_RT_NUM_THREADS_PER_LOCALE=\${CHPL_RT_NUM_THREADS_PER_LOCALE:-\$(nproc)}
 
 cd "${INSTALL_DIR}"
-./${bin} -nl ${NUM_LOCALES} "\$@"
+LOG="\${LOG:-${INSTALL_DIR}/logs/${bin}-\$(date +%Y%m%d-%H%M%S).log}"
+mkdir -p "\$(dirname "\$LOG")"
+echo ">>> ${bin} -nl ${NUM_LOCALES} \$* | tee \$LOG"
+set -o pipefail
+./${bin} -nl ${NUM_LOCALES} "\$@" 2>&1 | tee "\$LOG"
 RUNSCRIPT
     else
         cat > "$script" <<RUNSCRIPT
@@ -180,7 +184,11 @@ export GASNET_MASTERIP=${MASTER_IP}
 export CHPL_RT_NUM_THREADS_PER_LOCALE=\${CHPL_RT_NUM_THREADS_PER_LOCALE:-\$(nproc)}
 
 cd "${INSTALL_DIR}"
-./${bin} -nl ${NUM_LOCALES} "\$@"
+LOG="\${LOG:-${INSTALL_DIR}/logs/${bin}-\$(date +%Y%m%d-%H%M%S).log}"
+mkdir -p "\$(dirname "\$LOG")"
+echo ">>> ${bin} -nl ${NUM_LOCALES} \$* | tee \$LOG"
+set -o pipefail
+./${bin} -nl ${NUM_LOCALES} "\$@" 2>&1 | tee "\$LOG"
 RUNSCRIPT
     fi
     chmod +x "$script"
