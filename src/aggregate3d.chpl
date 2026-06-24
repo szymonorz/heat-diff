@@ -2,16 +2,16 @@
 //
 // Reads the per-locale binary slab dumps written by 3d.chpl's dumpLocal()
 // (frame_<f>_loc_<id>.bin), reconstructs the full nx*ny*nz field for each
-// frame, and renders it via the SAME Render3D.renderFrame used inline before.
+// frame, and renders it via the SAME ImageUtils.renderFrame (rank-3 overload) used inline before.
 // This keeps all heavy rendering OFF the distributed solver's critical path.
 //
-// Build: chpl --main-module aggregate3d src/aggregate3d.chpl src/Render3D.chpl -o aggregate3d
+// Build: chpl --main-module aggregate3d src/aggregate3d.chpl src/ImageUtils.chpl -o aggregate3d
 // Run:   ./aggregate3d --render=true --nx=.. --ny=.. --nz=.. --numFrames=<numSteps> --dumpDir=collected
 //
 // Collect the per-host `frames/` directories into one `dumpDir` first (e.g. via
 // scp from each host in hosts.txt), since the solver writes to each host's local FS.
 
-use Render3D;        // reused unchanged: renderFrame(u: [] real) where rank == 3
+use ImageUtils;      // renderFrame(u: [] real) where rank == 3
 use IO;
 use FileSystem;
 use Subprocess;

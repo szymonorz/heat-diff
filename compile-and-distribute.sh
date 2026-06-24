@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-CHAPEL_VERSION="2.7.0"
-CHAPEL_DIR="chapel-${CHAPEL_VERSION}"
+CHAPEL_VERSION="${CHAPEL_VERSION:-2.9.0}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -30,9 +29,10 @@ Options:
   -c, --conduit K      Conduit: udp (default) or mpi  — must match the Chapel build at -d
   -u, --user USER      SSH user (default: chapel, or \$CHAPEL_SSH_USER)
   -p, --port PORT      SSH port (default: 22, or \$CHAPEL_SSH_PORT)
-  -d, --dir DIR        Remote install dir (default: /home/<user>); CHPL_HOME=<DIR>/${CHAPEL_DIR}
+  -d, --dir DIR        Remote install dir (default: /home/<user>); CHPL_HOME=<DIR>/chapel-${CHAPEL_VERSION}
   -m, --mpi-dir DIR    MPI prefix for --conduit mpi (default: <dirname DIR>/mpi)
   -o, --output NAME    Binary name (default: heat3d)
+  -V, --chapel-version V  Chapel version of the toolchain at -d (default: ${CHAPEL_VERSION}, or \$CHAPEL_VERSION)
   -h, --help           Show this help
 
 Examples:
@@ -51,11 +51,15 @@ while [[ $# -gt 0 ]]; do
         -d|--dir)  INSTALL_DIR="$2"; shift 2 ;;
         -m|--mpi-dir) MPI_DIR="$2"; shift 2 ;;
         -o|--output) BINARY_NAME="$2"; shift 2 ;;
+        -V|--chapel-version) CHAPEL_VERSION="$2"; shift 2 ;;
         -h|--help) usage ;;
         -*) echo "Unknown option: $1" >&2; exit 1 ;;
         *)  echo "Unknown argument: $1" >&2; exit 1 ;;
     esac
 done
+
+# Version-derived path (computed after parsing so --chapel-version takes effect)
+CHAPEL_DIR="chapel-${CHAPEL_VERSION}"
 
 if [[ "$CONDUIT" != "udp" && "$CONDUIT" != "mpi" ]]; then
     echo "Error: --conduit must be 'udp' or 'mpi'." >&2; exit 1
@@ -90,6 +94,9 @@ fi
 # ──────────────────────────────────────────────
 # 1. Compile
 # ──────────────────────────────────────────────
+# CHPL_TARGET_CPU is not set here: chpl reads it from $CHPL_HOME/chplconfig (baked in at build
+# time by distribute-chapel.sh), so --fast/--specialize tunes to whatever the runtime was built
+# for. Setting it here instead would risk a "runtime not built for this configuration" error.
 echo ">>> Conduit: $CONDUIT   CHPL_HOME=${CHPL_HOME:-<from PATH>}"
 echo ">>> Compiling ${BINARY_NAME} (ping-pong)..."
 chpl --fast --main-module 3d "$SRC_DIR/3d.chpl" "$SRC_DIR/Diagnostics.chpl" -o "$BINARY_NAME"

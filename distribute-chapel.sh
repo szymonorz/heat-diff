@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CHAPEL_VERSION="2.7.0"
-CHAPEL_TAR="chapel-${CHAPEL_VERSION}.tar.gz"
-CHAPEL_URL="https://github.com/chapel-lang/chapel/releases/download/${CHAPEL_VERSION}/${CHAPEL_TAR}"
-CHAPEL_DIR="chapel-${CHAPEL_VERSION}"
-ARCHIVE="chapel-${CHAPEL_VERSION}-built.tar.gz"
+CHAPEL_VERSION="${CHAPEL_VERSION:-2.9.0}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -15,6 +11,7 @@ SSH_OPTS="-o StrictHostKeyChecking=no -o ConnectTimeout=10 -p ${SSH_PORT}"
 INSTALL_DIR=""
 MPI_DIR=""
 CONDUIT="udp"
+TARGET_CPU="native"
 SKIP_BUILD=false
 HOSTFILE=""
 
@@ -35,10 +32,14 @@ Options:
   -c, --conduit K      Conduit: udp (default) or mpi
   -u, --user USER      SSH user (default: chapel, or \$CHAPEL_SSH_USER)
   -p, --port PORT      SSH port (default: 22, or \$CHAPEL_SSH_PORT)
-  -d, --dir DIR        Remote install dir (default: /home/<user>); CHPL_HOME=<DIR>/${CHAPEL_DIR}
+  -d, --dir DIR        Remote install dir (default: /home/<user>); CHPL_HOME=<DIR>/chapel-${CHAPEL_VERSION}
                        Use a distinct dir per conduit (e.g. .../chapel and .../chapel-mpi).
   -m, --mpi-dir DIR    MPI install prefix for --conduit mpi (default: <dirname DIR>/mpi)
-  -s, --skip-build     Skip local Chapel build, reuse existing $ARCHIVE
+  -t, --target-cpu C   CHPL_TARGET_CPU baked into the shipped runtime (default: native).
+                       'native' tunes for the BUILD host's CPU — safe on a CPU-homogeneous
+                       cluster. Use 'unknown' for generic/portable code on a mixed-CPU cluster.
+  -V, --chapel-version V  Chapel version to download/build (default: ${CHAPEL_VERSION}, or \$CHAPEL_VERSION)
+  -s, --skip-build     Skip local Chapel build, reuse existing chapel-${CHAPEL_VERSION}-built.tar.gz
   -h, --help           Show this help
 
 NOTE (heterogeneous clusters): build on the node with the OLDEST glibc; its binaries run on
@@ -59,12 +60,20 @@ while [[ $# -gt 0 ]]; do
         -p|--port) SSH_PORT="$2"; SSH_OPTS="-o StrictHostKeyChecking=no -o ConnectTimeout=10 -p ${SSH_PORT}"; shift 2 ;;
         -d|--dir)  INSTALL_DIR="$2"; shift 2 ;;
         -m|--mpi-dir) MPI_DIR="$2"; shift 2 ;;
+        -t|--target-cpu) TARGET_CPU="$2"; shift 2 ;;
+        -V|--chapel-version) CHAPEL_VERSION="$2"; shift 2 ;;
         -s|--skip-build) SKIP_BUILD=true; shift ;;
         -h|--help) usage ;;
         -*) echo "Unknown option: $1" >&2; exit 1 ;;
         *)  echo "Unknown argument: $1 (use -f to specify a hostfile)" >&2; exit 1 ;;
     esac
 done
+
+# Version-derived paths (computed after parsing so --chapel-version takes effect)
+CHAPEL_TAR="chapel-${CHAPEL_VERSION}.tar.gz"
+CHAPEL_URL="https://github.com/chapel-lang/chapel/releases/download/${CHAPEL_VERSION}/${CHAPEL_TAR}"
+CHAPEL_DIR="chapel-${CHAPEL_VERSION}"
+ARCHIVE="chapel-${CHAPEL_VERSION}-built.tar.gz"
 
 if [[ "$CONDUIT" != "udp" && "$CONDUIT" != "mpi" ]]; then
     echo "Error: --conduit must be 'udp' or 'mpi' (got '$CONDUIT')." >&2
@@ -142,11 +151,12 @@ else
     LOCAL_CHPL_HOME="$(cd "$CHAPEL_DIR" && pwd)"
 
     # Generate chplconfig from the chosen conduit (overwrites any stale one).
-    echo ">>> Writing chplconfig (CHPL_COMM_SUBSTRATE=$CONDUIT)..."
+    echo ">>> Writing chplconfig (CHPL_COMM_SUBSTRATE=$CONDUIT, CHPL_TARGET_CPU=$TARGET_CPU)..."
     cat > "$CHAPEL_DIR/chplconfig" <<CHPLCFG
 CHPL_COMM=gasnet
 CHPL_COMM_SUBSTRATE=$CONDUIT
 CHPL_LLVM=none
+CHPL_TARGET_CPU=$TARGET_CPU
 CHPLCFG
 
     CMAKE_MIN="3.20.0"

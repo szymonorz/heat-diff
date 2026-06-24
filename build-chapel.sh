@@ -8,25 +8,27 @@
 #
 set -eo pipefail
 
-CHAPEL_VERSION="2.7.0"
-CHAPEL_TAR="chapel-${CHAPEL_VERSION}.tar.gz"
-CHAPEL_URL="https://github.com/chapel-lang/chapel/releases/download/${CHAPEL_VERSION}/${CHAPEL_TAR}"
-INSTALL_DIR="$PWD/chapel-${CHAPEL_VERSION}"
+CHAPEL_VERSION="${CHAPEL_VERSION:-2.9.0}"
 CONDUIT="udp"
 MPI_DIR=""
+TARGET_CPU="native"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() {
     cat <<EOF
-Usage: $0 [--conduit udp|mpi] [--mpi-dir DIR]
+Usage: $0 [--conduit udp|mpi] [--mpi-dir DIR] [--target-cpu CPU] [--chapel-version VER]
 
 Build Chapel ${CHAPEL_VERSION} in \$PWD/chapel-${CHAPEL_VERSION} (CHPL_LLVM=none).
 
 Options:
-  -c, --conduit K   Conduit: udp (default) or mpi
-  -m, --mpi-dir DIR MPI prefix for --conduit mpi (default: \$PWD/mpi); MPICH is auto-built there
-  -h, --help        Show this help
+  -c, --conduit K       Conduit: udp (default) or mpi
+  -m, --mpi-dir DIR     MPI prefix for --conduit mpi (default: \$PWD/mpi); MPICH is auto-built there
+  -t, --target-cpu C    CHPL_TARGET_CPU baked into the runtime (default: native). 'native' tunes for
+                        this build host's CPU — safe on a CPU-homogeneous cluster. Use 'unknown' to
+                        build generic/portable code for a mixed-CPU cluster.
+  -V, --chapel-version V Chapel version to download/build (default: ${CHAPEL_VERSION}, or \$CHAPEL_VERSION)
+  -h, --help            Show this help
 EOF
     exit 0
 }
@@ -35,10 +37,17 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         -c|--conduit) CONDUIT="$2"; shift 2 ;;
         -m|--mpi-dir) MPI_DIR="$2"; shift 2 ;;
+        -t|--target-cpu) TARGET_CPU="$2"; shift 2 ;;
+        -V|--chapel-version) CHAPEL_VERSION="$2"; shift 2 ;;
         -h|--help) usage ;;
         *) echo "Unknown argument: $1" >&2; exit 1 ;;
     esac
 done
+
+# Version-derived paths (computed after parsing so --chapel-version takes effect)
+CHAPEL_TAR="chapel-${CHAPEL_VERSION}.tar.gz"
+CHAPEL_URL="https://github.com/chapel-lang/chapel/releases/download/${CHAPEL_VERSION}/${CHAPEL_TAR}"
+INSTALL_DIR="$PWD/chapel-${CHAPEL_VERSION}"
 [[ "$CONDUIT" == "udp" || "$CONDUIT" == "mpi" ]] || { echo "Error: --conduit must be udp or mpi." >&2; exit 1; }
 [[ -z "$MPI_DIR" ]] && MPI_DIR="$PWD/mpi"
 
@@ -90,11 +99,12 @@ cd "$INSTALL_DIR"
 # ──────────────────────────────────────────────
 # 4. chplconfig from the chosen conduit
 # ──────────────────────────────────────────────
-echo ">>> Writing chplconfig (CHPL_COMM_SUBSTRATE=$CONDUIT)..."
+echo ">>> Writing chplconfig (CHPL_COMM_SUBSTRATE=$CONDUIT, CHPL_TARGET_CPU=$TARGET_CPU)..."
 cat > chplconfig <<CHPLCFG
 CHPL_COMM=gasnet
 CHPL_COMM_SUBSTRATE=$CONDUIT
 CHPL_LLVM=none
+CHPL_TARGET_CPU=$TARGET_CPU
 CHPLCFG
 cat chplconfig
 
