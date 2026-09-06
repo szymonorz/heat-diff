@@ -6,13 +6,13 @@ spotykanych zadań obliczeniowych w~nauce i~inżynierii. Wśród nich szczególn
 obliczenia \emph{stencilowe}, czyli takie, w~których nowa wartość w~każdym punkcie siatki jest
 funkcją wartości z punktu sąsiadującego. Wzorzec ten
 sprawia, że wydajne i~skalowalne wykonanie obliczeń stencilowych na współczesnych
-architekturach równoległych jest zagadnieniem o~dużej wartości aplikacyjnej~\cite{datta-stencil}.
+architekturach równoległych ma duże znaczenie praktyczne~\cite{datta-stencil}.
 
 Trójwymiarowe równanie przewodnictwa ciepła jest tradycyjnym przykładem takiego problemu.
-Jego jawna dyskretyzacja różnicowa ma dokładnie te cechy, które czynią obliczenia stencilowe
-trudnymi do zrównoleglenia: niską intensywność arytmetyczną
+Jego jawna dyskretyzacja różnicowa ma dokładnie te cechy, które sprawiają, że obliczenia stencilowe
+są trudne do zrównoleglenia: niską intensywność arytmetyczną
 oraz konieczność wymiany danych brzegowych między częściami dziedziny w~każdym kroku
-czasowym. Program symulujący równania ciepła idealnie pozwala badać granice skalowalności.
+czasowym. Program symulujący równanie ciepła nadaje się dobrze do badania granic skalowalności.
 
 Równoległe programowanie systemów rozproszonych tradycyjnie realizuje się za pomocą interfejsu
 przekazywania komunikatów (MPI), co daje wysoką wydajność kosztem znacznej złożoności kodu:
@@ -20,10 +20,10 @@ programista jawnie zarządza podziałem danych, buforami wymiany oraz synchroniz
 oferują języki i~biblioteki oparte na modelu \emph{PGAS} (ang. \emph{Partitioned Global Address
 Space}), w~którym pamięć całego systemu jest widziana jako jedna, logicznie spójna, lecz fizycznie
 partycjonowana przestrzeń adresowa~\cite{pgas}. Język Chapel, rozwijany pierwotnie przez firmę Cray, jest
-jednym z~najbardziej dojrzałych przedstawicieli tego nurtu~\cite{chapel-overview}. Umożliwia on zapisywanie obliczeń
-rozproszonych w~notacji zbliżonej do sekwencyjnej, z~globalnym widokiem tablic, wysokopoziomowymi
-iteratorami równoległymi oraz gotowymi rozkładami dziedzin, pozostawiając szczegóły komunikacji
-warstwie wykonawczej opartej na bibliotece GASNet.
+jednym z~bardziej rozwiniętych języków w~tej grupie~\cite{chapel-overview}. Umożliwia zapisywanie obliczeń
+rozproszonych w~notacji zbliżonej do sekwencyjnej: z~globalnym widokiem tablic, wysokopoziomowymi
+iteratorami równoległymi i~gotowymi rozkładami dziedzin. Szczegóły komunikacji pozostawia
+warstwie wykonawczej, opartej na bibliotece GASNet.
 
 Celem niniejszej pracy jest zaprojektowanie, zaimplementowanie i~wdrożenie na~fizycznym klastrze
 rozproszonego programu symulującego trójwymiarowe równanie przewodnictwa ciepła w~języku Chapel, a~następnie

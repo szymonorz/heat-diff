@@ -8,7 +8,7 @@
 
 Docelowym środowiskiem uruchomieniowym jest rzeczywisty klaster \emph{Pionier} w~pracowni komputerowej Wydziału Matematyki i~Informatyki UMK, złożony z~dziewięciu jednorodnych węzłów fizycznych (\emph{Pionier-lab8-1}\,\dots\,\emph{Pionier-lab8-9}) połączonych przełącznikiem Ethernet o~przepustowości \SI{1}{Gb\per\second}. Wszystkie węzły są identyczne: każdy wyposażony jest w~procesor Intel Core i7-12700K (\num{12} rdzeni, \num{20} wątków sprzętowych), \SI{32}{GiB} pamięci RAM DDR4-3200 oraz kartę sieciową Intel I219-V (sterownik \texttt{e1000e}, \SI{1}{Gb\per\second}) i~pracuje pod systemem Ubuntu (jądro \texttt{6.8.0-111-generic}). Węzły mają adresy z~podsieci \texttt{192.168.128.0/24}, a~dostęp do nich odbywa się bezpośrednim poleceniem \texttt{ssh <ip>}. Jednorodność środowiska, czyli ta sama architektura procesora, dystrybucja i~wersja bibliotek na każdym węźle, upraszcza dystrybucję binariów: obraz zbudowany na jednym węźle działa bez zmian na pozostałych. W~eksperymentach skalowania każdemu węzłowi fizycznemu odpowiadał jeden lokal (\emph{locale}), co pozwoliło zbadać skalowanie w~funkcji liczby węzłów aż do dziewięciu.
 
-Topologię środowiska przedstawiono na \cref{fig:topologia}. Kluczowe jest spostrzeżenie, że wszystkie węzły dzielą jedno łącze o~przepustowości \SI{1}{Gb\per\second}; łącze to stanowi wąskie gardło całej komunikacji rozproszonej, ponieważ każdorazowa wymiana komórek brzegowych pomiędzy sąsiadującymi fragmentami dziedziny musi przekroczyć ten wspólny przełącznik.
+Topologię środowiska przedstawiono na \cref{fig:topologia}. Warto zauważyć, że wszystkie węzły dzielą jedno łącze o~przepustowości \SI{1}{Gb\per\second}. To łącze jest wąskim gardłem komunikacji rozproszonej, bo każda wymiana komórek brzegowych między sąsiednimi fragmentami dziedziny przechodzi przez ten sam przełącznik.
 
 \begin{figure}[H]
   \centering
@@ -70,12 +70,12 @@ Log jest samoopisujący dzięki dwóm liniom \texttt{[cfg]}. Pierwsza, pochodzą
 
 Do celowego wywoływania obciążenia sieci służy harness \path{run-nl.sh}. Przeplata on listę serwerów SSH tak, że kolejne lokale trafiają na różne węzły fizyczne, przez co sąsiadujące fragmenty dziedziny w~rozkładzie \texttt{StencilDist} znajdują się na różnych węzłach. W~konsekwencji \emph{każda} operacja pobrania halo przekracza wspólne łącze \SI{1}{Gb\per\second}, tworząc ruch wielu-do-jednego (incast), co uwidacznia błąd \texttt{ECONGESTION} kanału udp.
 
-Ostatnim elementem środowiska jest skrypt \path{mpi-iface-wrap.sh} odpowiedzialny za przypięcie interfejsu sieciowego per ranga na węzłach wielosieciowych. Wybiera on lokalny adres IPv4 z~właściwej podsieci klastra (\texttt{192.168.128.0/24}), pomijając interfejsy wirtualne, czyli mostki \texttt{docker0} i~\texttt{virbr0}, podsieci \texttt{172.16/12} oraz adresy libvirt \texttt{192.168.122.*}, eksportuje \texttt{MPICH\_INTERFACE\_HOSTNAME}, po czym uruchamia program. Bez tego kroku transport \texttt{ch3:sock} może rozgłosić nieroutowalną wizytówkę, a~wywołanie \texttt{MPI\_Init} kończy się błędem ,,No route to host''.
+Ostatnim elementem środowiska jest skrypt \path{mpi-iface-wrap.sh} odpowiedzialny za przypięcie interfejsu sieciowego per ranga na węzłach wielosieciowych. Wybiera on lokalny adres IPv4 z~właściwej podsieci klastra (\texttt{192.168.128.0/24}), pomijając interfejsy wirtualne, czyli mostki \texttt{docker0} i~\texttt{virbr0}, podsieci \texttt{172.16/12} oraz adresy libvirt \texttt{192.168.122.*}, eksportuje \texttt{MPICH\_INTERFACE\_HOSTNAME}, po czym uruchamia program. Bez tego kroku transport \texttt{ch3:sock} może rozgłosić nieroutowalny adres interfejsu, a~wywołanie \texttt{MPI\_Init} kończy się błędem ,,No route to host''.
 
 \subsection{Procedura wdrożenia krok po kroku}
 \label{sec:depl:procedura}
 
-Opisane w~poprzednich podrozdziałach elementy składają się na uporządkowaną procedurę wdrożenia, którą wykonuje się od zbudowania środowiska po uruchomienie właściwego przebiegu. Choć węzły są jednorodne, procedura ta wykracza poza zwykłą kompilację lokalną, ponieważ kolejność kroków oraz miejsce ich wykonania są istotne dla poprawności i~wymagają spójnych ścieżek oraz identycznych drzew Chapel i~MPICH na wszystkich węzłach. Całość podzielono na cztery etapy.
+Elementy opisane w~poprzednich podrozdziałach tworzą procedurę wdrożenia, od zbudowania środowiska aż po uruchomienie przebiegu. Choć węzły są jednorodne, procedura ta wykracza poza zwykłą kompilację lokalną, ponieważ kolejność kroków oraz miejsce ich wykonania są istotne dla poprawności i~wymagają spójnych ścieżek oraz identycznych drzew Chapel i~MPICH na wszystkich węzłach. Całość podzielono na cztery etapy.
 
 W~\emph{pierwszym etapie} na dowolnie wybranym węźle budowane jest środowisko wykonawcze: kompilator Chapel w~wersji \num{2.9.0} (skryptem \path{distribute-chapel.sh}) oraz biblioteka MPICH w~wersji \num{4.2.3} w~trybie \texttt{ch3:sock} (skryptem \path{build-mpi.sh}). Ponieważ klaster jest jednorodny, wybór węzła budującego jest dowolny, binaria zbudowane na jednym węźle działają na wszystkich pozostałych.
 
@@ -91,14 +91,14 @@ done
 
 W~\emph{trzecim etapie} kompilowane są binaria samego programu i~rozprowadzane na węzły skryptem \path{compile-and-distribute.sh}. Dla każdej binarki kopiowane są \emph{zarówno} plik launchera \texttt{<bin>}, jak i~właściwy obraz wykonywalny \texttt{<bin>\_real}; oba są niezbędne na każdym węźle do uruchomienia wielolokalowego. Skrypt generuje przy tym dedykowany launcher (por.\ \cref{lst:run}), który ustawia \texttt{CHPL\_HOME} i~\texttt{PATH} zgodnie z~rozesłanym drzewem.
 
-W~\emph{czwartym etapie} przebieg uruchamiany jest przez wygenerowany launcher, który wywołuje właściwy program startowy GASNet (\texttt{gasnetrun\_mpi} dla kanału mpi albo \texttt{amudprun} dla kanału udp) i~rozdziela lokale na węzły. Dwa niezmienniki opisane wyżej, \emph{identyczna ścieżka \texttt{CHPL\_HOME}} (rpath) oraz \emph{identyczne drzewa Chapel i~MPICH} pod tą samą ścieżką na wszystkich węzłach, są warunkami koniecznymi powodzenia tego etapu; naruszenie któregokolwiek z~nich objawia się dopiero na etapie ładowania bibliotek lub startu procesów zdalnych, a~więc długo po pozornie udanej kompilacji.
+W~\emph{czwartym etapie} przebieg uruchamiany jest przez wygenerowany launcher, który wywołuje właściwy program startowy GASNet (\texttt{gasnetrun\_mpi} dla kanału mpi albo \texttt{amudprun} dla kanału udp) i~rozdziela lokale na węzły. Dwa niezmienniki z poprzednich etapów, \emph{identyczna ścieżka \texttt{CHPL\_HOME}} (rpath) oraz \emph{identyczne drzewa Chapel i~MPICH} pod tą samą ścieżką na wszystkich węzłach, są warunkami koniecznymi powodzenia tego etapu. Naruszenie któregokolwiek objawia się dopiero przy ładowaniu bibliotek lub starcie procesów zdalnych, czyli już po udanej kompilacji.
 
 \section{Struktura programu i krok obliczeniowy}
 \label{sec:solver}
 
 \subsection{Dziedzina rozproszona z otoczką}
 
-Sercem implementacji jest trójwymiarowa dziedzina rozproszona pomiędzy lokale za pomocą rozkładu \texttt{StencilDist}~\cite{stencildist}. Rozkład ten różni się od zwykłego rozkładu blokowego tym, że wokół bloku należącego do każdego lokala rezerwuje dodatkową warstwę komórek, tak zwaną otoczkę (\emph{fluff}), przechowującą kopie komórek brzegowych sąsiadów. Szerokość otoczki dobrano do stosowanego siedmiopunktowego stencila, wynosi ona jedną komórkę w~każdym kierunku. Definicję dziedziny oraz jej wnętrza przedstawia \cref{lst:domain}.
+Podstawą implementacji jest trójwymiarowa dziedzina rozproszona między lokale za pomocą rozkładu \texttt{StencilDist}~\cite{stencildist}. Rozkład ten różni się od zwykłego rozkładu blokowego tym, że wokół bloku należącego do każdego lokala rezerwuje dodatkową warstwę komórek, tak zwaną otoczkę (\emph{fluff}), przechowującą kopie komórek brzegowych sąsiadów. Szerokość otoczki dobrano do stosowanego siedmiopunktowego stencila, wynosi ona jedną komórkę w~każdym kierunku. Definicję dziedziny oraz jej wnętrza przedstawia \cref{lst:domain}.
 
 \begin{lstlisting}[language=Chapel, caption={Definicja dziedziny rozproszonej z jednokomórkową otoczką oraz jej wnętrza.}, label={lst:domain}]
 const domain3D = stencilDist.createDomain({0..<nx,0..<ny,0..<nz},
@@ -125,7 +125,7 @@ proc stepOnce(ref dst, ref src, ref fluffTimer, ref computeTimer) {
 }
 \end{lstlisting}
 
-Metoda \texttt{updateFluff()} kopiuje komórki brzegowe każdego lokala do otoczek sąsiadów, przesyłając dane poprzez GASNet; jest to \emph{jedyna} komunikacja odbywająca się w~ramach kroku. Na więcej niż jednym lokalu wywołanie to jest \emph{obowiązkowe} dla poprawności: pominięcie go powoduje odczyt nieaktualnych lub niezainicjowanych komórek otoczki, przez co obliczenie przebiega szybciej, lecz daje wynik \emph{cicho błędny}. Właśnie dlatego wymiana halo jest zarazem gwarantem poprawności i~głównym wąskim gardłem obliczeń rozproszonych, każdorazowo obciąża wspólne łącze \SI{1}{Gb\per\second}. Przebieg pojedynczego kroku wraz z~fazą zapisu ilustruje \cref{fig:pipeline}.
+Metoda \texttt{updateFluff()} kopiuje komórki brzegowe każdego lokala do otoczek sąsiadów, przesyłając dane poprzez GASNet; jest to \emph{jedyna} komunikacja odbywająca się w~ramach kroku. Na więcej niż jednym lokalu wywołanie to jest \emph{obowiązkowe} dla poprawności: pominięcie go powoduje odczyt nieaktualnych lub niezainicjowanych komórek otoczki, przez co obliczenie przebiega szybciej, lecz daje wynik \emph{cicho błędny}. Dlatego wymiana halo jest jednocześnie gwarancją poprawności i głównym wąskim gardłem obliczeń rozproszonych, bo przy każdym kroku obciąża wspólne łącze \SI{1}{Gb\per\second}. Przebieg pojedynczego kroku wraz z~fazą zapisu ilustruje \cref{fig:pipeline}.
 
 \begin{figure}[H]
   \centering
@@ -155,7 +155,7 @@ Metoda \texttt{updateFluff()} kopiuje komórki brzegowe każdego lokala do otocz
 
 \subsection{Pomiar czasu i rejestrowanie}
 
-Program rozdziela pomiar czasu na wyraźnie zdefiniowane obszary. Stoper \texttt{initTimer} obejmuje fazę przygotowania (alokacja tablic, inicjalizacja gorącej warstwy oraz obliczenie kroku czasowego \texttt{dt} i~współczynników), której wynik raportowany jest jako \emph{Initialization time}. Stoper \texttt{computeTimer} obejmuje całą pętlę czasową i~raportowany jest jako \emph{Execution time} (w~wariancie z~zamianą buforów: \emph{Computation time}). Dla każdego kroku wypisywana jest linia \texttt{step <n>\ updateFluff=<s> s\ compute=<s> s\ save=<s> s}, do której wariant z~zamianą dodaje pole \texttt{swap=}. Ponadto rejestrator \texttt{commLog} wypisuje jednorazowo linię \texttt{[comm] <bytes> B/step across <N> locale(s)} oraz przyrostowe liczby operacji \texttt{put}/\texttt{get}/\texttt{on}/\texttt{amo} na każdy krok, co pozwala powiązać obserwowany czas z~faktycznym wolumenem komunikacji.
+Program rozdziela pomiar czasu na wyraźnie zdefiniowane obszary. Stoper \texttt{initTimer} obejmuje fazę przygotowania (alokacja tablic, inicjalizacja gorącej warstwy oraz obliczenie kroku czasowego \texttt{dt} i~współczynników), której wynik raportowany jest jako \emph{Initialization time}. Stoper \texttt{computeTimer} obejmuje całą pętlę czasową i~raportowany jest jako \emph{Execution time} (w~wariancie z~zamianą buforów: \emph{Computation time}). Dla każdego kroku wypisywana jest linia \texttt{step <n>\ updateFluff=<s> s\ compute=<s> s\ save=<s> s}, do której wariant z~zamianą dodaje pole \texttt{swap=}. Ponadto rejestrator \texttt{commLog} wypisuje jednorazowo linię \texttt{[comm] <bytes> B/step across <N> locale(s)} oraz przyrostowe liczby operacji \texttt{put}/\texttt{get}/\texttt{on}/\texttt{amo} na każdy krok, co pozwala powiązać obserwowany czas z~faktyczną objętością komunikacji.
 
 Efektywną liczbę wątków na lokal wypisuje serialna pętla \texttt{for} po lokalach, przez co linie są uporządkowane według identyfikatora lokala:
 
@@ -216,7 +216,7 @@ proc dumpLocal(ref field, frameIdx: int) throws {
 }
 \end{lstlisting}
 
-Powstający plik nosi nazwę \texttt{frame\_<idx>\_loc\_<localeId>.bin} (lub \texttt{.bin.gz} przy kompresji) w~katalogu \texttt{dumpDir}. Nagłówek zawiera indeks klatki, identyfikator lokala, sześć globalnych granic i~sześć granic lokalnych, po których następuje surowy blok liczb typu \texttt{real}. Kompresja (domyślnie \texttt{compress=true}) realizowana jest przez przekierowanie strumienia do uruchomionego procesu \texttt{gzip -c > file.gz}. Ponieważ symulowane pole jest gładkie, kompresja \texttt{gzip} jest w~praktyce bezstratna i~zmniejsza rozmiar danych około \num{190}-krotnie, co czyni częste zrzucanie klatek przystępnym pod względem zajętości dysku. Parametr \texttt{dumpEvery} pełni rolę bramki (\texttt{step \% dumpEvery == 0}), a~licznik klatek zwiększa się przy każdym faktycznym zrzucie. Przed rozpoczęciem pętli każdy lokal wykonuje \texttt{rmTree} i~\texttt{mkdir} na katalogu \texttt{dumpDir}, aby wyeliminować pozostałości po wcześniejszych przebiegach. Należy podkreślić, że błąd \texttt{ENOSPC} (numer \num{28}) oznacza problem \emph{dyskowy} i~jest zjawiskiem odmiennym od sieciowego \texttt{ECONGESTION}; rozróżnienie to jest istotne przy diagnostyce nieudanych przebiegów.
+Powstający plik nosi nazwę \texttt{frame\_<idx>\_loc\_<localeId>.bin} (lub \texttt{.bin.gz} przy kompresji) w~katalogu \texttt{dumpDir}. Nagłówek zawiera indeks klatki, identyfikator lokala, sześć globalnych granic i~sześć granic lokalnych, po których następuje surowy blok liczb typu \texttt{real}. Kompresja (domyślnie \texttt{compress=true}) realizowana jest przez przekierowanie strumienia do uruchomionego procesu \texttt{gzip -c > file.gz}. Ponieważ symulowane pole jest gładkie, kompresja \texttt{gzip} jest w~praktyce bezstratna i~zmniejsza rozmiar danych około \num{190}-krotnie, co czyni częste zrzucanie klatek przystępnym pod względem zajętości dysku. Parametr \texttt{dumpEvery} pełni rolę bramki (\texttt{step \% dumpEvery == 0}), a~licznik klatek zwiększa się przy każdym faktycznym zrzucie. Przed rozpoczęciem pętli każdy lokal wykonuje \texttt{rmTree} i~\texttt{mkdir} na katalogu \texttt{dumpDir}, aby wyeliminować pozostałości po wcześniejszych przebiegach. Warto pamiętać, że błąd \texttt{ENOSPC} (numer \num{28}) to problem dyskowy, inny niż sieciowy \texttt{ECONGESTION}; to rozróżnienie jest ważne przy diagnostyce nieudanych przebiegów.
 
 \subsection{Agregacja rozproszonych fragmentów}
 
@@ -229,7 +229,7 @@ r.readBinary(block);
 full[blockDom] = block;
 \end{lstlisting}
 
-Po zrekonstruowaniu pełnego pola dla danej klatki wywoływana jest procedura \texttt{renderFrame(full)}. Podział na fazę rozproszonego zapisu i~fazę scentralizowanej agregacji jest celowy: kosztowna komunikacja globalna zostaje przesunięta poza symulację właściwą i~wykonana raz, w~trybie post-processingu, gdy nie obciąża już czasu obliczeń.
+Po zrekonstruowaniu pełnego pola dla danej klatki wywoływana jest procedura \texttt{renderFrame(full)}. Podział na rozproszony zapis i scentralizowaną agregację jest zamierzony: komunikacja globalna odbywa się raz, w~trybie post-processingu, i~nie obciąża czasu obliczeń.
 
 \subsection{Wizualizacja}
 
@@ -246,4 +246,4 @@ Sześcian renderowany jest pod~kątem, w~widoku 3/4, od~strony gorącej ściany 
   \label{fig:cube3d}
 \end{figure}
 
-Zaprezentowana architektura, rozproszony zapis fragmentów bez globalnego gromadzenia, ich późniejsza agregacja poza ścieżką krytyczną oraz opcjonalna wizualizacja, pozwala oddzielić kosztowne operacje wejścia-wyjścia i~komunikacji zbiorczej od właściwej pętli obliczeniowej, której jedynym niezbędnym elementem komunikacyjnym pozostaje wymiana halo omówiona w~\cref{sec:solver}.
+Opisana architektura, rozproszony zapis fragmentów bez globalnego gromadzenia, ich późniejsza agregacja poza ścieżką krytyczną oraz opcjonalna wizualizacja, oddziela operacje wejścia-wyjścia i komunikację zbiorową od właściwej pętli obliczeniowej. Jedynym elementem komunikacyjnym tej pętli pozostaje wymiana halo omówiona w~\cref{sec:solver}.

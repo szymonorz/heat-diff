@@ -44,10 +44,10 @@ Rozmiar kostki        & $N\in\{125,\ldots,1000\}$ & $L{=}9$, 100 kroków       &
 \end{tabular}
 \end{table}
 
-Rozdzielenie skalowania wątkowego w~obrębie węzła od~skalowania po~węzłach jest celowe:
-pozwala niezależnie ocenić dwa różne mechanizmy równoległości, współdzielenie pamięci przez
+Skalowanie wątkowe w~obrębie węzła i~skalowanie po~węzłach rozdzielono świadomie:
+to dwa różne mechanizmy równoległości, współdzielenie pamięci przez
 wątki jednej lokacji oraz rozproszenie danych między lokacjami połączone z~komunikacją sieciową.
-Zestawienie obu perspektyw jest kluczowe dla identyfikacji czynnika ograniczającego wydajność.
+Dopiero zestawienie obu perspektyw pozwala zidentyfikować czynnik ograniczający wydajność.
 
 \subsection{Metryki}
 
@@ -87,8 +87,8 @@ komunikacji wprowadzono \emph{udział komunikacji} w~czasie pojedynczego kroku,
 \end{equation}
 gdzie $t_{\text{fluff}}$ i~$t_{\text{compute}}$ są uśrednionymi po~krokach czasami wymiany halo
 oraz obliczeń. Wielkość $\phi$ przyjmuje wartości bliskie jedności, gdy dominuje komunikacja,
-oraz bliskie zeru, gdy dominują obliczenia. Uzupełniająco rejestrowano wolumen wymiany halo
-w~bajtach na~krok, obliczany analitycznie przez procedurę \texttt{haloBytesPerStep} jako łączną
+oraz bliskie zeru, gdy dominują obliczenia. Uzupełniająco rejestrowano objętość wymiany halo
+w~bajtach na~krok, obliczaną analitycznie przez procedurę \texttt{haloBytesPerStep} jako łączną
 liczbę komórek warstw brzegowych wszystkich lokacji pomnożoną przez rozmiar elementu.
 
 \section{Procedura i narzędzia pomiarowe}
@@ -96,11 +96,11 @@ liczbę komórek warstw brzegowych wszystkich lokacji pomnożoną przez rozmiar 
 
 \subsection{Procedura pomiarowa}
 
-Każdą konfigurację uruchamiano dziesięciokrotnie, a~jako estymator reprezentatywny przyjmowano \emph{medianę} czasu wykonania. Wybór mediany zamiast średniej arytmetycznej jest istotny:
+Każdą konfigurację uruchamiano dziesięciokrotnie, a~jako wartość reprezentatywną przyjmowano \emph{medianę} czasu wykonania. Wybór mediany zamiast średniej arytmetycznej jest istotny:
 pojedyncze przebiegi bywają zaburzone przez chwilowe zdarzenia systemowe, takie jak rywalizacja o~rdzenie,
 przejściowe ograniczenie taktowania procesora czy aktywność innych procesów, które zawyżają
 czas, lecz nie odzwierciedlają właściwości badanej konfiguracji. Mediana jest odporna na takie
-wartości odstające, podczas gdy średnia zostaje przez nie zawyżona. Przykładu dostarczyła jedna
+wartości odstające, podczas gdy średnia zostaje przez nie zawyżona. Przykładem jest jedna
 z~serii jednowęzłowych, w~której trzy z~dziesięciu przebiegów były wolniejsze o~około pół
 sekundy wskutek przejściowego ograniczenia taktowania; skutkowało to podwyższonym odchyleniem
 standardowym przy praktycznie niezmienionej medianie.
@@ -125,9 +125,9 @@ warstwę wątkową. Na~węzłach Pionier o~20~wątkach sprzętowych liczba efekt
 \subsection{Narzędzia pomiarowe}
 
 Czasy mierzono wbudowanymi w~język stoperami (\texttt{stopwatch}) o~rozdzielczości
-podsekundowej, osobno dla inicjalizacji, całej pętli czasowej oraz, w~każdym kroku, dla wymiany halo, obliczeń i~zapisu. Wolumen i~liczbę operacji komunikacyjnych GET, PUT, zdalnych i~atomowych rejestrowano za~pomocą modułu diagnostyki komunikacji GASNet,
+podsekundowej, osobno dla inicjalizacji, całej pętli czasowej oraz, w~każdym kroku, dla wymiany halo, obliczeń i~zapisu. Objętość i~liczbę operacji komunikacyjnych GET, PUT, zdalnych i~atomowych rejestrowano za~pomocą modułu diagnostyki komunikacji GASNet,
 włączanego przełącznikiem \texttt{commLog}; wypisywany raz wiersz \texttt{[comm]} podaje
-analityczny wolumen wymiany halo na~krok. Zużycie pamięci procesu kontrolowano narzędziem
+analityczną objętość wymiany halo na~krok. Zużycie pamięci procesu kontrolowano narzędziem
 systemowym \texttt{/usr/bin/time -v}, odczytując maksymalny rezydentny zbiór stron, co pozwoliło ustalić
 graniczne rozmiary kostek mieszczące się w~pamięci danego węzła.
 
@@ -135,7 +135,7 @@ Przetwarzanie zebranych dzienników i~wykreślanie wyników zrealizowano skrypta
 z~biblioteką \texttt{matplotlib}. Podstawową formą prezentacji jest wykres pudełkowy
 rozkładu czasu wykonania z~naniesionymi punktami poszczególnych przebiegów, medianą
 oraz średnią; uzupełniają go wykresy metryk pochodnych: przyspieszenia, wydajności,
-przepustowości i~udziału komunikacji. Taka forma jednocześnie pokazuje tendencję centralną
+przepustowości i~udziału komunikacji. Taka forma pokazuje jednocześnie środek rozkładu
 i~rozrzut, co jest istotne przy ocenie powtarzalności.
 
 Do diagnozy zachowania sieci wykorzystano dedykowany skrypt sondujący, który równocześnie
@@ -181,5 +181,5 @@ niemonotonicznego przebiegu skalowania po~węzłach.
 \paragraph{Trafność zewnętrzna.} Wyniki uzyskano na~konkretnym, niewielkim klastrze z~siecią
 \SI{1}{\giga\bit\per\second}. Wartości bezwzględne nie przenoszą się wprost na~inne środowiska,
 natomiast jakościowe wnioski, ograniczenie przepustowością pamięci i~komunikacją, korzystny
-wpływ większych zadań na~wykorzystanie klastra, mają charakter ogólny i~wynikają z~samej natury
+wpływ większych zadań na~wykorzystanie klastra, mają charakter ogólny i~wynikają z~właściwości samych
 obliczeń stencilowych~\cite{roofline,datta-stencil}.

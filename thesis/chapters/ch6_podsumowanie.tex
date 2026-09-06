@@ -6,8 +6,8 @@
 
 Celem pracy było zaprojektowanie, zaimplementowanie i~wdrożenie na~klastrze rozproszonego
 programu symulacyjnego rozwiązującego trójwymiarowe równanie przewodnictwa ciepła w~języku Chapel oraz przeprowadzenie
-systematycznej analizy jego poprawności i~skalowalności. Wszystkie postawione cele szczegółowe
-zostały zrealizowane, a~zebrane wyniki empiryczne potwierdzają tezę pracy: dla rozważanej klasy
+systematycznej analizy jego poprawności i~skalowalności. Zrealizowano wszystkie założone cele,
+a~wyniki potwierdzają tezę pracy: dla rozważanej klasy
 obliczeń stencilowych o~czynniku ograniczającym wydajność decyduje nie moc obliczeniowa, lecz
 przepustowość pamięci na~poziomie węzła oraz koszt komunikacji między węzłami~\cite{roofline}.
 
@@ -20,8 +20,8 @@ kryterium kontrolnym. Potwierdzono również, że dwa warianty pętli czasowej, 
 oraz wariant z~zamianą wskaźników, są numerycznie identyczne i~wydajnościowo równoważne,
 ponieważ zamiana tablic odbywa się w~czasie stałym i~nie wiąże się z~kopiowaniem danych.
 Jednocześnie wykazano, że pominięcie wymiany halo, choć znacząco skraca czas wykonania, prowadzi
-do~wyniku \emph{cicho błędnego}; obserwacja ta podkreśla, że w~programowaniu rozproszonym sama
-szybkość nie jest miarą poprawności.
+do~wyniku \emph{cicho błędnego}; pokazuje to, że w~programowaniu rozproszonym krótki czas
+wykonania nie oznacza jeszcze poprawnego wyniku.
 
 \paragraph{Skalowanie wątkowe.} Zrównoleglenie wątkowe w~obrębie węzła nasyca się bardzo szybko.
 Dla kostki $1000^3$ optimum przypada na~cztery wątki, a~maksymalne przyspieszenie nie przekracza
@@ -32,8 +32,8 @@ podnosi koszt synchronizacji i~rywalizacji o~zasoby.
 
 \paragraph{Skalowanie po~węzłach.} Przyspieszenie względem liczby węzłów zatrzymuje się na~poziomie
 około $2{,}4\times$ i~pozostaje daleko od~zależności liniowej, a~jego przebieg jest niemonotoniczny: najlepszy czas uzyskano przy~sześciu węzłach. Źródłem niemonotoniczności jest nierównomierny
-podział kostki $1000^3$ dla ,,niewygodnych'' dzielników liczby lokacji, spotęgowany wzrostem
-wolumenu wymiany halo, który rośnie w~przybliżeniu liniowo z~liczbą węzłów. W~połączeniu
+podział kostki $1000^3$ dla ,,niewygodnych'' dzielników liczby lokacji, wzmocniony rosnącą
+objętością wymiany halo, która rośnie w~przybliżeniu liniowo z~liczbą węzłów. W~połączeniu
 z~ograniczoną przepustowością łącza \SI{1}{\giga\bit\per\second} czyni to obliczenia
 ograniczonymi komunikacją.
 
@@ -53,17 +53,17 @@ decydujący.
 
 \paragraph{Produktywność a~wydajność w~języku Chapel.} Wysoki poziom abstrakcji języka Chapel, globalny widok tablic, gotowy rozkład \texttt{StencilDist} wraz z~automatyczną wymianą warstw
 brzegowych oraz zwięzłe iteratory równoległe, pozwolił zapisać poprawny kod rozproszony
-w~sposób nieporównanie prostszy niż przy jawnym użyciu MPI~\cite{chapel-overview,chapel-book}. Abstrakcja ta nie zniosła jednak
+znacznie prościej niż przy jawnym użyciu MPI~\cite{chapel-overview,chapel-book}. Abstrakcja ta nie zniosła jednak
 fundamentalnego ograniczenia komunikacyjnego: koszt wymiany halo pozostaje widoczny w~wynikach
-i~decyduje o~granicy skalowania. Wniosek ten jest zgodny z~intuicją, żaden model programowania
-nie zmienia fizyki sieci, a~zarazem stanowi ważną wskazówkę praktyczną: produktywność
-i~wydajność są w~tym przypadku zagadnieniami komplementarnymi, nie zaś zamiennymi.
+i~decyduje o~granicy skalowania. Jest to zgodne z~intuicją, model programowania nie zmienia
+właściwości sieci. Stanowi to jednocześnie wskazówkę praktyczną: w~tym przypadku produktywność
+i~wydajność się uzupełniają, a~nie zastępują.
 
 \section{Ograniczenia}
 \label{sec:ograniczenia}
 
-Uzyskane wyniki należy interpretować w~świetle kilku ograniczeń, które jednocześnie wyznaczają
-naturalne kierunki dalszych prac.
+Uzyskane wyniki należy interpretować z~uwzględnieniem kilku ograniczeń, które sugerują też,
+co można robić dalej.
 
 Po~pierwsze, środowiskiem docelowym był niewielki, jednorodny klaster połączony siecią
 Ethernet o~przepustowości \SI{1}{\giga\bit\per\second}. Łącze to jest wąskim gardłem
@@ -88,14 +88,11 @@ liczbie jednostek równoległości. Analiza skalowania słabego, w~którym rozmi
 proporcjonalnie do~liczby lokacji, dostarczyłaby komplementarnego obrazu i~jest naturalnym
 uzupełnieniem przedstawionych wyników.
 
-Mimo tych ograniczeń praca dostarcza spójnego, empirycznie ugruntowanego obrazu zachowania
-rozproszonego programu stencilowego w~języku Chapel oraz jednoznacznie identyfikuje komunikację
-i~przepustowość pamięci jako czynniki decydujące o~jego skalowalności.
 
 \subsection{Kierunki dalszych prac}
 \label{sec:dalsze-prace}
 
-Zidentyfikowane ograniczenia wyznaczają naturalną mapę dalszych badań. Najbardziej obiecującym
+Te ograniczenia wskazują, co można zrobić dalej. Najciekawszym
 kierunkiem jest \textbf{nakładanie komunikacji na~obliczenia}: wymianę warstw brzegowych można
 rozpocząć asynchronicznie i~w~tym czasie liczyć wnętrze poddziedziny, które nie zależy od~danych
 sąsiadów, ujawniając komunikację dopiero przy aktualizacji komórek przylegających do~granicy.
@@ -117,7 +114,7 @@ z~tych rozszerzeń zmieniłoby charakterystykę obliczeniową problemu i~pozwoli
 wnioski niniejszej pracy zachowują ważność poza wąską klasą jawnych schematów stencilowych.
 
 Wreszcie, wartościowym uzupełnieniem o~charakterze inżynierskim byłoby \textbf{pełne
-zautomatyzowanie potoku pomiarowego}, od~budowy i~dystrybucji, przez zbieranie samoopisujących
-się dzienników, aż po~generowanie wykresów, tak aby cały cykl badawczy był odtwarzalny jednym
+zautomatyzowanie potoku pomiarowego}, od~budowy i~dystrybucji po~zbieranie logów
+i~generowanie wykresów, tak aby cały cykl badawczy był odtwarzalny jednym
 poleceniem. Wprowadzone w~tej pracy elementy, czyli samoopisujące się logi oraz skrypty dystrybucji
-i~analizy, stanowią solidny fundament takiego potoku.
+i~analizy, mogą być bazą takiego potoku.

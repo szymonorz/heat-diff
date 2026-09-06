@@ -9,7 +9,7 @@
 
 Przed przystąpieniem do jakichkolwiek pomiarów wydajnościowych konieczne było
 ustanowienie wiarygodnego kryterium poprawności obliczeń. Bez takiego kryterium
-przyspieszenie wynikające z~równoległości pozostaje bezwartościowe, łatwo
+przyspieszenie z~równoległości nie ma znaczenia, łatwo
 bowiem uzyskać krótszy czas wykonania kosztem cichego naruszenia poprawności
 wyniku. W~przypadku badanego programu przyjęto niezmiennik oparty na
 własnościach pola temperatury oraz na jego całkowitej sumie.
@@ -28,8 +28,8 @@ różnicowego lub niestabilność numeryczną.
 Kluczową rolę w~weryfikacji odgrywa jednak suma wszystkich elementów pola.
 Ponieważ średnia wartość pola wynosi w~przybliżeniu \num{1}, suma $S$~jest
 bliska liczbie węzłów siatki, czyli $N^3$ dla dziedziny o~boku $N$.
-Jednocześnie suma $S$ stanowi czuły, globalny odcisk stanu całej dziedziny:
-najmniejsze rozejście się wyników pomiędzy konfiguracjami ujawnia się jako
+Jednocześnie suma $S$ dobrze oddaje stan całej dziedziny i~szybko reaguje
+na~różnice między konfiguracjami: najmniejsze rozejście się wyników widać jako
 rozbieżność sum.
 
 Właśnie na tej podstawie zweryfikowano poprawność obliczeń wielowęzłowych.
@@ -41,12 +41,11 @@ Pominięcie tej wymiany prowadzi do zauważalnego skrócenia czasu wykonania,
 ponieważ znika najkosztowniejsza faza komunikacyjna, lecz suma $S$ zaczyna
 się rozchodzić względem wartości odniesienia. Wynik jest wtedy
 \emph{cicho błędny}: program kończy się bez żadnego komunikatu o~błędzie,
-a~mimo to obliczone pole nie odpowiada rozwiązaniu zadania. Wniosek jest
-jednoznaczny: wymiana warstw brzegowych jest bezwzględnie wymagana dla
-poprawności obliczeń wielowęzłowych i~nie może być pominięta w~imię wydajności.
-Obserwacja ta ma istotne konsekwencje dla dalszej analizy, ponieważ to właśnie
-ta obowiązkowa komunikacja stanowi, jak zostanie pokazane w~\cref{sec:skalowanie-komunikacja},
-główne wąskie gardło całego systemu.
+a~mimo to obliczone pole nie odpowiada rozwiązaniu zadania.
+Wymiana warstw brzegowych jest więc potrzebna do~poprawności obliczeń
+wielowęzłowych i~nie da się jej pominąć dla zysku wydajności. Ta obowiązkowa
+komunikacja, jak pokazano w~\cref{sec:skalowanie-komunikacja}, jest głównym wąskim
+gardłem systemu.
 
 
 \subsection{Skalowanie wątkowe na pojedynczym węźle}
@@ -90,9 +89,9 @@ przy ośmiu wątkach czas rośnie do \SI{5.798}{\second}, a~przy szesnastu do
 \SI{5.950}{\second}. Maksymalne uzyskane przyspieszenie wynosi zatem tylko około
 \num{1.55}$\times$, mimo dostępności dwudziestu wątków.
 
-Zachowanie wydajności $E$ jest przy tym dramatyczne: spada ona z~\num{1.000}
+Wydajność $E$ spada przy tym bardzo ostro: z~\num{1.000}
 przez \num{0.725} i~\num{0.387} aż do \num{0.091} przy szesnastu wątkach. Tak
-gwałtowny spadek wydajności to klasyczny podpis problemu
+gwałtowny spadek to typowy objaw problemu
 \emph{ograniczonego pasmem pamięci}~\cite{datta-stencil}. Schemat różnicowy jest operacją o~niskiej
 intensywności arytmetycznej, ponieważ na każdy odczytany element siatki przypada
 niewiele operacji zmiennoprzecinkowych, przez co jego przepustowość jest
@@ -101,7 +100,7 @@ głównej, a~nie liczbą dostępnych rdzeni. Po nasyceniu pasma pamięci dodatko
 wątki nie mają czym się zająć poza rywalizacją o~tę samą magistralę, co
 prowadzi do degradacji wydajności.
 
-Zwiększanie liczby wątków ponad pewien próg jest tu przeciwskuteczne: po~nasyceniu
+Zwiększanie liczby wątków ponad pewien próg nie pomaga tu, a~wręcz szkodzi: po~nasyceniu
 magistrali pamięci dodatkowe wątki nie znajdują użytecznej pracy.
 \Cref{fig:threads-1000} ilustruje te zależności: lewy panel
 przedstawia rozkład czasów wykonania w~postaci wykresu pudełkowego, a~prawy
@@ -123,9 +122,8 @@ Podsumowując część jednowęzłową: równoległość wątkowa przynosi w~naj
 razie skromny, kilkudziesięcioprocentowy zysk, a~wydajność szybko załamuje się
 wraz ze wzrostem liczby wątków. Bezpośrednią przyczyną jest ograniczenie pasmem
 pamięci: schemat różnicowy o~niskiej intensywności arytmetycznej nasyca
-magistralę pamięci przy niewielkiej liczbie wątków. Obserwacja ta jest
-zapowiedzią głębszego problemu, który ujawnia się w~pełni dopiero
-w~skali wielowęzłowej.
+magistralę pamięci przy niewielkiej liczbie wątków. Sytuacja ta pogłębia się
+dopiero przy skalowaniu na~wiele węzłów.
 
 \section{Skalowanie i ograniczenia komunikacji}
 \label{sec:skalowanie-komunikacja}
@@ -292,7 +290,7 @@ $1000^3$ & \num{36.741}  & \num{36.802}  & \num{2.722} & \num{0.454} \\
 \end{tabular}
 \end{table}
 
-Wynik ten najdobitniej potwierdza komunikacyjny charakter ograniczenia.
+Wynik ten najlepiej potwierdza, że ograniczenie ma charakter komunikacyjny.
 Przepustowość rośnie systematycznie wraz z~rozmiarem dziedziny, od zaledwie
 \SI{0.117}{} Gcell/s dla najmniejszej kostki $125^3$ do \SI{2.722}{} Gcell/s
 dla największej kostki $1000^3$. Jednocześnie udział komunikacji
@@ -331,52 +329,49 @@ oraz udział komunikacji \texttt{comm\_frac} w~funkcji rozmiaru kostki.}
 \subsection{Synteza: system ograniczony komunikacją}
 \label{subsec:synteza-comm}
 
-Zebrane w~tym rozdziale dowody układają się w~spójny obraz systemu, którego
-wydajność jest ograniczona komunikacją i~przepustowością pamięci, a~nie mocą
-obliczeniową. Poniżej podsumowano przesłanki prowadzące do tego wniosku.
+Wyniki z tego rozdziału wskazują wspólnie, że system jest ograniczony
+komunikacją i~przepustowością pamięci, a~nie mocą obliczeniową. Główne
+przesłanki to:
 
 Po pierwsze, przyspieszenie węzłowe płaszczy się na poziomie około
 \num{2.4}$\times$ (\cref{tab:node-scaling}), daleko od skalowania liniowego,
 mimo dziewięciokrotnego zwiększenia liczby węzłów. Po drugie, zwiększanie
 liczby wątków na węzeł nie przynosi poprawy, a~w~konfiguracji wielowęzłowej
 średni czas obliczeń na krok wręcz rośnie z~liczbą wątków
-(\cref{tab:threads-9n}), co jest podpisem nadmiernej subskrypcji, a~nie
-niedoboru mocy obliczeniowej. Po trzecie, udział komunikacji dominuje
+(\cref{tab:threads-9n}), co wskazuje na~nadmierną subskrypcję, a~nie
+niedobór mocy obliczeniowej. Po trzecie, udział komunikacji dominuje
 w~przypadku małych dziedzin i~maleje dopiero dla dużych kostek
 (\cref{tab:cube-size}), zgodnie z~geometryczną relacją między objętością $N^3$
 a~powierzchnią $N^2$. Po czwarte wreszcie, na każdym węźle jeden wątek warstwy
 komunikacyjnej GASNet obciąża rdzeń w~niemal stu procentach, prowadząc aktywne
 odpytywanie (busy-polling) w~oczekiwaniu na postęp komunikacji, co
-potwierdzono analizą stosów wywołań w~debugerze. Nie jest to obciążenie
-obliczeniowe, lecz widoczny, mierzalny koszt bycia systemem ograniczonym
-komunikacją.
+potwierdzono analizą stosów wywołań w~debugerze. To nie jest obciążenie
+obliczeniowe, lecz widoczny i~mierzalny skutek ograniczenia komunikacją.
 
-Fizyczną barierą jest przy tym łącze Ethernet o~przepustowości
+Fizycznym ograniczeniem jest łącze Ethernet o~przepustowości
 \SI{1}{\giga\bit\per\second}, które dla dziedziny rzędu $1000^3$ ulega
 nasyceniu. Objętość warstw brzegowych na krok rośnie zarówno z~liczbą węzłów,
 jak i~z~kwadratem boku dziedziny, wobec czego to sieć, a~nie procesory,
 wyznacza pułap wydajności.
 
 Osobnego omówienia wymaga dobór konduitu komunikacyjnego GASNet, który okazał
-się krytyczny dla samej możliwości ukończenia obliczeń~\cite{gasnet}. Konduit \texttt{udp}
+się decydujący dla tego, czy obliczenia w~ogóle kończą się poprawnie~\cite{gasnet}. Konduit \texttt{udp}
 (AMUDP) przerywa działanie z~błędem ECONGESTION w~warunkach ruchu typu wielu
 nadawców do jednego odbiorcy (incast) oraz przy utracie pakietów.
 Natomiast konduit \texttt{mpi}, oparty na implementacji
 MPICH i~korzystający z~kontroli przepływu protokołu TCP, przetrwa te warunki
-i~poprawnie kończy obliczenia, wolniej, lecz niezawodnie. Z~tego właśnie
-powodu nowsza seria pomiarów wykorzystuje konduit MPI. Jest to praktyczny
-kompromis między wydajnością a~odpornością: w~środowisku o~zawodnej lub
-przeciążonej sieci niezawodność transportu okazuje się warunkiem koniecznym
-uzyskania jakiegokolwiek poprawnego wyniku.
+i~działa wolniej, ale kończy obliczenia poprawnie. Z~tego właśnie
+powodu nowsza seria pomiarów wykorzystuje konduit MPI. To kompromis:
+konduit MPI jest wolniejszy, ale działa poprawnie w~zawodnej sieci, co jest tu
+ważniejsze od samej szybkości.
 
-Wnioski płynące z~tej analizy mają charakter inżynierski. Skoro system jest
+Skoro system jest
 ograniczony komunikacją, dalszej poprawy wydajności nie należy szukać ani
 w~zwiększaniu liczby wątków, ani w~dokładaniu kolejnych węzłów, lecz przede
 wszystkim w~przyspieszeniu warstwy komunikacyjnej, czy to przez zastosowanie
 szybszego łącza sieciowego, czy przez wybór wydajniejszego konduitu GASNet.
 Dopóki halo wymieniane jest przez łącze \SI{1}{\giga\bit\per\second}, klaster
-pozostaje ,,głodny komunikacji'', a~jego rdzenie obliczeniowe, w~znacznej
-części niewykorzystane.
+wciąż czeka na~dane z~sieci, a~część rdzeni pozostaje niewykorzystana.
 
 \subsection{Zestawienie zbiorcze i~powtarzalność}
 \label{subsec:synteza-tab}
@@ -403,10 +398,9 @@ Rozmiar kostki (\cref{tab:cube-size})       & udział komunikacji \texttt{comm\_
 \end{tabular}
 \end{table}
 
-Zestawienie to unaocznia spójność całego materiału: niezależnie od osi, wzdłuż
-której prowadzono skalowanie, liczby wątków, liczby węzłów czy rozmiaru
-zadania, wydajność systematycznie napotyka tę samą barierę pasma pamięci
-i~komunikacji. Jedyną osią, wzdłuż której obserwuje się wyraźną poprawę
+Z zestawienia widać, że niezależnie od osi skalowania, liczby wątków, liczby
+węzłów czy rozmiaru zadania, wyniki trafiają na~to samo ograniczenie: pasmo
+pamięci i~komunikację. Jedyną osią, wzdłuż której obserwuje się wyraźną poprawę
 efektywności wykorzystania klastra, jest rozmiar zadania: powiększanie kostki
 przesuwa proporcje na korzyść obliczeń, zgodnie z~omówioną wcześniej relacją
 $N^3$ do $N^2$.
@@ -418,13 +412,13 @@ Pionier (\cref{tab:threads-1000}) odchylenie standardowe czasu wykonania
 nie przekracza \SI{0.07}{\second}, a~dla większości konfiguracji jest rzędu
 zaledwie kilku tysięcznych sekundy. Tak niski rozrzut oznacza, że pojedynczy przebieg jest
 w~tych przypadkach niemal równie miarodajny co mediana z~dziesięciu powtórzeń,
-a~różnice między konfiguracjami, rzędu dziesiątych części sekundy lub większe, są istotne i~nie sposób ich przypisać samemu szumowi pomiarowemu.
+a~różnice między konfiguracjami to rzędy dziesiątych sekundy lub więcej, więc nie da się ich wytłumaczyć samym szumem pomiarowym.
 
-Rzetelność wymaga wreszcie odnotowania praktycznej granicy rozmiaru zadania.
+Warto też odnotować praktyczną granicę rozmiaru zadania.
 Dziedzin istotnie większych niż $1000^3$ nie udało się ukończyć: przekraczają
 one możliwości pamięciowe i~czasowe klastra, wobec czego nie figurują w~żadnej
 tabeli i~wyznaczają jedynie górny kres rozmiaru osiągalnego na badanej
 infrastrukturze. Świadomość tego ograniczenia nie podważa głównych wniosków
 rozdziału, które opierają się na~seriach o~niskim rozrzucie i~dziesięciokrotnej
-powtarzalności, lecz jest niezbędna dla uczciwej oceny zakresu ich
-obowiązywania.
+powtarzalności, lecz trzeba o~niej pamiętać, oceniając, do~jakich rozmiarów
+zadania sięgają wnioski tej pracy.

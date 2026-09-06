@@ -38,18 +38,17 @@ o~grubości \texttt{hotThickness} płaszczyzn siatki przylegających do~ściany
 \(y=0\), o~podwyższonej wartości \(u=2\). Warstwa ta modeluje gorącą ścianę,
 od~której ciepło rozchodzi się w~głąb sześcianu.
 
-Na~brzegu dziedziny przyjęto warunki Dirichleta o~zamrożonych wartościach: cała
+Na~brzegu dziedziny przyjęto warunki Dirichleta o~ustalonych wartościach: cała
 zewnętrzna warstwa komórek siatki nigdy nie jest aktualizowana i~zachowuje swoje
 wartości początkowe przez cały czas symulacji. W~praktyce oznacza to,
 że aktualizowane jest wyłącznie wnętrze dziedziny, a~warstwa gorąca przy
 \(y=0\) pozostaje utrzymywana na~poziomie \(u=2\), pełniąc rolę stałego źródła
 ciepła. Pozostałe ściany, utrzymywane na~poziomie
 \(u=1\), działają jak zbiorniki ciepła o~ustalonej temperaturze. Taki dobór
-warunków prowadzi do~nietrywialnego, monotonicznie ewoluującego pola, które
-w~granicy czasu dąży do~stanu ustalonego z~gradientem rozpiętym pomiędzy gorącą
-a~zimnymi ścianami. \Cref{fig:diffusion} ilustruje jakościowo charakter tej
+warunków daje pole, które monotonnie ewoluuje i~z~czasem dąży do~stanu ustalonego,
+z~gradientem między gorącą a~zimnymi ścianami. \Cref{fig:diffusion} ilustruje jakościowo charakter tej
 ewolucji na~dwuwymiarowym przykładzie: podtrzymywane źródło ciepła stopniowo
-wygładza swoje ostre szczegóły, a~ciepło rozchodzi się w~otoczenie.
+traci ostre krawędzie, a~ciepło rozchodzi się w~otoczenie.
 
 \begin{figure}[htbp]
   \centering
@@ -101,8 +100,8 @@ dyfuzyjność, krok czasowy oraz krok siatki:
   a_z = \frac{\alpha\,\Delta t}{\Delta z^2}.
   \label{eq:weights}
 \end{equation}
-Przy tych oznaczeniach reguła aktualizacji przyjmuje zwartą postać
-siedmiopunktowego stencila (ang.\ \emph{7-point stencil}):
+Przy tych oznaczeniach regułę aktualizacji można zapisać jako
+siedmiopunktowy stencil (ang.\ \emph{7-point stencil}):
 \begin{align}
   u_{i,j,k}^{\,n+1} =\; & u_{i,j,k}^{\,n}
     + a_x\!\left(u_{i-1,j,k}^{\,n} - 2\,u_{i,j,k}^{\,n} + u_{i+1,j,k}^{\,n}\right) \notag\\
@@ -176,10 +175,10 @@ drugiej, co wyznacza maksymalny dopuszczalny krok czasowy:
 \end{equation}
 Zależność~\eqref{eq:cfl} ma istotne konsekwencje praktyczne: dwukrotne
 zagęszczenie siatki wymusza czterokrotne
-zmniejszenie kroku czasowego, a~zatem czterokrotny wzrost liczby kroków
+zmniejszenie kroku czasowego, a~więc czterokrotny wzrost liczby kroków
 potrzebnych do~przebycia tego samego przedziału czasu fizycznego. Wraz
-z~ośmiokrotnym wzrostem liczby węzłów siatki daje to bardzo
-szybki wzrost całkowitego nakładu obliczeniowego, jedna z~przyczyn, dla~których
+z~ośmiokrotnym wzrostem liczby węzłów siatki daje to duży
+wzrost całkowitego nakładu obliczeniowego, co jest jedną z~przyczyn, dla~których
 symulacje dużych siatek wymagają obliczeń rozproszonych.
 
 W~zaimplementowanym programie krok czasowy dobierany jest automatycznie
@@ -189,16 +188,14 @@ na~podstawie warunku~\eqref{eq:cfl}, z~zastosowaniem współczynnika bezpieczeń
   \Delta t = \num{0.98}\cdot\Delta t_{\max}.
   \label{eq:dt}
 \end{equation}
-Ten \SI{2}{\percent} margines (ang.\ \emph{safety back-off}) spycha punkt pracy
-poniżej granicy stabilności (\(g=\num{-0.96}\) dla~najbardziej niekorzystnego
-modu), dzięki czemu schemat pozostaje po~stabilnej stronie nawet przy
-uwzględnieniu błędów zaokrągleń arytmetyki zmiennoprzecinkowej i~drobnych efektów
-numerycznych, które mogłyby zepchnąć krok dokładnie na~granicy w~obszar
-niestabilności. Wybór
-wartości bliskiej jedności jest jednocześnie korzystny wydajnościowo:
-maksymalizuje postęp w~czasie fizycznym na~jeden krok obliczeniowy, minimalizując
-liczbę wymaganych iteracji, a~tym samym liczbę kosztownych wymian danych między
-węzłami omawianych w~dalszej części rozdziału.
+Ten \SI{2}{\percent} margines (ang.\ \emph{safety back-off}) przesuwa punkt pracy
+poniżej granicy stabilności, do \(g=\num{-0.96}\) dla~najbardziej niekorzystnego
+modu. Dzięki temu schemat pozostaje stabilny nawet przy błędach zaokrągleń
+arytmetyki zmiennoprzecinkowej i~drobnych efektach numerycznych, które mogłyby
+zepchnąć krok dokładnie na~granicy w~obszar niestabilności. Wartość bliska
+jedności jest też korzystna wydajnościowo: maksymalizuje postęp w~czasie
+fizycznym na~jeden krok i~zmniejsza liczbę wymian danych między węzłami, o~których
+mowa w~dalszej części rozdziału.
 
 \section{Zrównoleglenie obliczeń stencilowych}
 \label{sec:parallel}
@@ -318,8 +315,8 @@ zaledwie ułamek operacji na~każdy przeniesiony bajt. Co więcej, sąsiednie w�
 współdzielą większość odczytów, lecz nawet przy idealnym wykorzystaniu pamięci
 podręcznej stosunek ten pozostaje niski.
 
-Konsekwencją jest to, że wydajność obliczeń stencilowych nie jest ograniczona
-przez moc obliczeniową procesora, lecz przez przepustowość transferu danych.
+W~efekcie wydajność obliczeń stencilowych ogranicza nie moc procesora,
+lecz przepustowość transferu danych.
 W~ujęciu modelu \emph{roofline}~\cite{roofline} punkt pracy tego typu zadania leży daleko
 po~lewej stronie wykresu, w~obszarze ograniczonym nachyloną prostą przepustowości
 pamięci, a~nie poziomą półką szczytowej wydajności obliczeniowej. Na~pojedynczym
@@ -363,10 +360,10 @@ Idealne, liniowe przyspieszenie odpowiada \(S(p)=p\) oraz \(E(p)=1\); w~praktyce
 narzuty komunikacji, synchronizacji i~nierównomiernego obciążenia sprawiają,
 że \(E(p)<1\), przy czym efektywność zwykle maleje ze~wzrostem \(p\).
 
-Rozróżnia się dwa reżimy badania skalowalności. \emph{Skalowanie mocne}
+Wyróżnia się dwa rodzaje skalowania. \emph{Skalowanie mocne}
 (ang.\ \emph{strong scaling}) polega na~ustaleniu całkowitego rozmiaru problemu
 i~zwiększaniu liczby jednostek obliczeniowych; celem jest skrócenie czasu
-rozwiązania. W~tym reżimie udział pracy przypadającej na~jednostkę maleje,
+rozwiązania. Przy tym skalowaniu udział pracy przypadającej na~jednostkę maleje,
 przez co narzuty komunikacyjne stają się względnie coraz istotniejsze, a~granicę
 osiągalnego przyspieszenia opisuje prawo Amdahla. \emph{Skalowanie słabe}
 (ang.\ \emph{weak scaling}) polega na~ustaleniu rozmiaru problemu przypadającego
@@ -383,12 +380,11 @@ wynosi
   \lim_{p\to\infty} S(p) = \frac{1}{f}.
   \label{eq:amdahl}
 \end{equation}
-Nawet niewielki udział części sekwencyjnej narzuca zatem twardą górną granicę
+Nawet niewielki udział części sekwencyjnej narzuca twardą górną granicę
 przyspieszenia, niezależnie od~liczby dostępnych jednostek. W~kontekście
-rozważanego programu rolę nieusuwalnego narzutu pełni głównie komunikacja, wymiana warstw brzegowych, oraz synchronizacja między krokami,
+rozważanego programu rolę nieusuwalnego narzutu pełni głównie komunikacja, wymiana warstw brzegowych oraz synchronizacja między krokami,
 co, w~połączeniu z~ograniczeniem przepustowością pamięci i~sieci omówionym
-wcześniej, wyznacza realistyczne granice skalowalności analizowane w~dalszej
-części pracy.
+wcześniej, wyznacza granice skalowalności badane dalej w~pracy.
 
 \section{Chapel, PGAS i GASNet}
 \label{sec:chapel}
@@ -396,7 +392,7 @@ części pracy.
 \subsection{Język Chapel i model PGAS}
 
 Implementację programu oparto na~języku Chapel, języku programowania
-równoległego rozwijanym z~myślą o~produktywności programisty przy zachowaniu
+równoległego rozwijanym z~naciskiem na~wygodę programisty przy zachowaniu
 wysokiej wydajności na~systemach wieloprocesorowych i~rozproszonych~\cite{chapel-overview,chapel-book}. Chapel
 realizuje model \emph{PGAS} (ang.\ \emph{Partitioned Global Address Space},
 partycjonowana globalna przestrzeń adresowa)~\cite{pgas,upc}. Idea PGAS polega na~tym, że pamięć
@@ -406,7 +402,7 @@ Programista operuje na~danych za~pomocą jednolitej, globalnej perspektywy
 (ang.\ \emph{global-view}), tak jakby były one lokalne, natomiast środowisko
 uruchomieniowe automatycznie tłumaczy dostępy do~danych zdalnych na~operacje
 komunikacji sieciowej. Model ten łączy wygodę programowania w~pamięci wspólnej
-z~wydajnościową świadomością rozmieszczenia danych, charakterystyczną dla~modelu
+ze świadomością tego, gdzie dane leżą fizycznie, co jest zaletą modelu
 przekazywania komunikatów.
 
 Centralnym pojęciem w~Chapel jest \emph{locale}, abstrakcja jednostki
@@ -461,7 +457,7 @@ stencila~\eqref{eq:update}.
 
 \subsection{Warstwa zadań qthreads oraz warstwa komunikacji GASNet}
 
-Wykonanie zadań w~obrębie pojedynczego locale spoczywa na~warstwie szeregowania
+Wykonywanie zadań w~obrębie pojedynczego locale obsługuje warstwa szeregowania
 zadań. W~zastosowanej konfiguracji jest to biblioteka \emph{qthreads}
 (\texttt{CHPL\_TASKS=qthreads}), lekki system wątków użytkownika efektywnie
 obsługujący dużą liczbę drobnoziarnistych zadań generowanych przez pętle
@@ -513,7 +509,7 @@ na~konkretnej technologii transportu. W~ramach niniejszej pracy porównywano dwa
 konduity dostępne na~klastrze zbudowanym z~węzłów połączonych zwykłą siecią
 Ethernet. Konduit \texttt{udp}, oparty na~warstwie AMUDP, realizuje komunikaty
 aktywne bezpośrednio nad~datagramami UDP i~jest uruchamiany za~pomocą programu
-rozruchowego \texttt{amudprun}. Jego zaletą jest prostota konfiguracji, wadą zaś
+rozruchowego \texttt{amudprun}. Jego zaletą jest prosta konfiguracja, a~wadą
 podatność na~przeciążenie przy intensywnej, drobnoziarnistej wymianie danych.
 Konduit \texttt{mpi} przenosi komunikację GASNet na~istniejącą implementację
 MPI, w~zastosowanej konfiguracji opartej na~MPICH nad~TCP, i~jest uruchamiany
@@ -521,11 +517,10 @@ programem \texttt{gasnetrun\_mpi}; zapewnia on stabilniejszy i~wydajniejszy
 transport dla~podtrzymywanych, regularnych wzorców komunikacji, jakie generuje
 cykliczna wymiana warstw brzegowych w~opisywanym programie.
 
-Wybór konduitu okazuje się mieć istotny wpływ na~zachowanie rozproszonej
-symulacji, ponieważ, jak wykazano w~\cref{sec:parallel}, w~reżimie
-wielowęzłowym zadanie jest ograniczone komunikacją, a~jedyną komunikacją
-per~krok jest wymiana \emph{halo} realizowana przez \texttt{updateFluff()}.
-To właśnie właściwości warstwy komunikacyjnej, jej przepustowość, opóźnienie
-oraz odporność na~przeciążenie, decydują w~praktyce o~osiąganej skalowalności,
-co czyni dobór konduitu jednym z~centralnych zagadnień badawczych analizowanych
-w~dalszej części pracy.
+Wybór konduitu ma duży wpływ na~zachowanie rozproszonej symulacji.
+Jak wykazano w~\cref{sec:parallel}, przy skalowaniu na~wiele węzłów zadanie
+jest ograniczone komunikacją, a~jedyną komunikacją w~ kroku jest wymiana
+\emph{halo} realizowana przez \texttt{updateFluff()}. O~osiąganej skalowalności
+decydują w~praktyce właściwości warstwy komunikacyjnej: przepustowość,
+opóźnienie i~odporność na~przeciążenie. Dlatego dobór konduitu jest jednym
+z~głównych pytań badawczych w~tej pracy.
