@@ -6,7 +6,7 @@
 
 \subsection{Sprzęt i topologia}
 
-Docelowym środowiskiem uruchomieniowym jest rzeczywisty klaster \emph{Pionier} w~pracowni komputerowej Wydziału Matematyki i~Informatyki UMK, złożony z~dziewięciu jednorodnych węzłów fizycznych (\emph{Pionier-lab8-1}\,\dots\,\emph{Pionier-lab8-9}) połączonych przełącznikiem Ethernet o~przepustowości \SI{1}{Gb\per\second}. Wszystkie węzły są identyczne: każdy wyposażony jest w~procesor Intel Core i7-12700K (\num{12} rdzeni, \num{20} wątków sprzętowych), \SI{32}{GiB} pamięci RAM DDR4-3200 oraz kartę sieciową Intel I219-V (sterownik \texttt{e1000e}, \SI{1}{Gb\per\second}) i~pracuje pod systemem Ubuntu (jądro \texttt{6.8.0-111-generic}). Węzły mają adresy z~podsieci \texttt{192.168.128.0/24}, a~dostęp do nich odbywa się bezpośrednim poleceniem \texttt{ssh <ip>}. Jednorodność środowiska, czyli ta sama architektura procesora, dystrybucja i~wersja bibliotek na każdym węźle, upraszcza dystrybucję binariów: obraz zbudowany na jednym węźle działa bez zmian na pozostałych. W~eksperymentach skalowania każdemu węzłowi fizycznemu odpowiadał jeden lokal (\emph{locale}), co pozwoliło zbadać skalowanie w~funkcji liczby węzłów aż do dziewięciu.
+Docelowym środowiskiem uruchomieniowym jest rzeczywisty klaster \emph{Pionier} w~pracowni komputerowej Wydziału Matematyki i~Informatyki UMK, złożony z~dziewięciu jednorodnych węzłów fizycznych (\emph{Pionier-lab8-1}\,\dots\,\emph{Pionier-lab8-9}) połączonych przełącznikiem Ethernet o~przepustowości \SI{1}{Gb\per\second}. Wszystkie węzły są identyczne: każdy wyposażony jest w~procesor Intel Core i7-12700K (\num{12} rdzeni, \num{20} wątków sprzętowych), \SI{32}{GiB} pamięci RAM DDR4-3200 oraz kartę sieciową Intel I219-V (sterownik \texttt{e1000e}, \SI{1}{Gb\per\second}) i~pracuje pod systemem Ubuntu (jądro \texttt{6.8.0-111-generic}). Węzły mają adresy z~podsieci \texttt{192.168.128.0/24}, a~dostęp do nich odbywa się bezpośrednim poleceniem \texttt{ssh <ip>}. Jednorodność środowiska, czyli ta sama architektura procesora, dystrybucja i~wersja bibliotek na każdym węźle, upraszcza dystrybucję plików wykonywalnych: obraz zbudowany na jednym węźle działa bez zmian na pozostałych. W~eksperymentach skalowania każdemu węzłowi fizycznemu odpowiadał jeden lokal (\emph{locale}), co pozwoliło zbadać skalowanie w~funkcji liczby węzłów aż do dziewięciu.
 
 Topologię środowiska przedstawiono na \cref{fig:topologia}. Wszystkie węzły dzielą jedno łącze o~przepustowości \SI{1}{Gb\per\second}, które jest wąskim gardłem komunikacji rozproszonej, bo każda wymiana komórek brzegowych między sąsiednimi fragmentami dziedziny przechodzi przez ten sam przełącznik.
 
@@ -26,13 +26,13 @@ Topologię środowiska przedstawiono na \cref{fig:topologia}. Wszystkie węzły 
     \foreach \n in {n1,n2,n9} \draw[link] (\n.south) -- (\n.south |- sw.north);
     \draw[link, dashed] (dots) -- (dots |- sw.north);
   \end{tikzpicture}
-  \caption[Topologia klastra Pionier]{Topologia jednorodnego, dziewięciowęzłowego klastra Pionier. Wszystkie identyczne węzły (\emph{Pionier-lab8-1}\,\dots\,\emph{Pionier-lab8-9}) połączone są jednym przełącznikiem \SI{1}{Gb\per\second}, który stanowi współdzielone i~zarazem najwęższe łącze komunikacji rozproszonej. Środowisko budowane jest raz na dowolnym węźle, a~binaria rozprowadzane na pozostałe.}
+  \caption[Topologia klastra Pionier]{Topologia jednorodnego, dziewięciowęzłowego klastra Pionier. Wszystkie identyczne węzły (\emph{Pionier-lab8-1}\,\dots\,\emph{Pionier-lab8-9}) połączone są jednym przełącznikiem \SI{1}{Gb\per\second}, który stanowi współdzielone i~zarazem najwęższe łącze komunikacji rozproszonej. Środowisko budowane jest raz na dowolnym węźle, a~pliki wykonywalne rozprowadzane na pozostałe.}
   \label{fig:topologia}
 \end{figure}
 
 \subsection{Konfiguracja kompilatora Chapel}
 
-Kompilator Chapel w~wersji \num{2.9.0} zbudowano ze źródeł na jednym węźle~\cite{chapel-docs}. Kluczowe parametry środowiska są ,,zapieczone'' w~pliku \texttt{chplconfig}, który skrypt \path{distribute-chapel.sh} zapisuje jeszcze przed wywołaniem \texttt{make}. Dzięki temu każdy węzeł otrzymuje binaria zbudowane z~identyczną konfiguracją. Zawartość istotnej części pliku konfiguracyjnego przedstawia \cref{lst:chplconfig}.
+Kompilator Chapel w~wersji \num{2.9.0} zbudowano ze źródeł na jednym węźle~\cite{chapel-docs}. Kluczowe parametry środowiska są ,,zapieczone'' w~pliku \texttt{chplconfig}, który skrypt \path{distribute-chapel.sh} zapisuje jeszcze przed wywołaniem \texttt{make}. Dzięki temu każdy węzeł otrzymuje pliki wykonywalne zbudowane z~identyczną konfiguracją. Zawartość istotnej części pliku konfiguracyjnego przedstawia \cref{lst:chplconfig}.
 
 \begin{lstlisting}[style=bash, caption={Fragment pliku \texttt{chplconfig} generowanego przed budową kompilatora.}, label={lst:chplconfig}]
 CHPL_COMM=gasnet
@@ -77,7 +77,7 @@ Ostatnim elementem środowiska jest skrypt \path{mpi-iface-wrap.sh} odpowiedzial
 
 Elementy opisane w~poprzednich podrozdziałach tworzą procedurę wdrożenia, od zbudowania środowiska aż po uruchomienie przebiegu. Choć węzły są jednorodne, procedura ta wykracza poza zwykłą kompilację lokalną, ponieważ kolejność kroków oraz miejsce ich wykonania są istotne dla poprawności i~wymagają spójnych ścieżek oraz identycznych drzew Chapel i~MPICH na wszystkich węzłach. Całość podzielono na cztery etapy.
 
-W~\emph{pierwszym etapie} na dowolnie wybranym węźle budowane jest środowisko wykonawcze: kompilator Chapel w~wersji \num{2.9.0} (skryptem \path{distribute-chapel.sh}) oraz biblioteka MPICH w~wersji \num{4.2.3} w~trybie \texttt{ch3:sock} (skryptem \path{build-mpi.sh}). Ponieważ klaster jest jednorodny, wybór węzła budującego jest dowolny, binaria zbudowane na jednym węźle działają na wszystkich pozostałych.
+W~\emph{pierwszym etapie} na dowolnie wybranym węźle budowane jest środowisko wykonawcze: kompilator Chapel w~wersji \num{2.9.0} (skryptem \path{distribute-chapel.sh}) oraz biblioteka MPICH w~wersji \num{4.2.3} w~trybie \texttt{ch3:sock} (skryptem \path{build-mpi.sh}). Ponieważ klaster jest jednorodny, wybór węzła budującego jest dowolny, pliki wykonywalne zbudowane na jednym węźle działają na wszystkich pozostałych.
 
 W~\emph{drugim etapie} skompilowane drzewo Chapel jest pakowane do archiwum i~rozsyłane pod \emph{identyczną} ścieżkę bezwzględną na każdym węźle (\cref{lst:depl:distribute}). Identyczność tej ścieżki jest drugim niezmiennikiem całej procedury: warstwa uruchomieniowa Chapel jest kompilowana ze ścieżką \texttt{rpath} wskazującą wprost do drzewa \texttt{CHPL\_HOME}, więc jakakolwiek rozbieżność lokalizacji uniemożliwia dynamiczne odnalezienie bibliotek współdzielonych. Analogicznie, jedno drzewo MPICH zbudowane raz jest strumieniowane pod tę samą ścieżkę na wszystkich węzłach, co gwarantuje zgodność ABI wymaganą przez mpi-conduit.
 
@@ -89,9 +89,76 @@ for h in $HOSTS; do
 done
 \end{lstlisting}
 
-W~\emph{trzecim etapie} kompilowane są binaria samego programu i~rozprowadzane na węzły skryptem \path{compile-and-distribute.sh}. Dla każdej binarki kopiowane są \emph{zarówno} plik launchera \texttt{<bin>}, jak i~właściwy obraz wykonywalny \texttt{<bin>\_real}; oba są niezbędne na każdym węźle do uruchomienia wielolokalowego. Skrypt generuje przy tym dedykowany launcher (por.\ \cref{lst:run}), który ustawia \texttt{CHPL\_HOME} i~\texttt{PATH} zgodnie z~rozesłanym drzewem.
+W~\emph{trzecim etapie} kompilowany jest sam program i~rozprowadzany na węzły skryptem \path{compile-and-distribute.sh}. Dla każdego programu kopiowane są \emph{zarówno} plik launchera \texttt{<bin>}, jak i~właściwy obraz wykonywalny \texttt{<bin>\_real}; oba są niezbędne na każdym węźle do uruchomienia wielolokalowego. Skrypt generuje przy tym dedykowany launcher (por.\ \cref{lst:run}), który ustawia \texttt{CHPL\_HOME} i~\texttt{PATH} zgodnie z~rozesłanym drzewem.
 
 W~\emph{czwartym etapie} przebieg uruchamiany jest przez wygenerowany launcher, który wywołuje właściwy program startowy GASNet (\texttt{gasnetrun\_mpi} dla kanału mpi albo \texttt{amudprun} dla kanału udp) i~rozdziela lokale na węzły. Dwa niezmienniki z poprzednich etapów, \emph{identyczna ścieżka \texttt{CHPL\_HOME}} (rpath) oraz \emph{identyczne drzewa Chapel i~MPICH} pod tą samą ścieżką na wszystkich węzłach, są warunkami koniecznymi powodzenia tego etapu. Naruszenie któregokolwiek objawia się dopiero przy ładowaniu bibliotek lub starcie procesów zdalnych, czyli już po udanej kompilacji.
+
+\subsection{Uruchamianie eksperymentu}
+\label{sec:uruchamianie}
+
+Procedurę pomiarową obsługują trzy skrypty generowane na węźle głównym.
+Skrypt \path{compile-and-distribute.sh} kompiluje program z~wybranego conduitem,
+rozprowadza pliki wykonywalne na węzły z~hostfile'u i~tworzy na miejscu dwa dalsze skrypty:
+uruchomieniowy \texttt{run-heat3d.sh} oraz agregujący \texttt{aggregate-heat3d.sh}.
+Sam skrypt nie buduje kompilatora Chapel ani biblioteki MPICH: zakłada, że ich drzewa
+zostały uprzednio zbudowane i~leżą pod tą samą ścieżką na~każdym węźle
+(tworzą je skrypty \path{distribute-chapel.sh} oraz \path{build-mpi.sh}).
+Wynikowe pliki wykonywalne mają wbudowany \texttt{rpath} wskazujący na~to drzewo,
+dlatego musi ono istnieć pod identyczną ścieżką na~każdym węźle.
+Ten pierwszy wywołuje właściwy program z~ustawionym środowiskiem Chapel i~GASNet,
+przekazując mu swoje argumenty jako parametry \texttt{config} programu
+(patrz \cref{tab:config}); liczbę lokacji zapisuje w~sobie na etapie generowania,
+zaś liczbę wątków na lokal ustala zmienna \texttt{CHPL\_RT\_NUM\_THREADS\_PER\_LOCALE}.
+Skrypt agregujący zbiera rozproszone zrzuty klatek na węzeł główny i~uruchamia
+post-procesor \path{aggregate3d.chpl}, opcjonalnie renderując film.
+
+Kluczowe flagi skryptu \path{compile-and-distribute.sh} zestawiono w~\cref{tab:flags}.
+Pełną listę podaje opcja \texttt{-{}-help}.
+
+\begin{table}[H]
+  \centering
+  \caption{Wybrane flagi skryptu \texttt{compile-and-distribute.sh}.}
+  \label{tab:flags}
+  \small
+  \begin{tabular}{@{}p{4.6cm}p{2.6cm}p{6.8cm}@{}}
+    \toprule
+    Flaga & Wartość domyślna & Znaczenie \\
+    \midrule
+    \texttt{-f, -{}-hostfile} & --- (wymagane) & plik z~adresami węzłów, master jako pierwszy \\
+    \texttt{-c, -{}-conduit}  & \texttt{udp} & kanał transportu: \texttt{udp} lub \texttt{mpi} \\
+    \texttt{-d, -{}-dir}      & \texttt{/home/<user>} & zdalny katalog instalacji \\
+    \texttt{-u, -{}-user}    & \texttt{chapel} & użytkownik SSH \\
+    \texttt{-p, -{}-port}    & \texttt{22} & port SSH \\
+    \texttt{-V, -{}-chapel-version} & \texttt{2.9.0} & wersja Chapela w~ścieżce drzewa \\
+    \texttt{-m, -{}-mpi-dir}  & \texttt{<dir>/mpi} & prefiks MPICH (kanał \texttt{mpi}) \\
+    \texttt{-o, -{}-output}   & \texttt{heat3d} & nazwa pliku wykonywalnego programu \\
+    \texttt{-s, -{}-skip-compile} & wyłączony & pomiń kompilację, użyj istniejących plików wykonywalnych \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Typowy przebieg pomiarowy składa się z~trzech poleceń wykonywanych na węźle
+głównym. Najpierw budowa i~dystrybucja, z~kanałem \texttt{mpi} i~wskazanym
+drzewem Chapel:
+
+\begin{lstlisting}[style=bash, caption={Budowa i~rozesłanie plików wykonywalnych na klaster.}, label={lst:build}]
+./compile-and-distribute.sh -f hosts.txt -c mpi -d /home/chapel/workspace
+\end{lstlisting}
+
+Następnie uruchomienie programu na zadanej liczbie węzłów, z~parametrami
+dziedziny i~liczby kroków przekazanymi jako flagi \texttt{config}, oraz z~żądaną
+liczbą wątków na lokal:
+
+\begin{lstlisting}[style=bash, caption={Uruchomienie przebiegu pomiarowego.}, label={lst:run-exp}]
+CHPL_RT_NUM_THREADS_PER_LOCALE=4 ./run-heat3d.sh --nx=1000 --numSteps=100
+\end{lstlisting}
+
+Na koniec, po serii przebiegów, scalenie rozproszonych zrzutów i~opcjonalny
+render filmu:
+
+\begin{lstlisting}[style=bash, caption={Agregacja rozproszonych fragmentów i~wizualizacja.}, label={lst:agg-exp}]
+./aggregate-heat3d.sh --render=true
+\end{lstlisting}
 
 \section{Struktura programu i krok obliczeniowy}
 \label{sec:solver}
@@ -155,7 +222,7 @@ Metoda \texttt{updateFluff()} kopiuje komórki brzegowe każdego lokala do otocz
 
 \subsection{Pomiar czasu i rejestrowanie}
 
-Program rozdziela pomiar czasu na wyraźnie zdefiniowane obszary. Stoper \texttt{initTimer} obejmuje fazę przygotowania (alokacja tablic, inicjalizacja gorącej warstwy oraz obliczenie kroku czasowego \texttt{dt} i~współczynników), której wynik raportowany jest jako \emph{Initialization time}. Stoper \texttt{computeTimer} obejmuje całą pętlę czasową i~raportowany jest jako \emph{Execution time} (w~wariancie z~zamianą buforów: \emph{Computation time}). Dla każdego kroku wypisywana jest linia \texttt{step <n>\ updateFluff=<s> s\ compute=<s> s\ save=<s> s}, do której wariant z~zamianą dodaje pole \texttt{swap=}. Ponadto rejestrator \texttt{commLog} wypisuje jednorazowo linię \texttt{[comm] <bytes> B/step across <N> locale(s)} oraz przyrostowe liczby operacji \texttt{put}/\texttt{get}/\texttt{on}/\texttt{amo} na każdy krok, co pozwala powiązać obserwowany czas z~faktyczną objętością komunikacji.
+Program rozdziela pomiar czasu na wyraźnie zdefiniowane obszary. Stoper \texttt{initTimer} obejmuje fazę przygotowania (alokacja tablic, inicjalizacja gorącej warstwy oraz obliczenie kroku czasowego \texttt{dt} i~współczynników), której wynik raportowany jest jako \emph{Initialization time}. Stoper \texttt{computeTimer} obejmuje całą pętlę czasową i~raportowany jest jako \emph{Execution time}. Dla każdego kroku wypisywana jest linia \texttt{step <n>\ updateFluff=<s> s\ compute=<s> s\ save=<s> s}. Ponadto rejestrator \texttt{commLog} wypisuje jednorazowo linię \texttt{[comm] <bytes> B/step across <N> locale(s)} oraz przyrostowe liczby operacji \texttt{put}/\texttt{get}/\texttt{on}/\texttt{amo} na każdy krok, co pozwala powiązać obserwowany czas z~faktyczną objętością komunikacji.
 
 Efektywną liczbę wątków na lokal wypisuje serialna pętla \texttt{for} po lokalach, przez co linie są uporządkowane według identyfikatora lokala:
 

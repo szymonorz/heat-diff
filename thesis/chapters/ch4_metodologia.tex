@@ -49,6 +49,15 @@ to dwa różne mechanizmy równoległości, współdzielenie pamięci przez
 wątki jednej lokacji oraz rozproszenie danych między lokacjami połączone z~komunikacją sieciową.
 Dopiero zestawienie obu perspektyw pozwala zidentyfikować czynnik ograniczający wydajność.
 
+Wszystkie przebiegi wykorzystują ten sam zestaw parametrów numerycznych. Współczynnik
+dyfuzji przyjęto bezwymiarowo $\alpha=\num{0.25}$, a~gorącą warstwę startową o~grubości
+\texttt{hotThickness}=\num{2} płaszczyzn inicjalizowano wzdłuż osi~$y$ przy ścianie $y=0$.
+Krok czasowy dobierany jest automatycznie z~warunku~\eqref{eq:cfl} ze~współczynnikiem
+bezpieczeństwa $\Delta t=\num{0.98}\,\Delta t_{\max}$ (wzór~\eqref{eq:dt}); dla~największej
+badanej kostki $N=1000$ daje to $\Delta t\approx 6{,}55\cdot 10^{-7}$. Liczba kroków
+czasowych $K$ zależy od~rodziny scenariusza: wynosi \num{10} przy~skalowaniu wątkowym
+na~pojedynczym węźle oraz \num{100} w~eksperymentach wielowęzłowych (patrz \cref{tab:scenariusze}).
+
 \subsection{Metryki}
 
 Podstawową wielkością mierzoną jest \emph{czas wykonania} $T$, rozumiany jako czas trwania

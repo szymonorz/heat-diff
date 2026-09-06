@@ -13,13 +13,10 @@ przepustowość pamięci na~poziomie węzła oraz koszt komunikacji między węz
 
 Najważniejsze wnioski przedstawiają się następująco.
 
-\paragraph{Poprawność i~równoważność wariantów.} Wykazano, że rozwiązanie różnicowe daje wynik niezależny
+\paragraph{Poprawność.} Wykazano, że rozwiązanie różnicowe daje wynik niezależny
 od~liczby lokacji, na~które rozdzielono dziedzinę, pod~warunkiem prawidłowej wymiany warstw
 brzegowych. Niezmiennik sumy pola w~stanie końcowym okazał się prostym, lecz skutecznym
-kryterium kontrolnym. Potwierdzono również, że dwa warianty pętli czasowej, \emph{ping-pong}
-oraz wariant z~zamianą wskaźników, są numerycznie identyczne i~wydajnościowo równoważne,
-ponieważ zamiana tablic odbywa się w~czasie stałym i~nie wiąże się z~kopiowaniem danych.
-Jednocześnie wykazano, że pominięcie wymiany halo, choć znacząco skraca czas wykonania, prowadzi
+kryterium kontrolnym. Jednocześnie wykazano, że pominięcie wymiany halo, choć znacząco skraca czas wykonania, prowadzi
 do~wyniku \emph{cicho błędnego}; pokazuje to, że w~programowaniu rozproszonym krótki czas
 wykonania nie oznacza jeszcze poprawnego wyniku.
 
