@@ -93,6 +93,9 @@ initTimer.stop();
 writeln("Initialization time: ", initTimer.elapsed(), " s");
 if trackMem then reportMem("after init (u+un allocated)");
 
+for loc in Locales do on loc do
+  writeln("[cfg] locale ", here.id, " maxTaskPar=", here.maxTaskPar);
+
 coforall loc in Locales do on loc {
   try { if exists(dumpDir) then rmTree(dumpDir); } catch { }
   try { mkdir(dumpDir, parents=true); } catch { }

@@ -11,7 +11,6 @@ SSH_OPTS="-o StrictHostKeyChecking=no -o ConnectTimeout=10 -p ${SSH_PORT}"
 HOSTFILE=""
 SRC_DIR="$(cd "$(dirname "$0")/src" && pwd)"
 BINARY_NAME="heat3d"
-SWAP_NAME="heat3d-swap"
 AGG_NAME="aggregate3d"
 INSTALL_DIR=""
 MPI_DIR=""
@@ -105,19 +104,17 @@ if [[ "$SKIP_COMPILE" == false ]]; then
     echo ">>> Conduit: $CONDUIT   CHPL_HOME=${CHPL_HOME:-<from PATH>}"
     echo ">>> Compiling ${BINARY_NAME} (ping-pong)..."
     chpl --fast --main-module 3d "$SRC_DIR/3d.chpl" "$SRC_DIR/Diagnostics.chpl" -o "$BINARY_NAME"
-    echo ">>> Compiling ${SWAP_NAME} (swap variant)..."
-    chpl --fast --main-module 3d_swap "$SRC_DIR/3d_swap.chpl" -o "$SWAP_NAME"
     echo ">>> Compiling ${AGG_NAME} (single-locale post-processor)..."
     chpl --fast --main-module aggregate3d "$SRC_DIR/aggregate3d.chpl" "$SRC_DIR/ImageUtils.chpl" -o "$AGG_NAME"
     echo ">>> Compilation successful"
-    ls -la "${BINARY_NAME}" "${BINARY_NAME}_real" "${SWAP_NAME}" "${SWAP_NAME}_real" "${AGG_NAME}" "${AGG_NAME}_real"
+    ls -la "${BINARY_NAME}" "${BINARY_NAME}_real" "${AGG_NAME}" "${AGG_NAME}_real"
 else
     # ──────────────────────────────────────────────
     # 0/1. Skip compile: reuse existing binaries in $PWD (must already be built here)
     # ──────────────────────────────────────────────
     echo ">>> Conduit: $CONDUIT   (--skip-compile: reusing existing binaries in $PWD)"
     MISSING=()
-    for b in "${BINARY_NAME}" "${BINARY_NAME}_real" "${SWAP_NAME}" "${SWAP_NAME}_real" "${AGG_NAME}" "${AGG_NAME}_real"; do
+    for b in "${BINARY_NAME}" "${BINARY_NAME}_real" "${AGG_NAME}" "${AGG_NAME}_real"; do
         [[ -f "$b" ]] || MISSING+=("$b")
     done
     if [[ ${#MISSING[@]} -gt 0 ]]; then
@@ -125,7 +122,7 @@ else
         echo "  Run once without --skip-compile to build them first." >&2
         exit 1
     fi
-    echo ">>> Reusing binaries: ${BINARY_NAME}, ${SWAP_NAME}, ${AGG_NAME}"
+    echo ">>> Reusing binaries: ${BINARY_NAME}, ${AGG_NAME}"
 fi
 
 # ──────────────────────────────────────────────
@@ -140,7 +137,7 @@ for host in "${HOSTS[@]}"; do
         echo "FAILED (connect)"; FAILED+=("$host"); continue
     fi
     if ! scp -P "$SSH_PORT" -o StrictHostKeyChecking=no \
-        "${BINARY_NAME}" "${BINARY_NAME}_real" "${SWAP_NAME}" "${SWAP_NAME}_real" \
+        "${BINARY_NAME}" "${BINARY_NAME}_real" \
         "$SSH_USER@$host:$INSTALL_DIR/" 2>/dev/null; then
         echo "FAILED (scp)"; FAILED+=("$host"); continue
     fi
@@ -188,9 +185,12 @@ export CHPL_RT_NUM_THREADS_PER_LOCALE=\${CHPL_RT_NUM_THREADS_PER_LOCALE:-\$(npro
 cd "${INSTALL_DIR}"
 LOG="\${LOG:-${INSTALL_DIR}/logs/${bin}-\$(date +%Y%m%d-%H%M%S).log}"
 mkdir -p "\$(dirname "\$LOG")"
-echo ">>> ${bin} -nl ${NUM_LOCALES} \$* | tee \$LOG"
+echo ">>> ${bin} -nl ${NUM_LOCALES} \$* (threadsPerLocale=\$CHPL_RT_NUM_THREADS_PER_LOCALE) | tee \$LOG"
 set -o pipefail
-./${bin} -nl ${NUM_LOCALES} "\$@" 2>&1 | tee "\$LOG"
+{
+  echo "[cfg] threadsPerLocale(requested)=\$CHPL_RT_NUM_THREADS_PER_LOCALE numLocales=${NUM_LOCALES}"
+  ./${bin} -nl ${NUM_LOCALES} "\$@" 2>&1
+} | tee "\$LOG"
 RUNSCRIPT
     else
         cat > "$script" <<RUNSCRIPT
@@ -207,18 +207,19 @@ export CHPL_RT_NUM_THREADS_PER_LOCALE=\${CHPL_RT_NUM_THREADS_PER_LOCALE:-\$(npro
 cd "${INSTALL_DIR}"
 LOG="\${LOG:-${INSTALL_DIR}/logs/${bin}-\$(date +%Y%m%d-%H%M%S).log}"
 mkdir -p "\$(dirname "\$LOG")"
-echo ">>> ${bin} -nl ${NUM_LOCALES} \$* | tee \$LOG"
+echo ">>> ${bin} -nl ${NUM_LOCALES} \$* (threadsPerLocale=\$CHPL_RT_NUM_THREADS_PER_LOCALE) | tee \$LOG"
 set -o pipefail
-./${bin} -nl ${NUM_LOCALES} "\$@" 2>&1 | tee "\$LOG"
+{
+  echo "[cfg] threadsPerLocale(requested)=\$CHPL_RT_NUM_THREADS_PER_LOCALE numLocales=${NUM_LOCALES}"
+  ./${bin} -nl ${NUM_LOCALES} "\$@" 2>&1
+} | tee "\$LOG"
 RUNSCRIPT
     fi
     chmod +x "$script"
 }
 
 RUN_SCRIPT="${INSTALL_DIR}/run-${BINARY_NAME}.sh"
-SWAP_RUN_SCRIPT="${INSTALL_DIR}/run-${SWAP_NAME}.sh"
 gen_run_script "$BINARY_NAME" "$RUN_SCRIPT"
-gen_run_script "$SWAP_NAME"   "$SWAP_RUN_SCRIPT"
 
 # ──────────────────────────────────────────────
 # 4. Generate the collect+aggregate script on the master
@@ -244,6 +245,5 @@ chmod +x "$AGG_SCRIPT"
 echo ""
 echo ">>> Run scripts created locally ($CONDUIT conduit):"
 echo "    $RUN_SCRIPT"
-echo "    $SWAP_RUN_SCRIPT"
 echo "    e.g. $RUN_SCRIPT --nx=100 --ny=100 --nz=100 --numSteps=100"
 echo ">>> Aggregate script: $AGG_SCRIPT"

@@ -8,7 +8,8 @@ config const nx = 50, ny = 50,
              debug = false,
              heatSourceX = -1,
              heatSourceY = -1,
-             heatSourceTemp = 2.0;
+             heatSourceTemp = 2.0,
+             renderEvery = 1;   // co ile krokow zapisac klatke (przy --render=true)
 
 proc isHeatSourceCell(srcX: int, srcY: int, x: int, globalY: int): bool {
   const minSize = min(nx, ny);
@@ -66,6 +67,8 @@ const ay = alpha * dt / (dy*dy);
 
 if debug then startCommDiagnostics();
 
+if render then try! renderFrame(u);   // klatka poczatkowa (ostre zrodlo)
+
 for step in 1..numSteps {
   forall (i,j) in interior do
     if isHeatSourceCell(srcX, srcY, i, j)
@@ -74,6 +77,7 @@ for step in 1..numSteps {
                     ax * (un[i-1,j] - 2*un[i,j] + un[i+1,j]) +
                     ay * (un[i,j-1] - 2*un[i,j] + un[i,j+1]);
 
+  if render && step % renderEvery == 0 then try! renderFrame(u);
   un <=> u;
 }
 
