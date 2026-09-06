@@ -1,0 +1,158 @@
+\documentclass[12pt,a4paper]{report}
+
+% ---------- kodowanie i język ----------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[polish]{babel}
+\usepackage{lmodern}
+\usepackage{csquotes}
+
+% ---------- matematyka ----------
+\usepackage{amsmath,amssymb}
+
+% ---------- układ strony ----------
+\usepackage[a4paper,left=3cm,right=3cm,top=2.7cm,bottom=2.7cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+\tolerance=2000
+\emergencystretch=3em
+
+% ---------- grafika i tabele ----------
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\captionsetup{font=small,labelfont=bf}
+
+% ---------- kolory, listingi ----------
+\usepackage{xcolor}
+\definecolor{codebg}{RGB}{247,247,247}
+\definecolor{codekw}{RGB}{44,62,80}
+\definecolor{codecm}{RGB}{39,110,60}
+\definecolor{codestr}{RGB}{192,57,43}
+\definecolor{codeln}{RGB}{150,150,150}
+\usepackage{listings}
+\lstdefinelanguage{Chapel}{
+  keywords={proc,const,config,var,use,forall,coforall,for,do,on,if,then,else,return,
+            in,ref,new,writeln,writef,record,class,param,type,inout,out,begin,serial,
+            local,while,when,select,module,import,require,extern,override,throws,try},
+  keywordstyle=\color{codekw}\bfseries,
+  comment=[l]{//}, morecomment=[s]{/*}{*/},
+  commentstyle=\color{codecm}\itshape,
+  string=[b]", stringstyle=\color{codestr},
+  sensitive=true,
+}
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{codebg},
+  numbers=left, numberstyle=\tiny\color{codeln}, numbersep=7pt,
+  frame=single, rulecolor=\color{codeln!60},
+  breaklines=true, showstringspaces=false,
+  captionpos=b, aboveskip=1.1em, belowskip=0.6em,
+  literate={ą}{{\k a}}1 {ę}{{\k e}}1 {ó}{{\'o}}1 {ł}{{\l}}1 {ż}{{\.z}}1
+           {ź}{{\'z}}1 {ć}{{\'c}}1 {ś}{{\'s}}1 {ń}{{\'n}}1
+           {Ą}{{\k A}}1 {Ę}{{\k E}}1 {Ó}{{\'O}}1 {Ł}{{\L}}1 {Ż}{{\.Z}}1,
+}
+\lstdefinestyle{bash}{language=bash,keywordstyle=\color{codekw}\bfseries,
+  commentstyle=\color{codecm}\itshape,morecomment=[l]{\#}}
+% ---- nie dziel listingów między strony: całe środowisko w nierozrywalnym boksie ----
+% (jeśli listing nie mieści się na dole strony, przechodzi w całości na następną)
+\AddToHook{env/lstlisting/before}{\par\medskip\noindent\begin{minipage}{\linewidth}}
+\AddToHook{env/lstlisting/after}{\end{minipage}\par\medskip}
+
+% ---------- diagramy ----------
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc,3d,fit,backgrounds,shapes.geometric}
+
+% ---------- odnośniki ----------
+\usepackage[hidelinks,pdfusetitle]{hyperref}
+
+% ============================================================
+% Lekkie namiastki pakietów niedostępnych w tym środowisku TeX
+% (siunitx, cleveref, emptypage, multirow) — realizowane na xstring.
+% ============================================================
+\usepackage{xstring}
+\makeatletter
+% ---- przecinek dziesiętny i jednostki (namiastka siunitx) ----
+\DeclareRobustCommand{\deccomma}[1]{\StrSubstitute{#1}{.}{,}}
+\DeclareRobustCommand{\num}[1]{\ifmmode\text{\deccomma{#1}}\else\deccomma{#1}\fi}
+\DeclareRobustCommand{\si}[1]{#1}
+\DeclareRobustCommand{\SI}[2]{\num{#1}\,{#2}}
+\DeclareRobustCommand{\numrange}[2]{\num{#1}--\num{#2}}
+\DeclareRobustCommand{\SIrange}[3]{\num{#1}--\num{#2}\,{#3}}
+\providecommand{\giga}{G}\providecommand{\mega}{M}\providecommand{\kilo}{k}
+\providecommand{\milli}{m}\providecommand{\micro}{\ensuremath{\mu}}
+\providecommand{\bit}{b}\providecommand{\byte}{B}\providecommand{\second}{s}
+\providecommand{\metre}{m}\providecommand{\meter}{m}\providecommand{\hertz}{Hz}
+\providecommand{\watt}{W}\providecommand{\joule}{J}\providecommand{\gram}{g}
+\providecommand{\ampere}{A}\providecommand{\per}{/}
+\providecommand{\squared}{\ensuremath{^{2}}}\providecommand{\cubed}{\ensuremath{^{3}}}
+\providecommand{\percent}{\%}\providecommand{\degree}{\ensuremath{^\circ}}
+\providecommand{\celsius}{\ensuremath{^\circ}C}\providecommand{\kelvin}{K}
+\providecommand{\ohm}{\ensuremath{\Omega}}
+% ---- odsyłacze (namiastka cleveref, polskie nazwy; parsowanie prefiksu etykiety) ----
+\@namedef{crlc@ch}{rozdz.}\@namedef{crlc@sec}{podrozdz.}\@namedef{crlc@fig}{rys.}%
+\@namedef{crlc@tab}{tab.}\@namedef{crlc@lst}{listing}\@namedef{crlc@eq}{równ.}
+\@namedef{cruc@ch}{Rozdział}\@namedef{cruc@sec}{Podrozdział}\@namedef{cruc@fig}{Rysunek}%
+\@namedef{cruc@tab}{Tabela}\@namedef{cruc@lst}{Listing}\@namedef{cruc@eq}{Równanie}
+\def\cref@get#1:#2\@nil{#1}
+\newcommand{\cref@do}[2]{%
+  \edef\@crefp{\cref@get#2:\@nil}%
+  \@ifundefined{#1@\@crefp}{poz.}{\csname #1@\@crefp\endcsname}~\ref{#2}}
+\DeclareRobustCommand{\cref}[1]{\cref@do{crlc}{#1}}
+\DeclareRobustCommand{\Cref}[1]{\cref@do{cruc}{#1}}
+% ---- multirow (nieużywane, na wszelki wypadek) ----
+\providecommand{\multirow}[3]{#3}
+\makeatother
+
+% ---------- meta ----------
+\newcommand{\thesistitle}{Programowanie równoległe w~języku Chapel na~przykładzie problemu rozchodzenia się ciepła}
+\newcommand{\thesisauthor}{Szymon Orzechowski}
+\newcommand{\thesissupervisor}{[promotor do uzupełnienia]}
+\newcommand{\thesisuniversity}{[uczelnia / wydział do uzupełnienia]}
+\newcommand{\thesisyear}{2026}
+
+\title{\thesistitle}
+\author{\thesisauthor}
+\date{\thesisyear}
+
+\begin{document}
+
+% ======================= STRONA TYTUŁOWA =======================
+\begin{titlepage}
+\centering
+\vspace*{1.5cm}
+{\large \thesisuniversity\par}
+\vspace{2.5cm}
+{\LARGE\bfseries Praca magisterska\par}
+\vspace{1.2cm}
+{\Large\bfseries \thesistitle \par}
+\vspace{2.5cm}
+\begin{flushright}
+{\large \thesisauthor\par}
+\vspace{0.4cm}
+{\normalsize Promotor: \thesissupervisor\par}
+\end{flushright}
+\vfill
+{\large \thesisuniversity{} --- \thesisyear\par}
+\end{titlepage}
+\cleardoublepage
+
+% ======================= SPIS TREŚCI =======================
+\tableofcontents
+
+% ======================= ROZDZIAŁY =======================
+\input{chapters/ch1_wstep}
+\input{chapters/ch2_problem}
+\input{chapters/ch3_implementacja}
+\input{chapters/ch4_metodologia}
+\input{chapters/ch5_wyniki}
+\input{chapters/ch6_podsumowanie}
+
+% ======================= BIBLIOGRAFIA =======================
+\input{chapters/bibliografia}
+
+\end{document}

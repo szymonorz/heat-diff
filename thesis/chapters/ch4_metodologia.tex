@@ -1,0 +1,185 @@
+\chapter{Metodologia badań}
+\label{ch:metodologia}
+
+\section{Scenariusze i metryki}
+\label{sec:scenariusze}
+
+\subsection{Scenariusze badawcze}
+
+Badania podzielono na dwie grupy: weryfikację poprawności oraz pomiary wydajności
+i~skalowania. Weryfikacja poprawności obejmowała sprawdzenie,
+że wynik obliczeń jest niezależny od~liczby lokacji, na~które rozdzielono dziedzinę, pod~warunkiem
+prawidłowej wymiany warstw brzegowych. Jako niezmiennik kontrolny wykorzystano sumę wartości pola
+w~stanie końcowym, raportowaną przez program w~wierszu \texttt{final field: min=\ldots{}
+max=\ldots{} sum=\ldots}. Ponieważ pole przyjmuje wartości w~przedziale $[1,2]$, a~jego
+średnia jest bliska jedności, suma jest w~przybliżeniu równa liczbie komórek siatki.
+
+Pomiary wydajności obejmowały cztery rodziny scenariuszy, zestawione w~\cref{tab:scenariusze}:
+\begin{itemize}
+  \item \textbf{skalowanie wątkowe w~obrębie węzła}: jedna lokacja (\texttt{-nl 1}),
+        zmienna liczba wątków $1/2/4/8/16$; przeprowadzone dla kostki $1000^3$ na~węźle
+        Pionier-lab8-1 o~20~wątkach;
+  \item \textbf{skalowanie wątkowe przy dziewięciu lokacjach}: kostka $1000^3$, ustalona
+        liczba lokacji, zmienna liczba wątków na~lokację;
+  \item \textbf{skalowanie po~liczbie węzłów}: kostka $1000^3$, liczba lokacji od~1 do~9;
+  \item \textbf{skalowanie rozmiaru zadania}: dziewięć lokacji, krawędź kostki od~$125$
+        do~$1000$ (a~więc od~$125^3$ do~$1000^3$ komórek).
+\end{itemize}
+
+\begin{table}[htbp]
+\centering
+\caption{Rodziny scenariuszy pomiarowych. Liczbę wątków w~pierwszej rodzinie oznaczono
+symbolem $p$, liczbę lokacji symbolem $L$, a~krawędź kostki symbolem $N$.}
+\label{tab:scenariusze}
+\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+Scenariusz & Zmienna & Ustalone & Środowisko \\
+\midrule
+Wątki, $1000^3$       & $p\in\{1,2,4,8,16\}$ & $L{=}1$, $N{=}1000$, 10 kroków & węzeł Pionier-lab8-1 (20 wątków) \\
+Wątki @ 9 lokacji     & $p\in\{1,2,4,8,16\}$ & $L{=}9$, $N{=}1000$, 100 kr.   & klaster (9 węzłów) \\
+Węzły                 & $L\in\{1,\ldots,9\}$ & $N{=}1000$, 100 kroków        & klaster (9 węzłów) \\
+Rozmiar kostki        & $N\in\{125,\ldots,1000\}$ & $L{=}9$, 100 kroków       & klaster (9 węzłów) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Rozdzielenie skalowania wątkowego w~obrębie węzła od~skalowania po~węzłach jest celowe:
+pozwala niezależnie ocenić dwa różne mechanizmy równoległości, współdzielenie pamięci przez
+wątki jednej lokacji oraz rozproszenie danych między lokacjami połączone z~komunikacją sieciową.
+Zestawienie obu perspektyw jest kluczowe dla identyfikacji czynnika ograniczającego wydajność.
+
+\subsection{Metryki}
+
+Podstawową wielkością mierzoną jest \emph{czas wykonania} $T$, rozumiany jako czas trwania
+całej pętli czasowej, mierzony zegarem \texttt{computeTimer} i~raportowany
+jako \texttt{Execution time}. Czas ten nie obejmuje inicjalizacji, czyli alokacji tablic, ustawienia
+warunku początkowego oraz obliczenia współczynników, mierzonej osobno zegarem
+\texttt{initTimer}. Dodatkowo, dla każdego kroku rejestrowano rozbicie czasu na trzy składowe:
+czas wymiany warstw brzegowych (\texttt{updateFluff}), czas właściwych obliczeń stencilowych
+(\texttt{compute}) oraz czas zapisu klatki (\texttt{save}).
+
+Na podstawie czasu wykonania zdefiniowano standardowe miary skalowania silnego~\cite{amdahl}. Przyspieszenie
+przy $p$ jednostkach równoległości, czyli wątkach albo lokacjach, wyraża się jako
+\begin{equation}
+  S(p) = \frac{T(1)}{T(p)},
+  \label{eq:speedup-def}
+\end{equation}
+gdzie $T(1)$ jest czasem wykonania konfiguracji odniesienia z~jednym wątkiem albo jedną lokacją.
+Wydajność równoległą zdefiniowano jako
+\begin{equation}
+  E(p) = \frac{S(p)}{p} = \frac{T(1)}{p\,T(p)},
+  \label{eq:eff}
+\end{equation}
+przy czym w~roli $p$ dla skalowania wątkowego przyjęto \emph{efektywną} liczbę wątków,
+tj. wartość \texttt{maxTaskPar} po~ewentualnym ograniczeniu przez warstwę wątkową, a~nie liczbę
+żądaną. Dla oceny wykorzystania sprzętu niezależnie od~rozmiaru zadania posłużono się
+\emph{przepustowością} wyrażoną w~miliardach aktualizacji komórek na~sekundę,
+\begin{equation}
+  \Pi = \frac{N^3 \cdot K}{T \cdot 10^{9}},
+  \label{eq:throughput}
+\end{equation}
+gdzie $N^3$ jest liczbą komórek, a~$K$ liczbą kroków czasowych~\cite{hpcchallenge}. Wreszcie, dla oszacowania roli
+komunikacji wprowadzono \emph{udział komunikacji} w~czasie pojedynczego kroku,
+\begin{equation}
+  \phi = \frac{t_{\text{fluff}}}{t_{\text{fluff}} + t_{\text{compute}}},
+  \label{eq:commfrac}
+\end{equation}
+gdzie $t_{\text{fluff}}$ i~$t_{\text{compute}}$ są uśrednionymi po~krokach czasami wymiany halo
+oraz obliczeń. Wielkość $\phi$ przyjmuje wartości bliskie jedności, gdy dominuje komunikacja,
+oraz bliskie zeru, gdy dominują obliczenia. Uzupełniająco rejestrowano wolumen wymiany halo
+w~bajtach na~krok, obliczany analitycznie przez procedurę \texttt{haloBytesPerStep} jako łączną
+liczbę komórek warstw brzegowych wszystkich lokacji pomnożoną przez rozmiar elementu.
+
+\section{Procedura i narzędzia pomiarowe}
+\label{sec:procedura}
+
+\subsection{Procedura pomiarowa}
+
+Każdą konfigurację uruchamiano dziesięciokrotnie, a~jako estymator reprezentatywny przyjmowano \emph{medianę} czasu wykonania. Wybór mediany zamiast średniej arytmetycznej jest istotny:
+pojedyncze przebiegi bywają zaburzone przez chwilowe zdarzenia systemowe, takie jak rywalizacja o~rdzenie,
+przejściowe ograniczenie taktowania procesora czy aktywność innych procesów, które zawyżają
+czas, lecz nie odzwierciedlają właściwości badanej konfiguracji. Mediana jest odporna na takie
+wartości odstające, podczas gdy średnia zostaje przez nie zawyżona. Przykładu dostarczyła jedna
+z~serii jednowęzłowych, w~której trzy z~dziesięciu przebiegów były wolniejsze o~około pół
+sekundy wskutek przejściowego ograniczenia taktowania; skutkowało to podwyższonym odchyleniem
+standardowym przy praktycznie niezmienionej medianie.
+
+Przebiegi danej serii wykonywano sekwencyjnie, po~jednym naraz, aby uniknąć wzajemnej
+rywalizacji o~pamięć i~pasmo. Wszystkie pomiary wydajności prowadzono na~środowisku Chapel~2.9
+z~warstwą komunikacyjną w~wariancie mpi-conduit. Liczbę wątków na~lokację ustawiano zmienną
+środowiskową \texttt{CHPL\_RT\_NUM\_THREADS\_PER\_LOCALE}. Wyjście każdego przebiegu zapisywano
+jednocześnie na~terminal i~do~pliku dziennika za~pomocą polecenia \texttt{tee} z~włączonym
+\texttt{set -o pipefail}, tak aby kod wyjścia potoku odzwierciedlał kod programu, a~nie polecenia
+\texttt{tee}.
+
+Konfigurację każdego przebiegu zapisywano bezpośrednio w~dzienniku: skrypt
+uruchomieniowy umieszcza na~początku logu wiersz
+\texttt{[cfg] threadsPerLocale(requested)=N numLocales=M} z~żądaną liczbą wątków i~lokacji,
+a~sam program wypisuje, osobno dla każdej lokacji, wiersz
+\texttt{[cfg] locale <id> maxTaskPar=<n>} z~\emph{efektywną} liczbą wątków po~ograniczeniu przez
+warstwę wątkową. Na~węzłach Pionier o~20~wątkach sprzętowych liczba efektywna była równa
+żądanej dla~wszystkich badanych konfiguracji ($p\le 16$).
+
+
+\subsection{Narzędzia pomiarowe}
+
+Czasy mierzono wbudowanymi w~język stoperami (\texttt{stopwatch}) o~rozdzielczości
+podsekundowej, osobno dla inicjalizacji, całej pętli czasowej oraz, w~każdym kroku, dla wymiany halo, obliczeń i~zapisu. Wolumen i~liczbę operacji komunikacyjnych GET, PUT, zdalnych i~atomowych rejestrowano za~pomocą modułu diagnostyki komunikacji GASNet,
+włączanego przełącznikiem \texttt{commLog}; wypisywany raz wiersz \texttt{[comm]} podaje
+analityczny wolumen wymiany halo na~krok. Zużycie pamięci procesu kontrolowano narzędziem
+systemowym \texttt{/usr/bin/time -v}, odczytując maksymalny rezydentny zbiór stron, co pozwoliło ustalić
+graniczne rozmiary kostek mieszczące się w~pamięci danego węzła.
+
+Przetwarzanie zebranych dzienników i~wykreślanie wyników zrealizowano skryptami w~języku Python
+z~biblioteką \texttt{matplotlib}. Podstawową formą prezentacji jest wykres pudełkowy
+rozkładu czasu wykonania z~naniesionymi punktami poszczególnych przebiegów, medianą
+oraz średnią; uzupełniają go wykresy metryk pochodnych: przyspieszenia, wydajności,
+przepustowości i~udziału komunikacji. Taka forma jednocześnie pokazuje tendencję centralną
+i~rozrzut, co jest istotne przy ocenie powtarzalności.
+
+Do diagnozy zachowania sieci wykorzystano dedykowany skrypt sondujący, który równocześnie
+obciąża łącze strumieniem \texttt{iperf3} w~trybie UDP o~przepływności zbliżonej do~granicy
+łącza oraz monitoruje straty pakietów z~kilku niezależnych perspektyw: procentu utraconych
+pakietów ICMP, przyrostów liczników odrzuceń na~lokalnym interfejsie sieciowym oraz, co
+najważniejsze, przyrostów liczników błędów bufora odbiorczego UDP po~stronie odbiorcy
+(\texttt{InErrors}, \texttt{RcvbufErrors}). Rosnące błędy bufora odbiorczego pod~obciążeniem są
+bezpośrednim dowodem przeciążenia typu \emph{incast}, które w~wariancie AMUDP prowadzi do~awarii
+typu \texttt{ECONGESTION}~\cite{incast}. Narzędzie to pozwoliło odróżnić przyczyny sieciowe od~obliczeniowych
+i~dyskowych oraz uzasadnić wybór wariantu transportu opartego na~protokole TCP.
+
+\subsection{Przykład wyznaczenia metryk}
+
+Dla uporządkowania powyższych definicji poniżej prześledzono sposób wyznaczenia metryk pochodnych na~jednym
+scenariuszu. Rozważono skalowanie wątkowe kostki $1000^3$ na~węźle Pionier o~20~wątkach. Konfiguracja
+odniesienia z~jednym wątkiem osiągnęła medianę czasu wykonania $T(1)=\SI{8.663}{\second}$, natomiast
+konfiguracja czterowątkowa, $T(4)=\SI{5.596}{\second}$. Zgodnie z~\eqref{eq:speedup-def}
+przyspieszenie wynosi $S(4)=8{,}663/5{,}596\approx\num{1.548}$, a~wydajność równoległa według
+\eqref{eq:eff}, $E(4)=1{,}548/4\approx\num{0.387}$. Przepustowość dla tej konfiguracji, przy
+$K=10$ krokach, obliczono z~\eqref{eq:throughput} jako
+$\Pi = 1000^3\cdot 10/(5{,}596\cdot 10^{9})\approx\num{1.79}$ miliarda aktualizacji komórek na~sekundę.
+Zabieg ten powtórzono dla każdej konfiguracji każdego scenariusza, dzięki czemu wszystkie wykresy
+i~zestawienia w~\cref{ch:wyniki} opierają się na~jednolicie zdefiniowanych wielkościach.
+
+\subsection{Kontrola warunków i~zagrożenia dla trafności}
+
+Wiarygodność wniosków zależy od~kontroli czynników zakłócających. W~toku badań zidentyfikowano
+i~ograniczono kilka takich czynników.
+
+\paragraph{Zmienność środowiska.} Współdzielenie maszyny z~innymi procesami oraz dynamiczne
+zarządzanie taktowaniem procesora wprowadzają zmienność czasu wykonania. Ograniczono ją przez
+sekwencyjne uruchamianie przebiegów, dziesięciokrotne powtórzenia oraz stosowanie mediany. Tam,
+gdzie mimo to pojawiły się wartości odstające, czyli pojedyncze wolniejsze przebiegi wskutek przejściowego
+ograniczenia taktowania, fakt ten odnotowano jawnie i~potraktowano jako artefakt pomiaru, a~nie
+własność konfiguracji.
+
+\paragraph{Nierówny podział dziedziny.} Dla części liczb lokacji kostka $1000^3$ nie dzieli się
+równo, co powoduje nierównomierne obciążenie i~zaburza gładkość krzywej skalowania. Nie jest to
+błąd pomiaru, lecz rzeczywista własność dekompozycji; uwzględniono ją w~interpretacji
+niemonotonicznego przebiegu skalowania po~węzłach.
+
+\paragraph{Trafność zewnętrzna.} Wyniki uzyskano na~konkretnym, niewielkim klastrze z~siecią
+\SI{1}{\giga\bit\per\second}. Wartości bezwzględne nie przenoszą się wprost na~inne środowiska,
+natomiast jakościowe wnioski, ograniczenie przepustowością pamięci i~komunikacją, korzystny
+wpływ większych zadań na~wykorzystanie klastra, mają charakter ogólny i~wynikają z~samej natury
+obliczeń stencilowych~\cite{roofline,datta-stencil}.
