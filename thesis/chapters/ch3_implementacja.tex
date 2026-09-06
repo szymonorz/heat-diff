@@ -8,7 +8,7 @@
 
 Docelowym środowiskiem uruchomieniowym jest rzeczywisty klaster \emph{Pionier} w~pracowni komputerowej Wydziału Matematyki i~Informatyki UMK, złożony z~dziewięciu jednorodnych węzłów fizycznych (\emph{Pionier-lab8-1}\,\dots\,\emph{Pionier-lab8-9}) połączonych przełącznikiem Ethernet o~przepustowości \SI{1}{Gb\per\second}. Wszystkie węzły są identyczne: każdy wyposażony jest w~procesor Intel Core i7-12700K (\num{12} rdzeni, \num{20} wątków sprzętowych), \SI{32}{GiB} pamięci RAM DDR4-3200 oraz kartę sieciową Intel I219-V (sterownik \texttt{e1000e}, \SI{1}{Gb\per\second}) i~pracuje pod systemem Ubuntu (jądro \texttt{6.8.0-111-generic}). Węzły mają adresy z~podsieci \texttt{192.168.128.0/24}, a~dostęp do nich odbywa się bezpośrednim poleceniem \texttt{ssh <ip>}. Jednorodność środowiska, czyli ta sama architektura procesora, dystrybucja i~wersja bibliotek na każdym węźle, upraszcza dystrybucję binariów: obraz zbudowany na jednym węźle działa bez zmian na pozostałych. W~eksperymentach skalowania każdemu węzłowi fizycznemu odpowiadał jeden lokal (\emph{locale}), co pozwoliło zbadać skalowanie w~funkcji liczby węzłów aż do dziewięciu.
 
-Topologię środowiska przedstawiono na \cref{fig:topologia}. Warto zauważyć, że wszystkie węzły dzielą jedno łącze o~przepustowości \SI{1}{Gb\per\second}. To łącze jest wąskim gardłem komunikacji rozproszonej, bo każda wymiana komórek brzegowych między sąsiednimi fragmentami dziedziny przechodzi przez ten sam przełącznik.
+Topologię środowiska przedstawiono na \cref{fig:topologia}. Wszystkie węzły dzielą jedno łącze o~przepustowości \SI{1}{Gb\per\second}, które jest wąskim gardłem komunikacji rozproszonej, bo każda wymiana komórek brzegowych między sąsiednimi fragmentami dziedziny przechodzi przez ten sam przełącznik.
 
 \begin{figure}[H]
   \centering
@@ -193,7 +193,7 @@ Zachowanie programu sterowane jest zbiorem stałych konfiguracyjnych \texttt{con
 \subsection{Rejestrowanie przebiegów}
 \label{sec:depl:rejestrowanie}
 
-Sposób rejestrowania przebiegów podporządkowano zasadzie łączącej trzy cele: bieżący podgląd postępu, trwały zapis do dalszej analizy oraz jednoznaczne wiązanie logów z~konfiguracją, w~której powstał. W~tym celu wyjście uruchamianego programu przechwytywane jest poleceniem \texttt{tee} działającym po ustawieniu \texttt{set -o pipefail} (por.\ \cref{lst:run}).
+Sposób rejestrowania przebiegów zapewnia jednoczesny podgląd postępu, trwały zapis do~dalszej analizy i~jednoznaczne wiązanie logu z~konfiguracją, w~której powstał. W~tym celu wyjście uruchamianego programu przechwytywane jest poleceniem \texttt{tee} działającym po ustawieniu \texttt{set -o pipefail} (por.\ \cref{lst:run}).
 
 Nazwa pliku logu zawiera znacznik czasu w~postaci \path{logs/<bin>-YYYYmmdd-HHMMSS.log}, przez co kolejne przebiegi tej samej binarki nie nadpisują się nawzajem i~pozostają rozróżnialne w~czasie. 
 
@@ -216,7 +216,7 @@ proc dumpLocal(ref field, frameIdx: int) throws {
 }
 \end{lstlisting}
 
-Powstający plik nosi nazwę \texttt{frame\_<idx>\_loc\_<localeId>.bin} (lub \texttt{.bin.gz} przy kompresji) w~katalogu \texttt{dumpDir}. Nagłówek zawiera indeks klatki, identyfikator lokala, sześć globalnych granic i~sześć granic lokalnych, po których następuje surowy blok liczb typu \texttt{real}. Kompresja (domyślnie \texttt{compress=true}) realizowana jest przez przekierowanie strumienia do uruchomionego procesu \texttt{gzip -c > file.gz}. Ponieważ symulowane pole jest gładkie, kompresja \texttt{gzip} jest w~praktyce bezstratna i~zmniejsza rozmiar danych około \num{190}-krotnie, co czyni częste zrzucanie klatek przystępnym pod względem zajętości dysku. Parametr \texttt{dumpEvery} pełni rolę bramki (\texttt{step \% dumpEvery == 0}), a~licznik klatek zwiększa się przy każdym faktycznym zrzucie. Przed rozpoczęciem pętli każdy lokal wykonuje \texttt{rmTree} i~\texttt{mkdir} na katalogu \texttt{dumpDir}, aby wyeliminować pozostałości po wcześniejszych przebiegach. Warto pamiętać, że błąd \texttt{ENOSPC} (numer \num{28}) to problem dyskowy, inny niż sieciowy \texttt{ECONGESTION}; to rozróżnienie jest ważne przy diagnostyce nieudanych przebiegów.
+Powstający plik nosi nazwę \texttt{frame\_<idx>\_loc\_<localeId>.bin} (lub \texttt{.bin.gz} przy kompresji) w~katalogu \texttt{dumpDir}. Nagłówek zawiera indeks klatki, identyfikator lokala, sześć globalnych granic i~sześć granic lokalnych, po których następuje surowy blok liczb typu \texttt{real}. Kompresja (domyślnie \texttt{compress=true}) realizowana jest przez przekierowanie strumienia do uruchomionego procesu \texttt{gzip -c > file.gz}. Ponieważ symulowane pole jest gładkie, kompresja \texttt{gzip} jest w~praktyce bezstratna i~zmniejsza rozmiar danych około \num{190}-krotnie, co czyni częste zrzucanie klatek przystępnym pod względem zajętości dysku. Parametr \texttt{dumpEvery} pełni rolę bramki (\texttt{step \% dumpEvery == 0}), a~licznik klatek zwiększa się przy każdym faktycznym zrzucie. Przed rozpoczęciem pętli każdy lokal wykonuje \texttt{rmTree} i~\texttt{mkdir} na katalogu \texttt{dumpDir}, aby wyeliminować pozostałości po wcześniejszych przebiegach. Błąd \texttt{ENOSPC} (numer \num{28}) to problem dyskowy, inny niż sieciowy \texttt{ECONGESTION}, i~to rozróżnienie bywa istotne przy diagnostyce nieudanych przebiegów.
 
 \subsection{Agregacja rozproszonych fragmentów}
 

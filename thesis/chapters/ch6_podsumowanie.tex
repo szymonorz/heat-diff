@@ -11,7 +11,7 @@ a~wyniki potwierdzają tezę pracy: dla rozważanej klasy
 obliczeń stencilowych o~czynniku ograniczającym wydajność decyduje nie moc obliczeniowa, lecz
 przepustowość pamięci na~poziomie węzła oraz koszt komunikacji między węzłami~\cite{roofline}.
 
-Najważniejsze wnioski można ująć następująco.
+Najważniejsze wnioski przedstawiają się następująco.
 
 \paragraph{Poprawność i~równoważność wariantów.} Wykazano, że rozwiązanie różnicowe daje wynik niezależny
 od~liczby lokacji, na~które rozdzielono dziedzinę, pod~warunkiem prawidłowej wymiany warstw
@@ -62,59 +62,53 @@ i~wydajność się uzupełniają, a~nie zastępują.
 \section{Ograniczenia}
 \label{sec:ograniczenia}
 
-Uzyskane wyniki należy interpretować z~uwzględnieniem kilku ograniczeń, które sugerują też,
-co można robić dalej.
+Uzyskane wyniki należy interpretować z~uwzględnieniem kilku ograniczeń.
 
-Po~pierwsze, środowiskiem docelowym był niewielki, jednorodny klaster połączony siecią
-Ethernet o~przepustowości \SI{1}{\giga\bit\per\second}. Łącze to jest wąskim gardłem
-i~w~znacznej mierze determinuje obserwowane granice skalowania po~węzłach. Na~infrastrukturze
-z~szybką siecią o~małych opóźnieniach, na~przykład InfiniBand, należałoby oczekiwać istotnie lepszego
-skalowania oraz przesunięcia punktu, w~którym program przestaje być ograniczony komunikacją.
-Weryfikacja tej hipotezy wymaga jednak dostępu do~odpowiedniego sprzętu.
+Środowiskiem docelowym był niewielki, jednorodny klaster połączony siecią
+Ethernet o~przepustowości \SI{1}{\giga\bit\per\second}, która jest wąskim gardłem
+i~w~znacznej mierze determinuje granice skalowania po~węzłach. Na~infrastrukturze
+z~szybszą siecią o~małych opóźnieniach, na~przykład InfiniBand, można by oczekiwać
+lepszego skalowania oraz przesunięcia punktu, w~którym program przestaje być
+ograniczony komunikacją, choć weryfikacja tej hipotezy wymagałaby odpowiedniego sprzętu.
+Praktyczną granicą jest też maksymalny rozmiar zadania: dziedzin istotnie większych
+niż~$1000^3$ nie udało się zmieścić w~pamięci i~czasie klastra.
 
-Po~drugie, praktyczną granicą jest maksymalny rozmiar zadania: dziedzin istotnie większych
-niż~$1000^3$ nie udało się zmieścić w~zasobach pamięciowych i~czasowych klastra.
-
-Po~trzecie, świadomie ograniczono się do~jawnej metody różnic skończonych na~siatce regularnej
+Zakres pracy świadomie zawężono do~jawnej metody różnic skończonych na~siatce regularnej
 z~arytmetyką podwójnej precyzji. Metody niejawne, które są bezwarunkowo stabilne, lecz wymagają
 rozwiązywania układów równań, siatki niestrukturalne, techniki nakładania komunikacji na~obliczenia
-oraz akceleracja na~procesorach graficznych pozostają poza zakresem pracy. Każde z~tych
-rozszerzeń stanowi obiecujący kierunek: w~szczególności nakładanie wymiany halo na~obliczenia
-we~wnętrzu poddziedziny mogłoby częściowo ukryć koszt komunikacji, a~przejście na~schemat
-niejawny zmieniłoby charakterystykę obliczeniową problemu.
-
-Po~czwarte, badania koncentrowały się na~skalowaniu silnym, przy ustalonym rozmiarze zadania i~rosnącej
-liczbie jednostek równoległości. Analiza skalowania słabego, w~którym rozmiar zadania rośnie
-proporcjonalnie do~liczby lokacji, dostarczyłaby komplementarnego obrazu i~jest naturalnym
-uzupełnieniem przedstawionych wyników.
+oraz akceleracja na~procesorach graficznych pozostają poza zakresem, a~każde z~nich mogłoby
+zmienić charakterystykę obliczeniową problemu. Wreszcie badania dotyczyły wyłącznie skalowania
+silnego, przy ustalonym rozmiarze zadania i~rosnącej liczbie jednostek równoległości;
+skalowanie słabe, gdzie rozmiar zadania rośnie proporcjonalnie do~liczby lokacji,
+dałoby obraz uzupełniający.
 
 
 \subsection{Kierunki dalszych prac}
 \label{sec:dalsze-prace}
 
-Te ograniczenia wskazują, co można zrobić dalej. Najciekawszym
-kierunkiem jest \textbf{nakładanie komunikacji na~obliczenia}: wymianę warstw brzegowych można
-rozpocząć asynchronicznie i~w~tym czasie liczyć wnętrze poddziedziny, które nie zależy od~danych
-sąsiadów, ujawniając komunikację dopiero przy aktualizacji komórek przylegających do~granicy.
-Technika ta potrafi w~znacznym stopniu ukryć koszt wymiany halo, a~w~języku Chapel jej wyrażenie, za~pomocą zadań asynchronicznych i~jawnego rozdzielenia wnętrza od~brzegu poddziedziny, jest naturalne.
+Te ograniczenia wyznaczają naturalne kierunki dalszych prac.
 
-Drugim kierunkiem jest \textbf{zmiana warstwy sprzętowej}: powtórzenie pomiarów na~sieci
-o~niskim opóźnieniu i~wysokiej przepustowości, na~przykład InfiniBand, oraz z~conduitem GASNet dobranym
-do~takiej sieci pozwoliłoby ustalić, w~jakim stopniu obserwowane granice skalowania wynikają
-z~samego algorytmu, a~w~jakim z~ograniczeń konkretnego łącza \SI{1}{\giga\bit\per\second}.
-Komplementarnym eksperymentem byłoby \textbf{skalowanie słabe}, w~którym rozmiar zadania rośnie
-proporcjonalnie do~liczby lokacji; pozwoliłoby ono oddzielić koszty stałe od~kosztów rosnących
-wraz z~rozmiarem problemu.
+Najbardziej obiecującym z~nich jest \textbf{nakładanie komunikacji na~obliczenia}: wymianę
+warstw brzegowych można rozpocząć asynchronicznie i~w~tym czasie liczyć wnętrze poddziedziny,
+które nie zależy od~danych sąsiadów, ujawniając komunikację dopiero przy aktualizacji komórek
+przylegających do~granicy. W~języku Chapel wyraża się to naturalnie, za~pomocą zadań
+asynchronicznych i~jawnego rozdzielenia wnętrza od~brzegu poddziedziny.
 
-Trzecim kierunkiem są \textbf{rozszerzenia numeryczne i~sprzętowe}: przejście na~schematy niejawne,
-które są bezwarunkowo stabilne, lecz wymagają rozwiązywania układów równań i~globalnej komunikacji innego
-typu, obsługa siatek niestrukturalnych oraz akceleracja jądra obliczeniowego na~procesorach
-graficznych, którą Chapel wspiera poprzez odpowiednie lokacje i~atrybuty pętli równoległych. Każde
-z~tych rozszerzeń zmieniłoby charakterystykę obliczeniową problemu i~pozwoliłoby zweryfikować, na~ile
-wnioski niniejszej pracy zachowują ważność poza wąską klasą jawnych schematów stencilowych.
+Powtórzenie pomiarów na~sieci o~niskim opóźnieniu i~wysokiej przepustowości, na~przykład
+InfiniBand, wraz z~conduitem GASNet dobranym do~takiej sieci pozwoliłoby ustalić, w~jakim stopniu
+obserwowane granice skalowania wynikają z~samego algorytmu, a~w~jakim z~ograniczeń konkretnego
+łącza \SI{1}{\giga\bit\per\second}. Uzupełniająco warto rozważyć \textbf{skalowanie słabe}, gdzie
+rozmiar zadania rośnie proporcjonalnie do~liczby lokacji, co pozwoliłoby oddzielić koszty stałe
+od~kosztów rosnących wraz z~rozmiarem problemu.
 
-Wreszcie, wartościowym uzupełnieniem o~charakterze inżynierskim byłoby \textbf{pełne
-zautomatyzowanie potoku pomiarowego}, od~budowy i~dystrybucji po~zbieranie logów
-i~generowanie wykresów, tak aby cały cykl badawczy był odtwarzalny jednym
-poleceniem. Wprowadzone w~tej pracy elementy, czyli samoopisujące się logi oraz skrypty dystrybucji
-i~analizy, mogą być bazą takiego potoku.
+Innym naturalnym rozszerzeniem są \textbf{warianty numeryczne i~sprzętowe}: schematy niejawne,
+które są bezwarunkowo stabilne, lecz wymagają rozwiązywania układów równań i~globalnej komunikacji
+innego typu, siatki niestrukturalne oraz akceleracja jądra obliczeniowego na~procesorach graficznych,
+którą Chapel wspiera odpowiednimi lokacjami i~atrybutami pętli równoległych. Każde z~nich zmieniłoby
+charakterystykę obliczeniową problemu i~pozwoliłoby sprawdzić, na~ile wnioski tej pracy zachowują
+ważność poza klasą jawnych schematów stencilowych.
+
+Z~kolei inżynierskim uzupełnieniem byłoby \textbf{pełne zautomatyzowanie potoku pomiarowego},
+od~budowy i~dystrybucji po~zbieranie logów i~generowanie wykresów, tak aby cały cykl badawczy
+był odtwarzalny jednym poleceniem. Wprowadzone w~tej pracy elementy, czyli samoopisujące się logi
+oraz skrypty dystrybucji i~analizy, mogą być bazą takiego potoku.

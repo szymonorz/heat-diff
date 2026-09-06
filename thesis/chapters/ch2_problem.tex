@@ -173,7 +173,7 @@ drugiej, co wyznacza maksymalny dopuszczalny krok czasowy:
     + \dfrac{1}{\Delta y^2} + \dfrac{1}{\Delta z^2}\right)}.
   \label{eq:cfl}
 \end{equation}
-Zależność~\eqref{eq:cfl} ma istotne konsekwencje praktyczne: dwukrotne
+Zależność~\eqref{eq:cfl} ma praktyczne konsekwencje: dwukrotne
 zagęszczenie siatki wymusza czterokrotne
 zmniejszenie kroku czasowego, a~więc czterokrotny wzrost liczby kroków
 potrzebnych do~przebycia tego samego przedziału czasu fizycznego. Wraz
@@ -280,8 +280,7 @@ Prowadzi to do~wyraźnego rozdziału każdego kroku czasowego na~dwie fazy:
 fazę komunikacji, czyli odświeżenie warstw brzegowych, oraz fazę obliczeń, czyli wykonanie
 formuły~\eqref{eq:update} dla~wszystkich komórek wnętrza. W~programie fazy te są
 oddzielnie mierzone stoperami \texttt{fluffTimer} i~\texttt{computeTimer}, co
-pozwala precyzyjnie rozdzielić czas spędzony na~komunikacji od~czasu obliczeń
-i~stanowi podstawę analizy skalowalności w~dalszych rozdziałach. Struktura
+pozwala rozdzielić czas spędzony na~komunikacji od~czasu obliczeń. Struktura
 pojedynczego kroku jest zwięźle widoczna w~procedurze \texttt{stepOnce},
 przedstawionej na~\cref{lst:steponce-idea}: najpierw synchronizacja brzegów, potem
 równoległa aktualizacja wnętrza.
@@ -304,10 +303,10 @@ proc stepOnce(ref dst, ref src, ref fluffTimer, ref computeTimer) {
 
 \subsection{Intensywność arytmetyczna i ograniczenia wydajności}
 
-Kluczową cechą obliczeń stencilowych, decydującą o~ich zachowaniu wydajnościowym,
-jest bardzo niska \emph{intensywność arytmetyczna} (ang.\ \emph{arithmetic
-intensity})~\cite{datta-stencil}, iloraz liczby wykonanych operacji zmiennoprzecinkowych do~liczby
-bajtów przeniesionych z~pamięci. Aktualizacja jednego węzła według~\eqref{eq:update}
+Obliczenia stencilowe mają bardzo niską \emph{intensywność arytmetyczną}
+(ang.\ \emph{arithmetic intensity})~\cite{datta-stencil}, czyli iloraz liczby
+wykonanych operacji zmiennoprzecinkowych do~liczby bajtów przeniesionych z~pamięci.
+Aktualizacja jednego węzła według~\eqref{eq:update}
 wymaga zaledwie kilkunastu operacji zmiennoprzecinkowych, sześciu odejmowań, trzech
 mnożeń przez wagi i~kilku dodawań, a~jednocześnie odczytu siedmiu wartości
 i~zapisu jednej, przy \SI{8}{\byte} na~liczbę w~podwójnej precyzji daje to
@@ -328,17 +327,15 @@ komunikacją (ang.\ \emph{communication bound}): o~całkowitym czasie decyduje
 przepustowość i~opóźnienie połączeń sieciowych między węzłami, a~nie szybkość
 samych obliczeń.
 
-Zależność ta ma jednak korzystny aspekt związany ze~skalą problemu. Objętość
+Zależność ta ma jednak korzystną stronę. Objętość
 obliczeń w~podobszarze rośnie proporcjonalnie do~jego objętości, czyli jak
 \(N^3\) dla~sześcianu o~boku \(N\), podczas gdy objętość danych brzegowych
 podlegających wymianie rośnie proporcjonalnie do~pola powierzchni granic,
 czyli jak \(N^2\). Stosunek nakładu obliczeń do~nakładu komunikacji jest zatem
-rzędu \(N^3/N^2 = N\) i~rośnie liniowo z~rozmiarem krawędzi siatki. Innymi słowy,
-większe sześciany mają korzystniejszy stosunek obliczeń do~komunikacji: koszt
-komunikacji zostaje zamortyzowany większą liczbą obliczeń przypadających
-na~każdy przesłany bajt. Obserwacja ta ma bezpośrednie przełożenie na~strategię
-efektywnego skalowania i~zostanie potwierdzona empirycznie w~rozdziale
-z~wynikami.
+rzędu \(N^3/N^2 = N\) i~rośnie liniowo z~rozmiarem krawędzi siatki. Większe
+sześciany mają zatem korzystniejszy stosunek obliczeń do~komunikacji, bo
+koszt komunikacji zostaje zamortyzowany większą liczbą obliczeń przypadających
+na~każdy przesłany bajt. Wynik ten sprawdzono empirycznie w~rozdziale z~wynikami.
 
 \subsection{Miary skalowalności}
 
@@ -384,7 +381,7 @@ Nawet niewielki udział części sekwencyjnej narzuca twardą górną granicę
 przyspieszenia, niezależnie od~liczby dostępnych jednostek. W~kontekście
 rozważanego programu rolę nieusuwalnego narzutu pełni głównie komunikacja, wymiana warstw brzegowych oraz synchronizacja między krokami,
 co, w~połączeniu z~ograniczeniem przepustowością pamięci i~sieci omówionym
-wcześniej, wyznacza granice skalowalności badane dalej w~pracy.
+wcześniej, wyznacza granice skalowalności, które badano w~rozdziale z~wynikami.
 
 \section{Chapel, PGAS i GASNet}
 \label{sec:chapel}
@@ -401,9 +398,16 @@ jest jednak podzielona na~partycje o~jawnie określonym powinowactwie do~węzł�
 Programista operuje na~danych za~pomocą jednolitej, globalnej perspektywy
 (ang.\ \emph{global-view}), tak jakby były one lokalne, natomiast środowisko
 uruchomieniowe automatycznie tłumaczy dostępy do~danych zdalnych na~operacje
-komunikacji sieciowej. Model ten łączy wygodę programowania w~pamięci wspólnej
-ze świadomością tego, gdzie dane leżą fizycznie, co jest zaletą modelu
-przekazywania komunikatów.
+komunikacji sieciowej. W~ten sposób PGAS łączy wygodę programowania w~pamięci
+wspólnej, typową dla modelu pamięci współdzielonej, z~kontrolą rozmieszczenia
+danych, którą daje model przekazywania komunikatów.
+
+Chapel nie jest jedynym językiem tej grupy. Poza nim model PGAS realizują m.in.
+UPC (ang.\ \emph{Unified Parallel C}), rozszerzenie języka C~o~globalne wskaźniki, Co-Array Fortran
+z~notacją współobrazów, który wszedł do~standardu Fortran~2008, a~także języki projektowane
+od~podstaw dla~PGAS: X10 (IBM) i~Fortress (Sun Microsystems). Rozwiązania te różnią się głównie
+składnią, modelem zadań i~sposobem wyrażania lokalności; wspólne jest im oddanie programiście
+globalnego widoku danych przy jawnym oznaczaniu powinowactwa do~węzłów~\cite{pgas,upc}.
 
 Centralnym pojęciem w~Chapel jest \emph{locale}, abstrakcja jednostki
 systemu dysponującej własną pamięcią oraz zdolnością do~wykonywania obliczeń.
@@ -457,10 +461,10 @@ stencila~\eqref{eq:update}.
 
 \subsection{Warstwa zadań qthreads oraz warstwa komunikacji GASNet}
 
-Wykonywanie zadań w~obrębie pojedynczego locale obsługuje warstwa szeregowania
+Wykonywanie zadań w~obrębie pojedynczego locale obsługuje scheduler
 zadań. W~zastosowanej konfiguracji jest to biblioteka \emph{qthreads}
 (\texttt{CHPL\_TASKS=qthreads}), lekki system wątków użytkownika efektywnie
-obsługujący dużą liczbę drobnoziarnistych zadań generowanych przez pętle
+obsługujący dużą liczbę fine-grained zadań generowanych przez pętle
 \texttt{forall}~\cite{qthreads}. Liczbę wątków sprzętowych dostępnych na~danym węźle udostępnia
 własność \texttt{here.maxTaskPar}; wyznacza ona stopień równoległości fazy
 obliczeń w~obrębie węzła i~jest raportowana przez program przy starcie.
@@ -510,16 +514,16 @@ konduity dostępne na~klastrze zbudowanym z~węzłów połączonych zwykłą sie
 Ethernet. Konduit \texttt{udp}, oparty na~warstwie AMUDP, realizuje komunikaty
 aktywne bezpośrednio nad~datagramami UDP i~jest uruchamiany za~pomocą programu
 rozruchowego \texttt{amudprun}. Jego zaletą jest prosta konfiguracja, a~wadą
-podatność na~przeciążenie przy intensywnej, drobnoziarnistej wymianie danych.
+podatność na~przeciążenie przy intensywnej, fine-grained wymianie danych.
 Konduit \texttt{mpi} przenosi komunikację GASNet na~istniejącą implementację
 MPI, w~zastosowanej konfiguracji opartej na~MPICH nad~TCP, i~jest uruchamiany
 programem \texttt{gasnetrun\_mpi}; zapewnia on stabilniejszy i~wydajniejszy
 transport dla~podtrzymywanych, regularnych wzorców komunikacji, jakie generuje
 cykliczna wymiana warstw brzegowych w~opisywanym programie.
 
-Wybór konduitu ma duży wpływ na~zachowanie rozproszonej symulacji.
+Wybór konduitu ma istotne znaczenie dla~rozproszonej symulacji.
 Jak wykazano w~\cref{sec:parallel}, przy skalowaniu na~wiele węzłów zadanie
-jest ograniczone komunikacją, a~jedyną komunikacją w~ kroku jest wymiana
+jest ograniczone komunikacją, a~jedyną komunikacją w~kroku jest wymiana
 \emph{halo} realizowana przez \texttt{updateFluff()}. O~osiąganej skalowalności
 decydują w~praktyce właściwości warstwy komunikacyjnej: przepustowość,
 opóźnienie i~odporność na~przeciążenie. Dlatego dobór konduitu jest jednym

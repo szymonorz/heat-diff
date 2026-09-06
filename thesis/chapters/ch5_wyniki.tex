@@ -118,7 +118,7 @@ oraz wydajność $E$.}
 \label{fig:threads-1000}
 \end{figure}
 
-Podsumowując część jednowęzłową: równoległość wątkowa przynosi w~najlepszym
+W~części jednowęzłowej równoległość wątkowa przynosi w~najlepszym
 razie skromny, kilkudziesięcioprocentowy zysk, a~wydajność szybko załamuje się
 wraz ze wzrostem liczby wątków. Bezpośrednią przyczyną jest ograniczenie pasmem
 pamięci: schemat różnicowy o~niskiej intensywności arytmetycznej nasyca
@@ -298,7 +298,7 @@ dla największej kostki $1000^3$. Jednocześnie udział komunikacji
 słowy, dla małych dziedzin blisko dziewięćdziesiąt sześć procent czasu pochłania
 komunikacja, a~faktyczne obliczenia stanowią margines; wraz ze~wzrostem dziedziny
 proporcje te wyrównują się i~przy~$1000^3$ komunikacja oraz obliczenia zajmują już
-zbliżony czas. Warto jednak podkreślić, że nawet przy największej zbadanej kostce
+zbliżony czas. Nawet przy największej zbadanej kostce
 komunikacja wciąż odpowiada za~blisko połowę czasu kroku; trend jest wprawdzie
 korzystny, lecz w~osiągalnym zakresie rozmiarów zadanie nie przestaje być istotnie
 obciążone komunikacją.
@@ -308,9 +308,9 @@ podczas gdy powierzchnia warstw brzegowych, decydująca o~ilości komunikacji,
 rośnie jedynie jak $N^2$. W~konsekwencji wraz ze wzrostem $N$ stosunek pracy
 obliczeniowej do komunikacji poprawia się, a~duże kostki znacznie lepiej
 wykorzystują dostępny klaster niż małe, które są całkowicie zdominowane przez
-narzut komunikacyjny. Jest to praktyczna ilustracja klasycznej zasady, zgodnie
-z~którą efektywne skalowanie na maszynach rozproszonych wymaga dostatecznie
-dużego ziarna obliczeń przypadającego na węzeł.
+narzut komunikacyjny. Pokazuje to w~praktyce znany fakt, że~efektywne
+skalowanie na maszynach rozproszonych wymaga, by~na~każdy węzeł przypadało
+dostatecznie dużo pracy obliczeniowej.
 
 Największą zbadaną dziedziną jest $1000^3$; dziedziny istotnie większe przekraczają
 możliwości pamięciowe i~czasowe klastra, co wyznacza praktyczną, górną granicę
@@ -330,23 +330,19 @@ oraz udział komunikacji \texttt{comm\_frac} w~funkcji rozmiaru kostki.}
 \label{subsec:synteza-comm}
 
 Wyniki z tego rozdziału wskazują wspólnie, że system jest ograniczony
-komunikacją i~przepustowością pamięci, a~nie mocą obliczeniową. Główne
-przesłanki to:
-
-Po pierwsze, przyspieszenie węzłowe płaszczy się na poziomie około
-\num{2.4}$\times$ (\cref{tab:node-scaling}), daleko od skalowania liniowego,
-mimo dziewięciokrotnego zwiększenia liczby węzłów. Po drugie, zwiększanie
-liczby wątków na węzeł nie przynosi poprawy, a~w~konfiguracji wielowęzłowej
-średni czas obliczeń na krok wręcz rośnie z~liczbą wątków
-(\cref{tab:threads-9n}), co wskazuje na~nadmierną subskrypcję, a~nie
-niedobór mocy obliczeniowej. Po trzecie, udział komunikacji dominuje
-w~przypadku małych dziedzin i~maleje dopiero dla dużych kostek
-(\cref{tab:cube-size}), zgodnie z~geometryczną relacją między objętością $N^3$
-a~powierzchnią $N^2$. Po czwarte wreszcie, na każdym węźle jeden wątek warstwy
+komunikacją i~przepustowością pamięci, a~nie mocą obliczeniową. Przyspieszenie
+węzłowe płaszczy się na poziomie około \num{2.4}$\times$ (\cref{tab:node-scaling}),
+daleko od skalowania liniowego, mimo dziewięciokrotnego zwiększenia liczby
+węzłów. Zwiększanie liczby wątków na~węzeł nie przynosi poprawy, a~w~konfiguracji
+wielowęzłowej średni czas obliczeń na~krok wręcz rośnie z~liczbą wątków
+(\cref{tab:threads-9n}), co wskazuje na~nadmierną subskrypcję, a~nie na~niedobór
+mocy obliczeniowej. Udział komunikacji dominuje przy małych dziedzinach i~maleje
+dopiero dla dużych kostek (\cref{tab:cube-size}), zgodnie z~geometryczną relacją
+między objętością $N^3$ a~powierzchnią $N^2$. Na każdym węźle jeden wątek warstwy
 komunikacyjnej GASNet obciąża rdzeń w~niemal stu procentach, prowadząc aktywne
-odpytywanie (busy-polling) w~oczekiwaniu na postęp komunikacji, co
-potwierdzono analizą stosów wywołań w~debugerze. To nie jest obciążenie
-obliczeniowe, lecz widoczny i~mierzalny skutek ograniczenia komunikacją.
+odpytywanie (busy-polling) w~oczekiwaniu na~postęp komunikacji, co potwierdzono
+analizą stosów wywołań w~debugerze. To nie jest obciążenie obliczeniowe, lecz
+widoczny i~mierzalny skutek ograniczenia komunikacją.
 
 Fizycznym ograniczeniem jest łącze Ethernet o~przepustowości
 \SI{1}{\giga\bit\per\second}, które dla dziedziny rzędu $1000^3$ ulega
@@ -414,7 +410,7 @@ zaledwie kilku tysięcznych sekundy. Tak niski rozrzut oznacza, że pojedynczy p
 w~tych przypadkach niemal równie miarodajny co mediana z~dziesięciu powtórzeń,
 a~różnice między konfiguracjami to rzędy dziesiątych sekundy lub więcej, więc nie da się ich wytłumaczyć samym szumem pomiarowym.
 
-Warto też odnotować praktyczną granicę rozmiaru zadania.
+Osobną kwestią jest praktyczna granica rozmiaru zadania.
 Dziedzin istotnie większych niż $1000^3$ nie udało się ukończyć: przekraczają
 one możliwości pamięciowe i~czasowe klastra, wobec czego nie figurują w~żadnej
 tabeli i~wyznaczają jedynie górny kres rozmiaru osiągalnego na badanej
