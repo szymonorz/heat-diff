@@ -459,6 +459,67 @@ zapewniając brzeg
 o~grubości jednej komórki, dokładnie odpowiadający zasięgowi
 stencila~\eqref{eq:update}.
 
+\subsection{Konstrukcje równoległości i synchronizacja}
+
+Oprócz pętli \texttt{forall} i~konstrukcji \texttt{coforall\ldots on} Chapel udostępnia
+pomocnicze mechanizmy równoległości i~synchronizacji, które pozwalają wyrażać wzorce
+nie dające się zapisać samym podziałem danych.
+
+Równoległość na poziomie instrukcji realizują \texttt{begin} i~\texttt{cobegin}.
+Instrukcja \texttt{begin} uruchamia pojedyncze zadanie w~tle i~nie blokuje dalszego
+wykonywania bieżącego wątku, a~\texttt{cobegin} wykonuje każde z~podanych zdań
+równolegle i~czeka na~zakończenie ich wszystkich. Pozwala to na~zagnieżdżanie
+zadań i~tworzenie struktur, w~których kilka operacji przeplata się w~czasie.
+
+\begin{lstlisting}[language=Chapel, caption={Równoległe uruchamianie zadań za pomocą \texttt{cobegin}.}, label={lst:cobegin}]
+cobegin {
+  writeTask();   // zadanie A
+  readTask();    // zadanie B, wykonuje sie rownolegle z A
+}
+// oba zadania kończą się zanim sterowanie przejdzie dalej
+\end{lstlisting}
+
+Konstrukcja \texttt{on} przenosi wykonanie instrukcji na~wskazany locale; wewnątrz
+bloku słowo kluczowe \texttt{here} oznacza bieżący locale, co pozwala odczytać jego
+właściwości bez jawnego odwoływania się do~elementów tablicy \texttt{Locales}.
+
+\begin{lstlisting}[language=Chapel, caption={Przeniesienie wykonania na~konkretny locale z~użyciem \texttt{here}.}, label={lst:on-here}]
+on Locales[1] do
+  writeln("dzialam na: ", here.id, " z ", here.maxTaskPar, " watkami");
+\end{lstlisting}
+
+Do synchronizacji producenta z~konsumentem służą zmienne \texttt{single} (tak zwane
+zmienne synchronizujące): zapis do~takiej zmiennej blokuje, dopóki nie zostanie
+odczytana, a~odczyt — dopóki nie zostanie zapisana. Dają one semantykę jednorazowego
+przekazania wartości między zadaniami bez jawnych zamków.
+
+\begin{lstlisting}[language=Chapel, caption={Zmienna synchronizująca jako kanał jednorazowy między zadaniami.}, label={lst:sync}]
+var s: single int;          // zmienna synchronizujaca
+begin { s = computeResult(); }   // producent
+const v = s;                    // konsument czeka na wartosc
+\end{lstlisting}
+
+Dla bezpiecznej manipulacji stanem współdzielonym Chapel udostępnia typy
+\texttt{atomic}, które gwarantują niepodzielność operacji odczytu, zapisu i~dodawania.
+Typowe zastosowanie to liczniki globalne, sumy częściowe i~sekwencjonowanie
+dostępu do zasobów, bez~ryzyka wyścigu.
+
+\begin{lstlisting}[language=Chapel, caption={Operacje atomowe na liczniku współdzielonym.}, label={lst:atomic}]
+var counter: atomic int;
+counter.add(1);            // atomowe dodawanie
+const n = counter.read();  // atomowy odczyt
+\end{lstlisting}
+
+Wreszcie, dla typowych operacji redukcyjnych Chapel oferuje wyrażenia
+redukcji, które pozwalają zredukować tablicę lub pętlę do~pojedynczej wartości
+przy użyciu operatorów takich jak \texttt{+}, \texttt{min} czy \texttt{max},
+przy czym samo dzielenie pracy i~akumulacja wyniku pozostają w~rękach środowiska
+uruchomieniowego.
+
+\begin{lstlisting}[language=Chapel, caption={Redukcja sumy z~pętli równoległej.}, label={lst:reduce}]
+var s = + reduce A;   // suma wszystkich elementow tablicy A
+\end{lstlisting}
+
 \subsection{Warstwa zadań qthreads oraz warstwa komunikacji GASNet}
 
 Wykonywanie zadań w~obrębie pojedynczego locale obsługuje scheduler

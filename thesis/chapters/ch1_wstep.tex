@@ -6,7 +6,7 @@ spotykanych zadań obliczeniowych w~nauce i~inżynierii. Wśród nich szczególn
 obliczenia \emph{stencilowe}, czyli takie, w~których nowa wartość w~każdym punkcie siatki jest
 funkcją wartości z punktu sąsiadującego. Wzorzec ten
 sprawia, że wydajne i~skalowalne wykonanie obliczeń stencilowych na współczesnych
-architekturach równoległych ma duże znaczenie praktyczne~\cite{datta-stencil}.
+architekturach równoległych~\cite{datta-stencil}.
 
 Trójwymiarowe równanie przewodnictwa ciepła jest tradycyjnym przykładem takiego problemu.
 Jego jawna dyskretyzacja różnicowa ma dokładnie te cechy, które sprawiają, że obliczenia stencilowe
@@ -25,6 +25,6 @@ rozproszonych w~notacji zbliżonej do sekwencyjnej: z~globalnym widokiem tablic,
 iteratorami równoległymi i~gotowymi rozkładami dziedzin. Szczegóły komunikacji pozostawia
 warstwie wykonawczej, opartej na bibliotece GASNet.
 
-Celem niniejszej pracy jest zaprojektowanie, zaimplementowanie i~wdrożenie na~fizycznym klastrze
-rozproszonego programu symulującego trójwymiarowe równanie przewodnictwa ciepła w~języku Chapel, a~następnie
-przeprowadzenie analizy jego poprawności i~skalowalności.
+Celem pracy jest zaprojektowanie, zaimplementowanie i~wdrożenie na~klastrze
+rozproszonego programu symulującego równanie przewodnictwa ciepła w~Chapel oraz
+analizę jego poprawności i~skalowalności.
