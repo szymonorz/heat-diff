@@ -32,12 +32,12 @@ Pomiary wydajności obejmowały cztery rodziny scenariuszy, zestawione w~\cref{t
 symbolem $p$, liczbę lokacji symbolem $L$, a~krawędź kostki symbolem $N$.}
 \label{tab:scenariusze}
 \small
-\begin{tabular}{@{}llll@{}}
+\begin{tabular}{@{}p{2.8cm}p{2.8cm}p{4.0cm}p{4.0cm}@{}}
 \toprule
 Scenariusz & Zmienna & Ustalone & Środowisko \\
 \midrule
 Wątki, $1000^3$       & $p\in\{1,2,4,8,16\}$ & $L{=}1$, $N{=}1000$, 10 kroków & węzeł Pionier-lab8-1 (20 wątków) \\
-Wątki @ 9 lokacji     & $p\in\{1,2,4,8,16\}$ & $L{=}9$, $N{=}1000$, 100 kr.   & klaster (9 węzłów) \\
+Wątki @ 9 lokacji     & $p\in\{1,2,4,8,16\}$ & $L{=}9$, $N{=}1000$, 100 kroków   & klaster (9 węzłów) \\
 Węzły                 & $L\in\{1,\ldots,9\}$ & $N{=}1000$, 100 kroków        & klaster (9 węzłów) \\
 Rozmiar kostki        & $N\in\{125,\ldots,1000\}$ & $L{=}9$, 100 kroków       & klaster (9 węzłów) \\
 \bottomrule
@@ -175,20 +175,20 @@ i~zestawienia w~\cref{ch:wyniki} opierają się na~jednolicie zdefiniowanych wie
 Wiarygodność wniosków zależy od~kontroli czynników zakłócających. W~toku badań zidentyfikowano
 i~ograniczono kilka takich czynników.
 
-\paragraph{Zmienność środowiska.} Współdzielenie maszyny z~innymi procesami oraz dynamiczne
-zarządzanie taktowaniem procesora wprowadzają zmienność czasu wykonania. Ograniczono ją przez
+Zmienność środowiska pochodzi ze~współdzielenia maszyny z~innymi procesami oraz dynamicznego
+zarządzania taktowaniem procesora, co wprowadza zmienność czasu wykonania. Ograniczono ją przez
 sekwencyjne uruchamianie przebiegów, dziesięciokrotne powtórzenia oraz stosowanie mediany. Tam,
 gdzie mimo to pojawiły się wartości odstające, czyli pojedyncze wolniejsze przebiegi wskutek przejściowego
 ograniczenia taktowania, fakt ten odnotowano jawnie i~potraktowano jako artefakt pomiaru, a~nie
 własność konfiguracji.
 
-\paragraph{Nierówny podział dziedziny.} Dla części liczb lokacji kostka $1000^3$ nie dzieli się
-równo, co powoduje nierównomierne obciążenie i~zaburza gładkość krzywej skalowania. Nie jest to
+Nierówny podział dziedziny pojawia się, gdy liczba lokacji nie dzieli równo boku kostki $1000^3$;
+powoduje to nierównomierne obciążenie i~zaburza gładkość krzywej skalowania. Nie jest to
 błąd pomiaru, lecz rzeczywista własność dekompozycji; uwzględniono ją w~interpretacji
 niemonotonicznego przebiegu skalowania po~węzłach.
 
-\paragraph{Trafność zewnętrzna.} Wyniki uzyskano na~konkretnym, niewielkim klastrze z~siecią
+Trafność zewnętrzna wyników jest ograniczona: uzyskano je na~konkretnym, niewielkim klastrze z~siecią
 \SI{1}{\giga\bit\per\second}. Wartości bezwzględne nie przenoszą się wprost na~inne środowiska,
-natomiast jakościowe wnioski, ograniczenie przepustowością pamięci i~komunikacją, korzystny
+natomiast wnioski, ograniczenie przepustowością pamięci i~komunikacją, korzystny
 wpływ większych zadań na~wykorzystanie klastra, mają charakter ogólny i~wynikają z~właściwości samych
 obliczeń stencilowych~\cite{roofline,datta-stencil}.

@@ -269,7 +269,7 @@ w~funkcji liczby wątków, rosnący wskutek nadmiernej subskrypcji.}
 Ostatni zestaw eksperymentów bada wpływ rozmiaru dziedziny na wydajność przy
 ustalonej liczbie dziewięciu węzłów. \Cref{tab:cube-size} zestawia czasy
 wykonania, przepustowość wyrażoną w~miliardach komórek na sekundę
-(Gcell/s) oraz udział komunikacji \texttt{comm\_frac}, zdefiniowany jako iloraz
+(mld komórek/s) oraz udział komunikacji \texttt{comm\_frac}, zdefiniowany jako iloraz
 czasu wymiany warstw brzegowych i~sumy czasu wymiany oraz czasu obliczeń.
 
 \begin{table}[htbp]
@@ -280,7 +280,7 @@ kroków.}
 \begin{tabular}{lrrrr}
 \toprule
 Rozmiar & Mediana & Średnia & Przepustowość & \texttt{comm\_frac} \\
-& [s] & [s] & [Gcell/s] & \\
+& [s] & [s] & [mld komórek/s] & \\
 \midrule
 $125^3$  & \num{1.668}   & \num{1.670}   & \num{0.117} & \num{0.963} \\
 $250^3$  & \num{2.640}   & \num{2.652}   & \num{0.592} & \num{0.947} \\
@@ -292,7 +292,7 @@ $1000^3$ & \num{36.741}  & \num{36.802}  & \num{2.722} & \num{0.454} \\
 
 Wynik ten najlepiej potwierdza, że ograniczenie ma charakter komunikacyjny.
 Przepustowość rośnie systematycznie wraz z~rozmiarem dziedziny, od zaledwie
-\SI{0.117}{} Gcell/s dla najmniejszej kostki $125^3$ do \SI{2.722}{} Gcell/s
+\SI{0.117}{} mld komórek/s dla najmniejszej kostki $125^3$ do \SI{2.722}{} mld komórek/s
 dla największej kostki $1000^3$. Jednocześnie udział komunikacji
 \texttt{comm\_frac} maleje monotonicznie z~\num{0.963} do \num{0.454}. Innymi
 słowy, dla małych dziedzin blisko dziewięćdziesiąt sześć procent czasu pochłania
@@ -381,14 +381,14 @@ serii kluczową miarę oraz jej najistotniejszy wynik.
 \caption{Zestawienie zbiorcze najważniejszych wyników eksperymentalnych
 rozdziału.}
 \label{tab:synteza}
-\begin{tabular}{lll}
+\begin{tabular}{@{}p{4.2cm}p{4.8cm}p{4.2cm}@{}}
 \toprule
 Rodzina eksperymentów & Kluczowa miara & Wynik \\
 \midrule
 Wątki $1000^3$ (\cref{tab:threads-1000})    & optimum / maks. przyspieszenie & 4 wątki; \num{1.55}$\times$ \\
 Węzły $1000^3$ (\cref{tab:node-scaling})    & optimum / plateau przyspieszenia & 6 węzłów; ok. \num{2.4}$\times$ \\
 Wątki, 9 węzłów (\cref{tab:threads-9n})     & przyspieszenie (płaskie)       & $\le \num{1.044}$ \\
-Rozmiar kostki (\cref{tab:cube-size})       & przepustowość                  & \numrange{0.117}{2.722}~Gcell/s \\
+Rozmiar kostki (\cref{tab:cube-size})       & przepustowość                  & \numrange{0.117}{2.722}~mld komórek/s \\
 Rozmiar kostki (\cref{tab:cube-size})       & udział komunikacji \texttt{comm\_frac} & \num{0.963}$\to$\num{0.454} \\
 \bottomrule
 \end{tabular}
