@@ -11,50 +11,36 @@ a~wyniki potwierdzają tezę pracy: dla rozważanej klasy
 obliczeń stencilowych o~czynniku ograniczającym wydajność decyduje nie moc obliczeniowa, lecz
 przepustowość pamięci na~poziomie węzła oraz koszt komunikacji między węzłami~\cite{roofline}.
 
-Najważniejsze wnioski przedstawiają się następująco.
-
-\paragraph{Poprawność.} Wykazano, że rozwiązanie różnicowe daje wynik niezależny
+W~zakresie poprawności wykazano, że~rozwiązanie różnicowe daje wynik niezależny
 od~liczby lokacji, na~które rozdzielono dziedzinę, pod~warunkiem prawidłowej wymiany warstw
-brzegowych. Niezmiennik sumy pola w~stanie końcowym okazał się prostym, lecz skutecznym
-kryterium kontrolnym. Jednocześnie wykazano, że pominięcie wymiany halo, choć znacząco skraca czas wykonania, prowadzi
-do~wyniku \emph{cicho błędnego}; pokazuje to, że w~programowaniu rozproszonym krótki czas
+brzegowych; niezmiennik sumy pola w~stanie końcowym okazał się prostym, lecz skutecznym
+kryterium kontrolnym. Pominięcie wymiany halo znacząco skraca czas wykonania, lecz prowadzi
+do~wyniku \emph{cicho błędnego}, co pokazuje, że~w~programowaniu rozproszonym krótki czas
 wykonania nie oznacza jeszcze poprawnego wyniku.
 
-\paragraph{Skalowanie wątkowe.} Zrównoleglenie wątkowe w~obrębie węzła nasyca się bardzo szybko.
-Dla kostki $1000^3$ optimum przypada na~cztery wątki, a~maksymalne przyspieszenie nie przekracza
-około $1{,}55\times$ mimo szesnastu dostępnych wątków; wydajność równoległa spada wówczas
-poniżej $0{,}1$. Zachowanie to jest charakterystyczne dla obliczeń ograniczonych przepustowością
-pamięci: po~wysyceniu pasma dokładanie kolejnych wątków nie zwiększa wydajności, a~jedynie
-podnosi koszt synchronizacji i~rywalizacji o~zasoby.
+Zrównoleglenie wątkowe w~obrębie węzła nasyca się bardzo szybko: dla kostki $1000^3$ optimum
+przypada na~cztery wątki, a~maksymalne przyspieszenie nie przekracza około $1{,}55\times$ mimo
+szesnastu dostępnych wątków, co jest sygnaturą ograniczenia przepustowością pamięci. Skalowanie
+po~węzłach zatrzymuje się na~poziomie około $2{,}4\times$ i~pozostaje daleko od~zależności
+liniowej, a~jego przebieg jest niemonotoniczny, z~najlepszym czasem przy~sześciu węzłach,
+wskutek nierównego podziału kostki $1000^3$ dla ,,niewygodnych'' dzielników oraz rosnącej
+objętości wymiany halo; przy łączu \SI{1}{\giga\bit\per\second} czyni to obliczenia
+ograniczonymi komunikacją. Poprawę przynosi dopiero powiększanie zadania: wraz ze~wzrostem
+krawędzi kostki przepustowość rośnie z~$0{,}117$ do~$2{,}722$ mld komórek na~sekundę,
+a~udział komunikacji maleje z~$0{,}96$ do~$0{,}45$, ponieważ objętość rośnie z~sześcianem
+krawędzi, a~powierzchnia wymiany halo jedynie z~jej kwadratem.
 
-\paragraph{Skalowanie po~węzłach.} Przyspieszenie względem liczby węzłów zatrzymuje się na~poziomie
-około $2{,}4\times$ i~pozostaje daleko od~zależności liniowej, a~jego przebieg jest niemonotoniczny: najlepszy czas uzyskano przy~sześciu węzłach. Źródłem niemonotoniczności jest nierównomierny
-podział kostki $1000^3$ dla ,,niewygodnych'' dzielników liczby lokacji, wzmocniony rosnącą
-objętością wymiany halo, która rośnie w~przybliżeniu liniowo z~liczbą węzłów. W~połączeniu
-z~ograniczoną przepustowością łącza \SI{1}{\giga\bit\per\second} czyni to obliczenia
-ograniczonymi komunikacją.
-
-\paragraph{Skalowanie rozmiaru zadania.} Wraz ze~wzrostem krawędzi kostki rośnie przepustowość
-(z~$0{,}117$ do~$2{,}722$ miliarda aktualizacji komórek na~sekundę), a~udział komunikacji maleje
-z~$0{,}96$ do~$0{,}45$. Wynika to bezpośrednio z~faktu, że objętość zadania rośnie z~sześcianem
-krawędzi, podczas gdy powierzchnia wymiany halo, jedynie z~jej kwadratem. Większe zadania
-lepiej wykorzystują klaster; małe są zdominowane przez komunikację i~marnują dostępne zasoby.
-
-\paragraph{Wybór warstwy transportu.} Praca pokazała praktyczne znaczenie doboru conduitu GASNet.
-Wariant AMUDP, choć prosty i~pozbawiony zależności, ulega awarii typu \texttt{ECONGESTION}
-pod~obciążeniem typu \emph{incast} i~przy stratach pakietów, ponieważ nie zapewnia kontroli
-przepływu~\cite{incast}. Wariant mpi-conduit oparty na~bibliotece MPICH i~protokole TCP przetrwa te same
-warunki dzięki kontroli przepływu i~retransmisji, kosztem nieco niższej wydajności, lecz
-z~zachowaniem poprawności i~stabilności. Dla docelowego środowiska wybór ten okazał się
-decydujący.
-
-\paragraph{Produktywność a~wydajność w~języku Chapel.} Wysoki poziom abstrakcji języka Chapel, globalny widok tablic, gotowy rozkład \texttt{StencilDist} wraz z~automatyczną wymianą warstw
-brzegowych oraz zwięzłe iteratory równoległe, pozwolił zapisać poprawny kod rozproszony
-znacznie prościej niż przy jawnym użyciu MPI~\cite{chapel-overview,chapel-book}. Abstrakcja ta nie zniosła jednak
-fundamentalnego ograniczenia komunikacyjnego: koszt wymiany halo pozostaje widoczny w~wynikach
-i~decyduje o~granicy skalowania. Jest to zgodne z~intuicją, model programowania nie zmienia
-właściwości sieci. Stanowi to jednocześnie wskazówkę praktyczną: w~tym przypadku produktywność
-i~wydajność się uzupełniają, a~nie zastępują.
+Praktyczne znaczenie miał dobór conduitu GASNet. Wariant AMUDP, choć prosty, ulega awarii
+typu \texttt{ECONGESTION} pod~obciążeniem typu \emph{incast} i~przy stratach pakietów, bo nie
+zapewnia kontroli przepływu~\cite{incast}; mpi-conduit oparty na~bibliotece MPICH i~protokole
+TCP przetrwa te warunki dzięki kontroli przepływu i~retransmisji, kosztem nieco niższej
+wydajności. Wyższa warstwa języka również miała znaczenie: globalny widok tablic, gotowy rozkład
+\texttt{StencilDist} z~automatyczną wymianą otoczek oraz zwięzłe iteratory równoległe pozwoliły
+zapisać poprawny kod rozproszony znacznie prościej niż przy jawnym użyciu
+MPI~\cite{chapel-overview,chapel-book}. Abstrakcja ta nie zniosła jednak fundamentalnego
+ograniczenia komunikacyjnego: koszt wymiany halo pozostaje widoczny w~wynikach i~wyznacza
+granice skalowania. Model programowania nie zmienia właściwości sieci, co w~tym przypadku
+oznacza, że~produktywność i~wydajność się uzupełniają, a~nie zastępują.
 
 \section{Ograniczenia}
 \label{sec:ograniczenia}
@@ -85,7 +71,7 @@ dałoby obraz uzupełniający.
 
 Te ograniczenia wyznaczają naturalne kierunki dalszych prac.
 
-Najbardziej obiecującym z~nich jest \textbf{nakładanie komunikacji na~obliczenia}: wymianę
+Najbardziej obiecującym z~nich jest nakładanie komunikacji na~obliczenia: wymianę
 warstw brzegowych można rozpocząć asynchronicznie i~w~tym czasie liczyć wnętrze poddziedziny,
 które nie zależy od~danych sąsiadów, ujawniając komunikację dopiero przy aktualizacji komórek
 przylegających do~granicy. W~języku Chapel wyraża się to naturalnie, za~pomocą zadań
@@ -94,18 +80,18 @@ asynchronicznych i~jawnego rozdzielenia wnętrza od~brzegu poddziedziny.
 Powtórzenie pomiarów na~sieci o~niskim opóźnieniu i~wysokiej przepustowości, na~przykład
 InfiniBand, wraz z~conduitem GASNet dobranym do~takiej sieci pozwoliłoby ustalić, w~jakim stopniu
 obserwowane granice skalowania wynikają z~samego algorytmu, a~w~jakim z~ograniczeń konkretnego
-łącza \SI{1}{\giga\bit\per\second}. Uzupełniająco warto rozważyć \textbf{skalowanie słabe}, gdzie
+łącza \SI{1}{\giga\bit\per\second}. Uzupełniająco warto rozważyć skalowanie słabe, gdzie
 rozmiar zadania rośnie proporcjonalnie do~liczby lokacji, co pozwoliłoby oddzielić koszty stałe
 od~kosztów rosnących wraz z~rozmiarem problemu.
 
-Innym naturalnym rozszerzeniem są \textbf{warianty numeryczne i~sprzętowe}: schematy niejawne,
+Innym naturalnym rozszerzeniem są warianty numeryczne i~sprzętowe: schematy niejawne,
 które są bezwarunkowo stabilne, lecz wymagają rozwiązywania układów równań i~globalnej komunikacji
 innego typu, siatki niestrukturalne oraz akceleracja jądra obliczeniowego na~procesorach graficznych,
 którą Chapel wspiera odpowiednimi lokacjami i~atrybutami pętli równoległych. Każde z~nich zmieniłoby
 charakterystykę obliczeniową problemu i~pozwoliłoby sprawdzić, na~ile wnioski tej pracy zachowują
 ważność poza klasą jawnych schematów stencilowych.
 
-Z~kolei inżynierskim uzupełnieniem byłoby \textbf{pełne zautomatyzowanie potoku pomiarowego},
+Z~kolei inżynierskim uzupełnieniem byłoby pełne zautomatyzowanie potoku pomiarowego,
 od~budowy i~dystrybucji po~zbieranie logów i~generowanie wykresów, tak aby cały cykl badawczy
 był odtwarzalny jednym poleceniem. Wprowadzone w~tej pracy elementy, czyli samoopisujące się logi
 oraz skrypty dystrybucji i~analizy, mogą być bazą takiego potoku.
