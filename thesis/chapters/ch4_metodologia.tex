@@ -14,32 +14,33 @@ w~stanie końcowym, raportowaną przez program w~wierszu \texttt{final field: mi
 max=\ldots{} sum=\ldots}. Ponieważ pole przyjmuje wartości w~przedziale $[1,2]$, a~jego
 średnia jest bliska jedności, suma jest w~przybliżeniu równa liczbie komórek siatki.
 
-Pomiary wydajności obejmowały cztery rodziny scenariuszy, zestawione w~\cref{tab:scenariusze}:
+Pomiary wydajności obejmowały cztery grupy scenariuszy, zestawione w~tabeli~\ref{tab:scenariusze}:
 \begin{itemize}
   \item \textbf{skalowanie wątkowe w~obrębie węzła}: jedna lokacja (\texttt{-nl 1}),
         zmienna liczba wątków $1/2/4/8/16$; przeprowadzone dla kostki $1000^3$ na~węźle
         Pionier-lab8-1 o~20~wątkach;
-  \item \textbf{skalowanie wątkowe przy dziewięciu lokacjach}: kostka $1000^3$, ustalona
+  \item \textbf{skalowanie wątkowe przy 9 lokacjach}: kostka $1000^3$, ustalona
         liczba lokacji, zmienna liczba wątków na~lokację;
-  \item \textbf{skalowanie po~liczbie węzłów}: kostka $1000^3$, liczba lokacji od~1 do~9;
-  \item \textbf{skalowanie rozmiaru zadania}: dziewięć lokacji, krawędź kostki od~$125$
-        do~$1000$ (a~więc od~$125^3$ do~$1000^3$ komórek).
+  \item \textbf{skalowanie po~liczbie węzłów}: kostka $1000^3$, $16$ wątków na~lokację,
+        liczba lokacji od~1 do~9;
+  \item \textbf{skalowanie rozmiaru zadania}: 9 lokacji, $16$ wątków na~lokację,
+        krawędź kostki od~$125$ do~$1000$ (a~więc od~$125^3$ do~$1000^3$ komórek).
 \end{itemize}
 
 \begin{table}[htbp]
 \centering
-\caption{Rodziny scenariuszy pomiarowych. Liczbę wątków w~pierwszej rodzinie oznaczono
+\caption{Grupy scenariuszy pomiarowych. Liczbę wątków w~pierwszej grupie oznaczono
 symbolem $p$, liczbę lokacji symbolem $L$, a~krawędź kostki symbolem $N$.}
 \label{tab:scenariusze}
 \small
-\begin{tabular}{@{}p{2.8cm}p{2.8cm}p{4.0cm}p{4.0cm}@{}}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.8cm}>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{3.2cm}@{}}
 \toprule
 Scenariusz & Zmienna & Ustalone & Środowisko \\
 \midrule
-Wątki, $1000^3$       & $p\in\{1,2,4,8,16\}$ & $L{=}1$, $N{=}1000$, 10 kroków & węzeł Pionier-lab8-1 (20 wątków) \\
-Wątki @ 9 lokacji     & $p\in\{1,2,4,8,16\}$ & $L{=}9$, $N{=}1000$, 100 kroków   & klaster (9 węzłów) \\
-Węzły                 & $L\in\{1,\ldots,9\}$ & $N{=}1000$, 100 kroków        & klaster (9 węzłów) \\
-Rozmiar kostki        & $N\in\{125,\ldots,1000\}$ & $L{=}9$, 100 kroków       & klaster (9 węzłów) \\
+Wątki, $1000^3$       & $p\in\{1{,}2{,}4{,}8{,}16\}$ & $L{=}1$, $N{=}1000$, 10 kroków & węzeł Pionier-lab8-1 (20 wątków) \\
+Wątki, 9 lokacji      & $p\in\{1{,}2{,}4{,}8{,}16\}$ & $L{=}9$, $N{=}1000$, 100 kroków   & klaster (9 węzłów) \\
+Węzły                 & $L\in\{1{,}\ldots{,}9\}$ & $p{=}16$, $N{=}1000$, 100 kroków & klaster (9 węzłów) \\
+Rozmiar kostki        & $N\in\{125{,}\ldots{,}1000\}$ & $p{=}16$, $L{=}9$, 100 kroków & klaster (9 węzłów) \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -49,38 +50,34 @@ to dwa różne mechanizmy równoległości, współdzielenie pamięci przez
 wątki jednej lokacji oraz rozproszenie danych między lokacjami połączone z~komunikacją sieciową.
 Dopiero zestawienie obu perspektyw pozwala zidentyfikować czynnik ograniczający wydajność.
 
+W~scenariuszach wielowęzłowych liczbę wątków na~lokację pozostawiono wartości domyślnej
+warstwy qthreads, która dla dwudziestowątkowych węzłów ustala \num{16} wątków efektywnych,
+rezerwując pozostałe rdzenie dla wątku komunikacyjnego GASNet; jedyną zmienną niezależną
+była odpowiednio liczba węzłów lub rozmiar dziedziny.
+
 Wszystkie przebiegi wykorzystują ten sam zestaw parametrów numerycznych. Współczynnik
 dyfuzji przyjęto bezwymiarowo $\alpha=\num{0.25}$, a~gorącą warstwę startową o~grubości
 \texttt{hotThickness}=\num{2} płaszczyzn inicjalizowano wzdłuż osi~$y$ przy ścianie $y=0$.
 Krok czasowy dobierany jest automatycznie z~warunku~\eqref{eq:cfl} ze~współczynnikiem
 bezpieczeństwa $\Delta t=\num{0.98}\,\Delta t_{\max}$ (wzór~\eqref{eq:dt}); dla~największej
 badanej kostki $N=1000$ daje to $\Delta t\approx 6{,}55\cdot 10^{-7}$. Liczba kroków
-czasowych $K$ zależy od~rodziny scenariusza: wynosi \num{10} przy~skalowaniu wątkowym
+czasowych $K$ zależy od~grupy scenariusza: wynosi \num{10} przy~skalowaniu wątkowym
 na~pojedynczym węźle oraz \num{100} w~eksperymentach wielowęzłowych (patrz \cref{tab:scenariusze}).
 
 \subsection{Metryki}
 
 Podstawową wielkością mierzoną jest \emph{czas wykonania} $T$, rozumiany jako czas trwania
-całej pętli czasowej, mierzony zegarem \texttt{computeTimer} i~raportowany
-jako \texttt{Execution time}. Czas ten nie obejmuje inicjalizacji, czyli alokacji tablic, ustawienia
-warunku początkowego oraz obliczenia współczynników, mierzonej osobno zegarem
-\texttt{initTimer}. Dodatkowo, dla każdego kroku rejestrowano rozbicie czasu na trzy składowe:
-czas wymiany warstw brzegowych (\texttt{updateFluff}), czas właściwych obliczeń stencilowych
-(\texttt{compute}) oraz czas zapisu klatki (\texttt{save}).
+całej pętli czasowej, mierzony zegarem \texttt{computeTimer} w~lokalu głównym (locale~0).
+Ponieważ krok czasowy zawiera barierę synchronizacyjną wymiany halo, wszystkie lokale kończą
+krok w~tym samym czasie, więc pomiar z~lokalu głównego jest reprezentatywny dla całego
+przebiegu. Czas ten nie obejmuje inicjalizacji, mierzonej osobno zegarem
+\texttt{initTimer}.
 
-Na podstawie czasu wykonania zdefiniowano standardowe miary skalowania silnego~\cite{amdahl}. Przyspieszenie
-przy $p$ jednostkach równoległości, czyli wątkach albo lokacjach, wyraża się jako
-\begin{equation}
-  S(p) = \frac{T(1)}{T(p)},
-  \label{eq:speedup-def}
-\end{equation}
-gdzie $T(1)$ jest czasem wykonania konfiguracji odniesienia z~jednym wątkiem albo jedną lokacją.
-Wydajność równoległą zdefiniowano jako
-\begin{equation}
-  E(p) = \frac{S(p)}{p} = \frac{T(1)}{p\,T(p)},
-  \label{eq:eff}
-\end{equation}
-przy czym w~roli $p$ dla skalowania wątkowego przyjęto \emph{efektywną} liczbę wątków,
+Na podstawie czasu wykonania zdefiniowano standardowe miary skalowania silnego~\cite{amdahl}:
+przyspieszenie $S(p)=T(1)/T(p)$ oraz wydajność równoległą $E(p)=S(p)/p$, zdefiniowane już
+wzorami~\eqref{eq:speedup} i~\eqref{eq:efficiency}, gdzie $T(1)$ jest czasem wykonania konfiguracji
+odniesienia z~jednym wątkiem albo jedną lokacją.
+Przy czym w~roli $p$ dla skalowania wątkowego przyjęto \emph{efektywną} liczbę wątków,
 tj. wartość \texttt{maxTaskPar} po~ewentualnym ograniczeniu przez warstwę wątkową, a~nie liczbę
 żądaną. Dla oceny wykorzystania sprzętu niezależnie od~rozmiaru zadania posłużono się
 \emph{przepustowością} wyrażoną w~miliardach aktualizacji komórek na~sekundę,
@@ -88,7 +85,11 @@ tj. wartość \texttt{maxTaskPar} po~ewentualnym ograniczeniu przez warstwę wą
   \Pi = \frac{N^3 \cdot K}{T \cdot 10^{9}},
   \label{eq:throughput}
 \end{equation}
-gdzie $N^3$ jest liczbą komórek, a~$K$ liczbą kroków czasowych~\cite{hpcchallenge}. Dla oszacowania roli
+gdzie $N^3 \cdot K$ jest łączną liczbą aktualizacji komórek (wielkość bezwymiarowa),
+$T$ jest czasem wykonania w~sekundach, a~czynnik $10^{9}$ jest prefiksem giga
+zamieniającym aktualizacje na~giga-aktualizacje; w~konsekwencji $\Pi$ wyrażone jest
+w~giga-aktualizacjach komórek na~sekundę, co odpowiada konwencji metryki GUPS z~systemu
+HPC Challenge~\cite{hpcchallenge}. Dla oszacowania roli
 komunikacji wprowadzono \emph{udział komunikacji} w~czasie pojedynczego kroku,
 \begin{equation}
   \phi = \frac{t_{\text{fluff}}}{t_{\text{fluff}} + t_{\text{compute}}},
@@ -111,36 +112,35 @@ przejściowe ograniczenie taktowania procesora czy aktywność innych procesów,
 czas, lecz nie odzwierciedlają właściwości badanej konfiguracji. Mediana jest odporna na takie
 wartości odstające, podczas gdy średnia zostaje przez nie zawyżona. Przykładem jest jedna
 z~serii jednowęzłowych, w~której trzy z~dziesięciu przebiegów były wolniejsze o~około pół
-sekundy wskutek przejściowego ograniczenia taktowania; skutkowało to podwyższonym odchyleniem
+sekundy (około \SI{5}{\percent} czasu pojedynczego przebiegu) wskutek przejściowego ograniczenia
+taktowania; skutkowało to podwyższonym odchyleniem
 standardowym przy praktycznie niezmienionej medianie.
 
 Przebiegi danej serii wykonywano sekwencyjnie, po~jednym naraz, aby uniknąć wzajemnej
 rywalizacji o~pamięć i~pasmo. Wszystkie pomiary wydajności prowadzono na~środowisku Chapel~2.9
 z~warstwą komunikacyjną w~wariancie mpi-conduit. Liczbę wątków na~lokację ustawiano zmienną
-środowiskową \texttt{CHPL\_RT\_NUM\_THREADS\_PER\_LOCALE}. Wyjście każdego przebiegu zapisywano
-jednocześnie na~terminal i~do~pliku dziennika za~pomocą polecenia \texttt{tee} z~włączonym
-\texttt{set -o pipefail}, tak aby kod wyjścia potoku odzwierciedlał kod programu, a~nie polecenia
-\texttt{tee}.
+środowiskową \texttt{CHPL\_RT\_NUM\_THREADS\_PER\_LOCALE}.
 
-Konfigurację każdego przebiegu zapisywano bezpośrednio w~dzienniku: skrypt
-uruchomieniowy umieszcza na~początku logu wiersz
-\texttt{[cfg] threadsPerLocale(requested)=N numLocales=M} z~żądaną liczbą wątków i~lokacji,
-a~sam program wypisuje, osobno dla każdej lokacji, wiersz
-\texttt{[cfg] locale <id> maxTaskPar=<n>} z~\emph{efektywną} liczbą wątków po~ograniczeniu przez
-warstwę wątkową. Na~węzłach Pionier o~20~wątkach sprzętowych liczba efektywna była równa
-żądanej dla~wszystkich badanych konfiguracji ($p\le 16$).
+Konfigurację każdego przebiegu zapisywano bezpośrednio w~logu w~postaci linii
+\texttt{[cfg]} opisanych w~\cref{sec:uruchamianie}: skrypt podaje żądaną liczbę wątków i~lokacji,
+a~program efektywną liczbę wątków po~ograniczeniu przez warstwę qthreads. Na~węzłach Pionier
+o~20~wątkach sprzętowych liczba efektywna była równa żądanej dla~wszystkich badanych
+konfiguracji ($p\le 16$).
 
 
 \subsection{Narzędzia pomiarowe}
 
-Czasy mierzono wbudowanymi w~język stoperami (\texttt{stopwatch}) o~rozdzielczości
-podsekundowej, osobno dla inicjalizacji, całej pętli czasowej oraz, w~każdym kroku, dla wymiany halo, obliczeń i~zapisu. Objętość i~liczbę operacji komunikacyjnych GET, PUT, zdalnych i~atomowych rejestrowano za~pomocą modułu diagnostyki komunikacji GASNet,
+Czasy mierzono wbudowanymi w~język stoperami (\texttt{stopwatch}), opartymi na~zegarze
+monotonicznym wysokiej rozdzielczości o~praktycznej rozdzielczości pojedynczych
+mikrosekund, osobno dla inicjalizacji, całej pętli czasowej oraz, w~każdym kroku,
+dla wymiany halo, obliczeń i~zapisu. Objętość i~liczbę operacji komunikacyjnych GET, PUT, zdalnych i~atomowych rejestrowano za~pomocą modułu diagnostyki komunikacji GASNet,
 włączanego przełącznikiem \texttt{commLog}; wypisywany raz wiersz \texttt{[comm]} podaje
 analityczną objętość wymiany halo na~krok. Zużycie pamięci procesu kontrolowano narzędziem
-systemowym \texttt{/usr/bin/time -v}, odczytując maksymalny rezydentny zbiór stron, co pozwoliło ustalić
+systemowym \texttt{/usr/bin/time -v}, odczytując maksymalny rezydentny zbiór stron
+(ang.~\emph{Resident Set Size}, RSS), co pozwoliło ustalić
 graniczne rozmiary kostek mieszczące się w~pamięci danego węzła.
 
-Przetwarzanie zebranych dzienników i~wykreślanie wyników zrealizowano skryptami w~języku Python
+Przetwarzanie zebranych logów oraz rysowanie wykresów zrealizowano skryptami w~języku Python
 z~biblioteką \texttt{matplotlib}. Podstawową formą prezentacji jest wykres pudełkowy
 rozkładu czasu wykonania z~naniesionymi punktami poszczególnych przebiegów, medianą
 oraz średnią; uzupełniają go wykresy metryk pochodnych: przyspieszenia, wydajności,
@@ -159,14 +159,14 @@ i~dyskowych oraz uzasadnić wybór wariantu transportu opartego na~protokole TCP
 
 \subsection{Przykład wyznaczenia metryk}
 
-Dla uporządkowania powyższych definicji poniżej prześledzono sposób wyznaczenia metryk pochodnych na~jednym
+Dla uporządkowania powyższych definicji poniżej przedstawiono sposób wyznaczenia metryk pochodnych na~jednym
 scenariuszu. Rozważono skalowanie wątkowe kostki $1000^3$ na~węźle Pionier o~20~wątkach. Konfiguracja
-odniesienia z~jednym wątkiem osiągnęła medianę czasu wykonania $T(1)=\SI{8.663}{\second}$, natomiast
-konfiguracja czterowątkowa, $T(4)=\SI{5.596}{\second}$. Zgodnie z~\eqref{eq:speedup-def}
-przyspieszenie wynosi $S(4)=8{,}663/5{,}596\approx\num{1.548}$, a~wydajność równoległa według
-\eqref{eq:eff}, $E(4)=1{,}548/4\approx\num{0.387}$. Przepustowość dla tej konfiguracji, przy
+odniesienia z~jednym wątkiem osiągnęła medianę czasu wykonania $T(1)=\SI{9.812}{\second}$, natomiast
+optymalna konfiguracja ośmiowątkowa $T(8)=\SI{8.094}{\second}$. Zgodnie z~\eqref{eq:speedup}
+przyspieszenie wynosi $S(8)=9{,}812/8{,}094\approx\num{1.212}$, a~wydajność równoległa według
+\eqref{eq:efficiency}, $E(8)=1{,}212/8\approx\num{0.152}$. Przepustowość dla tej konfiguracji, przy
 $K=10$ krokach, obliczono z~\eqref{eq:throughput} jako
-$\Pi = 1000^3\cdot 10/(5{,}596\cdot 10^{9})\approx\num{1.79}$ miliarda aktualizacji komórek na~sekundę.
+$\Pi = 1000^3\cdot 10/(8{,}094\cdot 10^{9})\approx\num{1.24}$ miliarda aktualizacji komórek na~sekundę.
 Zabieg ten powtórzono dla każdej konfiguracji każdego scenariusza, dzięki czemu wszystkie wykresy
 i~zestawienia w~\cref{ch:wyniki} opierają się na~jednolicie zdefiniowanych wielkościach.
 

@@ -4,27 +4,31 @@
 Symulacje zjawisk opisanych równaniami różniczkowymi cząstkowymi należą do najczęściej
 spotykanych zadań obliczeniowych w~nauce i~inżynierii. Wśród nich szczególne miejsce zajmują
 obliczenia \emph{stencilowe}, czyli takie, w~których nowa wartość w~każdym punkcie siatki jest
-funkcją wartości z punktu sąsiadującego. Wzorzec ten
+funkcją wartości z punktów sąsiadujących. Wzorzec ten
 sprawia, że wydajne i~skalowalne wykonanie obliczeń stencilowych na współczesnych
-architekturach równoległych~\cite{datta-stencil}.
+architekturach równoległych stanowi wyzwanie~\cite{datta-stencil}.
 
 Trójwymiarowe równanie przewodnictwa ciepła jest tradycyjnym przykładem takiego problemu.
 Jego jawna dyskretyzacja różnicowa ma dokładnie te cechy, które sprawiają, że obliczenia stencilowe
 są trudne do zrównoleglenia: niską intensywność arytmetyczną
 oraz konieczność wymiany danych brzegowych między częściami dziedziny w~każdym kroku
 czasowym. Program symulujący równanie ciepła nadaje się dobrze do badania granic skalowalności.
+Choć wzorzec komunikacji jest tu prosty i~ograniczony do wymiany z~najbliższymi sąsiadami,
+a~nie do komunikacji każdy z~każdym jak w~przekształceniach Fouriera, to właśnie przy
+licznych węzłach każda taka wymiana obciąża to samo, współdzielone łącze sieciowe,
+co czyni problem dobrym obiektem do ujawniania ograniczeń komunikacyjnych klastra.
 
 Równoległe programowanie systemów rozproszonych tradycyjnie realizuje się za pomocą interfejsu
-przekazywania komunikatów (MPI), co daje wysoką wydajność kosztem znacznej złożoności kodu:
+przekazywania komunikatów (ang.~\emph{Message Passing Interface}, MPI), co daje wysoką wydajność kosztem znacznej złożoności kodu:
 programista jawnie zarządza podziałem danych, buforami wymiany oraz synchronizacją~\cite{mpi-standard}. Alternatywę
-oferują języki i~biblioteki oparte na modelu \emph{PGAS} (ang. \emph{Partitioned Global Address
-Space}), w~którym pamięć całego systemu jest widziana jako jedna, logicznie spójna, lecz fizycznie
-partycjonowana przestrzeń adresowa~\cite{pgas}. Język Chapel, rozwijany pierwotnie przez firmę Cray, jest
+oferują języki i~biblioteki oparte na modelu \emph{PGAS} (ang.\ \emph{Partitioned Global Address
+Space}, partycjonowana globalna przestrzeń adresowa)~\cite{pgas}. Język Chapel,
+rozwijany pierwotnie przez firmę Cray, jest
 jednym z~bardziej rozwiniętych języków w~tej grupie~\cite{chapel-overview}. Umożliwia zapisywanie obliczeń
 rozproszonych w~notacji zbliżonej do sekwencyjnej: z~globalnym widokiem tablic, wysokopoziomowymi
 iteratorami równoległymi i~gotowymi rozkładami dziedzin. Szczegóły komunikacji pozostawia
 warstwie wykonawczej, opartej na bibliotece GASNet.
 
-Celem pracy jest zaprojektowanie, zaimplementowanie i~wdrożenie na~klastrze
+Celem niniejszej pracy jest zaprojektowanie, zaimplementowanie i~wdrożenie na~klastrze
 rozproszonego programu symulującego równanie przewodnictwa ciepła w~Chapel oraz
-analizę jego poprawności i~skalowalności.
+analiza jego poprawności i~skalowalności.

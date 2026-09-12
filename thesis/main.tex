@@ -27,6 +27,7 @@
 \graphicspath{{figures/}}
 \usepackage{booktabs}
 \usepackage{longtable}
+\usepackage{array}
 \usepackage{float}
 \usepackage{caption}
 \usepackage{subcaption}
@@ -99,8 +100,8 @@
 \providecommand{\celsius}{\ensuremath{^\circ}C}\providecommand{\kelvin}{K}
 \providecommand{\ohm}{\ensuremath{\Omega}}
 % ---- odsyłacze (namiastka cleveref, polskie nazwy; parsowanie prefiksu etykiety) ----
-\@namedef{crlc@ch}{rozdz.}\@namedef{crlc@sec}{podrozdz.}\@namedef{crlc@fig}{rys.}%
-\@namedef{crlc@tab}{tab.}\@namedef{crlc@lst}{listing}\@namedef{crlc@eq}{równ.}
+\@namedef{crlc@ch}{rozdziale}\@namedef{crlc@sec}{podrozdziale}\@namedef{crlc@fig}{rysunek}%
+\@namedef{crlc@tab}{tabela}\@namedef{crlc@lst}{listing}\@namedef{crlc@eq}{równanie}
 \@namedef{cruc@ch}{Rozdział}\@namedef{cruc@sec}{Podrozdział}\@namedef{cruc@fig}{Rysunek}%
 \@namedef{cruc@tab}{Tabela}\@namedef{cruc@lst}{Listing}\@namedef{cruc@eq}{Równanie}
 \def\cref@get#1:#2\@nil{#1}
@@ -130,16 +131,26 @@ Kierunek Informatyka}
 % ======================= STRONA TYTUŁOWA =======================
 \begin{titlepage}
 \centering
-\vspace*{1.5cm}
-{\large \thesisuniversity\par}
-\vspace{2.5cm}
-{\Large\bfseries \thesistitle \par}
-\vspace{2.5cm}
-\begin{flushright}
+\vspace*{0.6cm}
+{\large Uniwersytet Mikołaja Kopernika w~Toruniu\par}
+\vspace{0.3cm}
+{\large Wydział Matematyki i~Informatyki\par}
+\vspace{2.6cm}
 {\large \thesisauthor\par}
-\vspace{0.4cm}
-{\normalsize Promotor: \thesissupervisor\par}
-\end{flushright}
+\vspace{0.25cm}
+{\large nr~albumu: \textbf{308190}\par}
+\vspace{0.25cm}
+{\large Kierunek studiów: Informatyka\par}
+\vspace{2cm}
+{\Large\bfseries Praca magisterska\par}
+\vspace{1.6cm}
+{\Large\bfseries \thesistitle\par}
+\vfill
+{\large Promotor\par}
+\vspace{0.15cm}
+{\large \thesissupervisor\par}
+\vspace{1.2cm}
+{\large Toruń, \thesisyear\par}
 \end{titlepage}
 \cleardoublepage
 

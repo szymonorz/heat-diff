@@ -105,7 +105,7 @@ R=/home/sorzechowski/schule/heat-diff
 ssh $SSHOPT -p 2222 chapel@localhost 'mkdir -p ~/src'
 scp $SSHOPT -P 2222 "$R/distribute-chapel.sh" "$R/compile-and-distribute.sh" \
                     "$R/chplconfig" "$R/hosts.txt" chapel@localhost:~/
-scp $SSHOPT -P 2222 "$R/src/3d.chpl" "$R/src/3d_swap.chpl" "$R/src/Diagnostics.chpl" \
+scp $SSHOPT -P 2222 "$R/src/3d.chpl" "$R/src/3d_pingpong.chpl" "$R/src/Diagnostics.chpl" \
                     "$R/src/ImageUtils.chpl" "$R/src/aggregate3d.chpl" chapel@localhost:~/src/
 ssh $SSHOPT -p 2222 chapel@localhost 'chmod +x ~/*.sh'
 ```

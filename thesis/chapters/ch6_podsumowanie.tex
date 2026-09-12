@@ -19,7 +19,7 @@ do~wyniku \emph{cicho błędnego}, co pokazuje, że~w~programowaniu rozproszonym
 wykonania nie oznacza jeszcze poprawnego wyniku.
 
 Zrównoleglenie wątkowe w~obrębie węzła nasyca się bardzo szybko: dla kostki $1000^3$ optimum
-przypada na~cztery wątki, a~maksymalne przyspieszenie nie przekracza około $1{,}55\times$ mimo
+przypada na~osiem wątków, a~maksymalne przyspieszenie nie przekracza około $1{,}21\times$ mimo
 szesnastu dostępnych wątków, co jest sygnaturą ograniczenia przepustowością pamięci. Skalowanie
 po~węzłach zatrzymuje się na~poziomie około $2{,}4\times$ i~pozostaje daleko od~zależności
 liniowej, a~jego przebieg jest niemonotoniczny, z~najlepszym czasem przy~sześciu węzłach,
@@ -30,7 +30,7 @@ krawędzi kostki przepustowość rośnie z~$0{,}117$ do~$2{,}722$ mld komórek n
 a~udział komunikacji maleje z~$0{,}96$ do~$0{,}45$, ponieważ objętość rośnie z~sześcianem
 krawędzi, a~powierzchnia wymiany halo jedynie z~jej kwadratem.
 
-Praktyczne znaczenie miał dobór conduitu GASNet. Wariant AMUDP, choć prosty, ulega awarii
+Praktyczne znaczenie miał dobór kanału komunikacyjnego GASNet. Wariant AMUDP, choć prosty, ulega awarii
 typu \texttt{ECONGESTION} pod~obciążeniem typu \emph{incast} i~przy stratach pakietów, bo nie
 zapewnia kontroli przepływu~\cite{incast}; mpi-conduit oparty na~bibliotece MPICH i~protokole
 TCP przetrwa te warunki dzięki kontroli przepływu i~retransmisji, kosztem nieco niższej
@@ -78,7 +78,7 @@ przylegających do~granicy. W~języku Chapel wyraża się to naturalnie, za~pomo
 asynchronicznych i~jawnego rozdzielenia wnętrza od~brzegu poddziedziny.
 
 Powtórzenie pomiarów na~sieci o~niskim opóźnieniu i~wysokiej przepustowości, na~przykład
-InfiniBand, wraz z~conduitem GASNet dobranym do~takiej sieci pozwoliłoby ustalić, w~jakim stopniu
+InfiniBand, wraz z~kanałem komunikacyjnym GASNet dobranym do~takiej sieci pozwoliłoby ustalić, w~jakim stopniu
 obserwowane granice skalowania wynikają z~samego algorytmu, a~w~jakim z~ograniczeń konkretnego
 łącza \SI{1}{\giga\bit\per\second}. Uzupełniająco warto rozważyć skalowanie słabe, gdzie
 rozmiar zadania rośnie proporcjonalnie do~liczby lokacji, co pozwoliłoby oddzielić koszty stałe

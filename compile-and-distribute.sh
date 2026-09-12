@@ -102,8 +102,8 @@ if [[ "$SKIP_COMPILE" == false ]]; then
     # time by distribute-chapel.sh), so --fast/--specialize tunes to whatever the runtime was built
     # for. Setting it here instead would risk a "runtime not built for this configuration" error.
     echo ">>> Conduit: $CONDUIT   CHPL_HOME=${CHPL_HOME:-<from PATH>}"
-    echo ">>> Compiling ${BINARY_NAME} (ping-pong)..."
-    chpl --fast --main-module 3d "$SRC_DIR/3d.chpl" "$SRC_DIR/Diagnostics.chpl" -o "$BINARY_NAME"
+    echo ">>> Compiling ${BINARY_NAME} (operator zamiany <=>)..."
+    chpl --fast --main-module 3d "$SRC_DIR/3d.chpl" -o "$BINARY_NAME"
     echo ">>> Compiling ${AGG_NAME} (single-locale post-processor)..."
     chpl --fast --main-module aggregate3d "$SRC_DIR/aggregate3d.chpl" "$SRC_DIR/ImageUtils.chpl" -o "$AGG_NAME"
     echo ">>> Compilation successful"

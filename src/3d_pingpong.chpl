@@ -1,6 +1,5 @@
 use StencilDist;
-use CommDiagnostics;
-use MemDiagnostics;
+use Diagnostics;
 use Time;
 use IO;
 use FileSystem;
@@ -13,15 +12,10 @@ config const nx = 20, ny = 20, nz = 20,
              debug = false;
 
 config const dumpDir = "frames";
-config const dumpEvery = 1;
+config const dumpEvery = 100;
 config const compress = true;
 config const trackMem = false;
-
-proc reportMem(msg: string) {
-  for loc in Locales do on loc do
-    writeln("[mem] ", msg, " locale ", here.id, ": ",
-            memoryUsed():real / (1024*1024), " MB");
-}
+config const commLog = false;
 
 var initTimer, computeTimer: stopwatch;
 
@@ -99,37 +93,52 @@ initTimer.stop();
 writeln("Initialization time: ", initTimer.elapsed(), " s");
 if trackMem then reportMem("after init (u+un allocated)");
 
+for loc in Locales do on loc do
+  writeln("[cfg] locale ", here.id, " maxTaskPar=", here.maxTaskPar);
+
 coforall loc in Locales do on loc {
   try { if exists(dumpDir) then rmTree(dumpDir); } catch { }
   try { mkdir(dumpDir, parents=true); } catch { }
 }
 
-if debug then startCommDiagnostics();
+const bytesPerStep = haloBytesPerStep(u, {0..<nx, 0..<ny, 0..<nz});
+if commLog then
+  writeln("[comm] ", bytesPerStep, " B/step across ", numLocales, " locale(s)");
+
+if debug || commLog then startCommDiagnostics();
+
+var prevComm: commSnapshot;
 
 computeTimer.start();
 
 var frame = 0;
 for step in 1..numSteps {
-  var fluffT, computeT, swapT, saveT: stopwatch;
+  var fluffT, computeT, saveT: stopwatch;
+  const writeToU = (step % 2 == 1);
 
-  stepOnce(u, un, fluffT, computeT);
-
-  swapT.start();
-  un <=> u;
-  swapT.stop();
+  if writeToU then stepOnce(u, un, fluffT, computeT);
+  else             stepOnce(un, u, fluffT, computeT);
 
   saveT.start();
   if step % dumpEvery == 0 {
     frame += 1;
-    dumpLocal(un, frame);
+    if writeToU then dumpLocal(u, frame);
+    else             dumpLocal(un, frame);
   }
   saveT.stop();
 
   writeln("step ", step,
           "  updateFluff=", fluffT.elapsed(), " s",
           "  compute=",     computeT.elapsed(), " s",
-          "  swap=",        swapT.elapsed(), " s",
           "  save=",        saveT.elapsed(), " s");
+
+  if commLog {
+    const c = currentComm();
+    writeln("  comm[", step, "] put=", c.put-prevComm.put, " get=", c.get-prevComm.get,
+            " on=", c.ons-prevComm.ons, " amo=", c.amo-prevComm.amo,
+            " | data=", bytesPerStep, " B/step  cum=", bytesPerStep*step, " B");
+    prevComm = c;
+  }
 }
 
 computeTimer.stop();
@@ -141,7 +150,11 @@ if debug {
 
 if trackMem then reportMem("after run");
 
-writeln("final field: min=", min reduce un, " max=", max reduce un,
-        " sum=", + reduce un);
+if numSteps % 2 == 1 then
+  writeln("final field: min=", min reduce u,  " max=", max reduce u,
+          " sum=", + reduce u);
+else
+  writeln("final field: min=", min reduce un, " max=", max reduce un,
+          " sum=", + reduce un);
 
-writeln("Computation time:    ", computeTimer.elapsed(), " s");
+writeln("Execution time:    ", computeTimer.elapsed(), " s");

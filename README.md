@@ -40,7 +40,7 @@ Solves the 3D heat equation on a `StencilDist` domain with a hot slab along one 
 | `dumpDir` | frames | Per-locale dump directory (created on each host) |
 | `debug` | false | Print GASNet comm diagnostics |
 
-A swap-based variant, `src/3d_swap.chpl`, is identical except it uses `un <=> u` each step instead of ping-pong buffering, kept for performance comparison (see Performance notes).
+A ping-pong variant, `src/3d_pingpong.chpl`, is identical except it uses alternating buffer roles (`writeToU = step%2==1`) instead of the `un <=> u` swap; it is a reference variant, not used in the measurements.
 
 3D renderer options (module `ImageUtils`):
 
@@ -58,7 +58,7 @@ A swap-based variant, `src/3d_swap.chpl`, is identical except it uses `un <=> u`
 
 ### Array swap (`un <=> u`) is O(1), not a copy
 
-The 3D solver uses ping-pong buffering (`src/3d.chpl`) to avoid a per-step `un <=> u`. It turns out this is **not** a meaningful optimization: Chapel's array swap operator (`operator <=>` in `$CHPL_HOME/modules/internal/ChapelArray.chpl`) first attempts `doiOptimizedSwap`, which swaps the arrays' internal **data pointers in O(1)**. The O(N) element-wise `forall` copy is only a fallback for distributions that don't implement the optimized path — and `StencilDist` (like `BlockDist`) does implement it. So the swap moves no bulk data and performs no communication; it just swaps each locale's local-buffer pointers.
+The 3D solver (`src/3d.chpl`) swaps buffers each step with `un <=> u`. The ping-pong variant (`src/3d_pingpong.chpl`) avoids this per-step swap by alternating buffer roles. It turns out the swap is **not** a meaningful cost: Chapel's array swap operator (`operator <=>` in `$CHPL_HOME/modules/internal/ChapelArray.chpl`) first attempts `doiOptimizedSwap`, which swaps the arrays' internal **data pointers in O(1)**. The O(N) element-wise `forall` copy is only a fallback for distributions that don't implement the optimized path — and `StencilDist` (like `BlockDist`) does implement it. So the swap moves no bulk data and performs no communication; it just swaps each locale's local-buffer pointers.
 
 The amount of data moved is therefore O(1) either way. But the two regimes differ once you cross locales, because `doiOptimizedSwap` runs a `coforall loc in Locales do on loc { ... }` to swap each locale's pointer — that per-step cross-locale on-clause/barrier is not free on a high-latency interconnect:
 
@@ -67,7 +67,7 @@ The amount of data moved is therefore O(1) either way. But the two regimes diffe
 | Single locale, 120³, `--fast` | ≈ 3 µs (≈0.1% of compute) | identical |
 | 2 locales (udp VMs), 64³, 30 steps | ≈ 0.2–2 ms (noisy) | **0.894 s vs 0.998 s** (~12% faster, 3 reps) |
 
-So ping-pong (`3d.chpl`) is a small but consistent win on this multilocale **udp** setup — it avoids the per-step cross-locale swap coordination. On a real interconnect (InfiniBand/Aries) that overhead shrinks toward the single-locale (negligible) case. Either way, absolute per-step wall-clock is dominated by the data dump (I/O, ~15 ms) and `updateFluff` (halo exchange, ~8–11 ms); the swap is the smallest term.
+So ping-pong (`3d_pingpong.chpl`) is a small but consistent win on this multilocale **udp** setup — it avoids the per-step cross-locale swap coordination. On a real interconnect (InfiniBand/Aries) that overhead shrinks toward the single-locale (negligible) case. Either way, absolute per-step wall-clock is dominated by the data dump (I/O, ~15 ms) and `updateFluff` (halo exchange, ~8–11 ms); the swap is the smallest term.
 
 > Note: the GASNet **udp** conduit `ECONGESTION`-aborts on large halo exchanges under
 > many-to-one incast or any packet loss (e.g. 1000³ across 9× 1 Gb nodes dies at step 1). The
@@ -77,7 +77,7 @@ So ping-pong (`3d.chpl`) is a small but consistent win on this multilocale **udp
 
 ## Prerequisites
 
-- Chapel 2.7.0 (built with `CHPL_COMM=gasnet`, `CHPL_LLVM=none`)
+- Chapel 2.9.0 (built with `CHPL_COMM=gasnet`, `CHPL_LLVM=none`)
 - Build tools: `gcc g++ make m4 perl python3 cmake wget` + `gmp.h` (no package manager is
   assumed — the scripts check and tell you the install command for your distro)
 - ffmpeg (for video rendering)
@@ -132,11 +132,11 @@ ssh -p 2222 chapel@localhost
 ## Compiling
 
 ```bash
-export CHPL_HOME=~/chapel-2.7.0
+export CHPL_HOME=~/chapel-2.9.0
 source $CHPL_HOME/util/setchplenv.bash
 
 cd src
-chpl --main-module 3d 3d.chpl Diagnostics.chpl -o heat3d
+chpl --main-module 3d 3d.chpl -o heat3d
 chpl --main-module aggregate3d aggregate3d.chpl ImageUtils.chpl -o aggregate3d
 chpl 1d.chpl ImageUtils.chpl -o heat1d
 ```

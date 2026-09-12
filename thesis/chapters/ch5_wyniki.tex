@@ -4,6 +4,11 @@
 \section{Poprawność i wydajność wariantów}
 \label{sec:poprawnosc-wydajnosc}
 
+Główny wariant programu zarządza buforami operatorem zamiany \texttt{<=>};
+rozważono też wariant naprzemiennego buforowania (ping-pong). Ponieważ oba nie
+różnią się znacząco wydajnością, dalsze wyniki dotyczą wariantu głównego
+z~operatorem zamiany.
+
 \subsection{Weryfikacja poprawności numerycznej}
 \label{subsec:poprawnosc}
 
@@ -25,25 +30,25 @@ wyznaczonego przez dane początkowe i~brzegowe. Naruszenie któregokolwiek
 z~tych ograniczeń natychmiast sygnalizowałoby błąd implementacji schematu
 różnicowego lub niestabilność numeryczną.
 
-Kluczową rolę w~weryfikacji odgrywa jednak suma wszystkich elementów pola.
-Ponieważ średnia wartość pola wynosi w~przybliżeniu \num{1}, suma $S$~jest
-bliska liczbie węzłów siatki, czyli $N^3$ dla dziedziny o~boku $N$.
-Jednocześnie suma $S$ dobrze oddaje stan całej dziedziny i~szybko reaguje
-na~różnice między konfiguracjami: najmniejsze rozejście się wyników widać jako
-rozbieżność sum.
+Kluczową rolę w~weryfikacji odgrywa jednak suma wszystkich elementów pola,
+w~przybliżeniu równa liczbie komórek siatki. Jednocześnie suma $S$ dobrze
+oddaje stan całej dziedziny i~szybko reaguje na~różnice między konfiguracjami:
+najmniejsze rozejście się wyników widać jako rozbieżność sum.
 
 Właśnie na tej podstawie zweryfikowano poprawność obliczeń wielowęzłowych.
 Przebieg uruchomiony na pojedynczym locale (\texttt{-nl 1}) daje pewną wartość
 sumy odniesienia. Ten sam problem rozdzielony na $N$~locale daje identyczną
 sumę \emph{pod warunkiem}, że po każdym kroku czasowym wykonywana jest
 wymiana warstw brzegowych (halo) za pomocą operacji \texttt{updateFluff}.
-Pominięcie tej wymiany prowadzi do zauważalnego skrócenia czasu wykonania,
-ponieważ znika najkosztowniejsza faza komunikacyjna, lecz suma $S$ zaczyna
-się rozchodzić względem wartości odniesienia. Wynik jest wtedy
-\emph{cicho błędny}: program kończy się bez żadnego komunikatu o~błędzie,
-a~mimo to obliczone pole nie odpowiada rozwiązaniu zadania.
-Wymiana warstw brzegowych jest więc potrzebna do~poprawności obliczeń
-wielowęzłowych i~nie da się jej pominąć dla zysku wydajności. Ta obowiązkowa
+Pominięcie tej wymiany skraca czas wykonania, lecz suma $S$ zaczyna się
+rozchodzić względem wartości odniesienia; wynik staje się \emph{cicho błędny}.
+Wymiana warstw brzegowych
+jest więc niezbędna do~poprawności i~nie da się jej pominąć dla zysku
+wydajności. Suma jest przy tym
+miarą odporną na~błędy systematyczne, do~jakich należy pominięcie wymiany halo,
+które rozchodzi pole w~jednym kierunku, a~nie na~błędy kompensujące się; ponadto
+zasada maksimum ogranicza każdą komórkę do~przedziału $[1,2]$, więc punktowe
+naruszenie tej granicy zostałoby wychwycone niezależnie od sumy. Ta obowiązkowa
 komunikacja, jak pokazano w~\cref{sec:skalowanie-komunikacja}, jest głównym wąskim
 gardłem systemu.
 
@@ -54,8 +59,7 @@ gardłem systemu.
 W~tej części przeanalizowano wydajność jednowęzłową. Celem tej serii eksperymentów
 było zbadanie, jak czas wykonania programu zależy od liczby wątków obliczeniowych
 przy ustalonym rozmiarze zadania, a~zatem ile faktycznie zyskuje się na
-zrównolegleniu wewnątrzwęzłowym. Pomiary wykonano dla dziedziny $1000^3$ na~węźle
-klastra Pionier (\num{12} rdzeni / \num{20} wątków, \num{32}~GiB pamięci).
+zrównolegleniu wewnątrzwęzłowym. Pomiary wykonano dla dziedziny $1000^3$ na~węźle klastra Pionier.
 
 \Cref{tab:threads-1000} przedstawia wyniki tego eksperymentu; faktyczna liczba
 zadań qthreads jest tu równa liczbie żądanej.
@@ -64,41 +68,40 @@ zadań qthreads jest tu równa liczbie żądanej.
 \centering
 \caption{Skalowanie wątkowe na pojedynczym węźle, dziedzina $1000^3$,
 \texttt{-nl 1}, \num{10} kroków $\times$ \num{10} powtórzeń, Chapel 2.9,
-konduit MPI, węzeł Pionier.}
+kanał MPI, węzeł Pionier.}
 \label{tab:threads-1000}
 \begin{tabular}{rrrrrrrrr}
 \toprule
 Żądane & \texttt{maxTaskPar} & Mediana & Średnia & Min. & Maks. & Odch. std. & $S$ & $E$ \\
 wątki & & [s] & [s] & [s] & [s] & [s] & & \\
 \midrule
-\num{1}  & \num{1}  & \num{8.663} & \num{8.688} & \num{8.608} & \num{8.802} & \num{0.069} & \num{1.000} & \num{1.000} \\
-\num{2}  & \num{2}  & \num{5.976} & \num{5.976} & \num{5.964} & \num{5.985} & \num{0.006} & \num{1.450} & \num{0.725} \\
-\num{4}  & \num{4}  & \num{5.596} & \num{5.598} & \num{5.568} & \num{5.627} & \num{0.020} & \num{1.548} & \num{0.387} \\
-\num{8}  & \num{8}  & \num{5.798} & \num{5.782} & \num{5.724} & \num{5.839} & \num{0.047} & \num{1.494} & \num{0.187} \\
-\num{16} & \num{16} & \num{5.950} & \num{5.950} & \num{5.938} & \num{5.965} & \num{0.009} & \num{1.456} & \num{0.091} \\
+\num{1}  & \num{1}  & \num{9.812} & \num{9.814} & \num{9.803} & \num{9.829} & \num{0.008} & \num{1.000} & \num{1.000} \\
+\num{2}  & \num{2}  & \num{9.948} & \num{10.104} & \num{9.941} & \num{10.470} & \num{0.240} & \num{0.986} & \num{0.493} \\
+\num{4}  & \num{4}  & \num{8.362} & \num{8.362} & \num{8.356} & \num{8.365} & \num{0.003} & \num{1.173} & \num{0.293} \\
+\num{8}  & \num{8}  & \num{8.094} & \num{8.095} & \num{8.087} & \num{8.101} & \num{0.004} & \num{1.212} & \num{0.152} \\
+\num{16} & \num{16} & \num{8.739} & \num{8.741} & \num{8.731} & \num{8.763} & \num{0.008} & \num{1.123} & \num{0.070} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Obraz jest tu jakościowo odmienny i~znacznie zdrowszy. Przejście z~jednego do
-dwóch wątków przynosi wyraźny skok wydajności: czas spada z~\SI{8.663}{\second}
-do \SI{5.976}{\second}, co odpowiada przyspieszeniu \num{1.450}. Optimum
-osiągane jest przy czterech wątkach (mediana \SI{5.596}{\second}, przyspieszenie
-\num{1.548}), po czym dalsze zwiększanie liczby wątków ponownie zaczyna szkodzić:
-przy ośmiu wątkach czas rośnie do \SI{5.798}{\second}, a~przy szesnastu do
-\SI{5.950}{\second}. Maksymalne uzyskane przyspieszenie wynosi zatem tylko około
-\num{1.55}$\times$, mimo dostępności dwudziestu wątków.
+Obraz jest tu jakościowo odmienny i~znacznie korzystniejszy. Przejście z~jednego do
+dwóch wątków nie przynosi niemal zysku: mediana rośnie z~\SI{9.812}{\second} do
+\SI{9.948}{\second}, a~trzy z~dziesięciu przebiegów dwuwątkowych były wyraźnie
+wolniejsze, około \SI{10.47}{\second}, wskutek przejściowego ograniczenia taktowania.
+Dopiero cztery wątki dają wyraźny skok wydajności, mediana spada do
+\SI{8.362}{\second} (przyspieszenie \num{1.173}), a~optimum osiągane jest przy
+ośmiu wątkach (\SI{8.094}{\second}, przyspieszenie \num{1.212}). Dalsze zwiększanie
+liczby wątków ponownie szkodzi: przy szesnastu czas rośnie do
+\SI{8.739}{\second}. Maksymalne uzyskane przyspieszenie wynosi zatem tylko około
+\num{1.21}$\times$, mimo dostępności dwudziestu wątków.
 
 Wydajność $E$ spada przy tym bardzo ostro: z~\num{1.000}
-przez \num{0.725} i~\num{0.387} aż do \num{0.091} przy szesnastu wątkach. Tak
+przez \num{0.493} i~\num{0.293} aż do \num{0.070} przy szesnastu wątkach. Tak
 gwałtowny spadek to typowy objaw problemu
-\emph{ograniczonego pasmem pamięci}~\cite{datta-stencil}. Schemat różnicowy jest operacją o~niskiej
-intensywności arytmetycznej, ponieważ na każdy odczytany element siatki przypada
-niewiele operacji zmiennoprzecinkowych, przez co jego przepustowość jest
-limitowana szybkością, z~jaką procesor jest w~stanie pobierać dane z~pamięci
-głównej, a~nie liczbą dostępnych rdzeni. Po nasyceniu pasma pamięci dodatkowe
-wątki nie mają czym się zająć poza rywalizacją o~tę samą magistralę, co
-prowadzi do degradacji wydajności.
+\emph{ograniczonego pasmem pamięci}~\cite{datta-stencil}. Schemat różnicowy jest operacją o~niskiej intensywności arytmetycznej, więc jego
+przepustowość limituje pasmo pamięci głównej, a~nie liczba dostępnych rdzeni;
+po~nasyceniu tego pasma dodatkowe wątki rywalizują o~tę samą magistralę, co~prowadzi
+do~degradacji wydajności.
 
 Zwiększanie liczby wątków ponad pewien próg nie pomaga tu, a~wręcz szkodzi: po~nasyceniu
 magistrali pamięci dodatkowe wątki nie znajdują użytecznej pracy.
@@ -110,7 +113,7 @@ wątkach.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\linewidth]{threads_1000.png}
+\includegraphics[width=0.95\linewidth]{threads_1000.pdf}
 \caption{Skalowanie wątkowe dla dziedziny $1000^3$ na węźle Pionier.
 Lewy panel: rozkład czasu wykonania w~postaci wykresu pudełkowego w~funkcji liczby
 wątków. Prawy panel: zmierzone przyspieszenie na tle przyspieszenia idealnego
@@ -119,16 +122,14 @@ oraz wydajność $E$.}
 \end{figure}
 
 W~części jednowęzłowej równoległość wątkowa przynosi w~najlepszym
-razie skromny, kilkudziesięcioprocentowy zysk, a~wydajność szybko załamuje się
-wraz ze wzrostem liczby wątków. Bezpośrednią przyczyną jest ograniczenie pasmem
-pamięci: schemat różnicowy o~niskiej intensywności arytmetycznej nasyca
-magistralę pamięci przy niewielkiej liczbie wątków. Sytuacja ta pogłębia się
-dopiero przy skalowaniu na~wiele węzłów.
+razie skromny, około dwudziestoprocentowy zysk, a~wydajność szybko załamuje się
+wraz ze wzrostem liczby wątków. Bezpośrednią przyczyną jest ograniczenie
+pasmem pamięci; sytuacja ta pogłębia się dopiero przy skalowaniu na~wiele węzłów.
 
 \section{Skalowanie i ograniczenia komunikacji}
 \label{sec:skalowanie-komunikacja}
 
-W~tej części analizuje się zachowanie programu przy rozdzieleniu obliczeń na wiele
+W~tej części przeanalizowano zachowanie programu przy rozdzieleniu obliczeń na wiele
 węzłów klastra połączonych siecią Ethernet \SI{1}{\giga\bit\per\second}.
 Eksperymenty w~tej sekcji przeprowadzono na klastrze dla dziedziny $1000^3$
 i~\num{100} kroków czasowych. Wykazano, że badany system jest \emph{ograniczony
@@ -191,7 +192,7 @@ pochłania korzyść z~pierwszego. System jest zatem ograniczony komunikacją.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\linewidth]{node_scaling.png}
+\includegraphics[width=0.95\linewidth]{node_scaling.pdf}
 \caption{Skalowanie liczbą węzłów dla dziedziny $1000^3$. Lewy panel: rozkład
 czasu wykonania w~funkcji liczby węzłów. Prawy panel: przyspieszenie na tle
 przyspieszenia idealnego oraz wydajność $E$.}
@@ -200,15 +201,15 @@ przyspieszenia idealnego oraz wydajność $E$.}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\linewidth]{bytes_vs_nodes.png}
+\includegraphics[width=0.95\linewidth]{bytes_vs_nodes.pdf}
 \caption{Objętość warstw brzegowych wymienianych na krok w~megabajtach oraz
 mediana czasu wykonania w~funkcji liczby węzłów.}
 \label{fig:bytes-vs-nodes}
 \end{figure}
 
 Zależności te zilustrowano na \cref{fig:node-scaling} oraz \cref{fig:bytes-vs-nodes}.
-Pierwsza z~nich uwidacznia zarówno oscylacyjny charakter czasu wykonania, jak
-i~znaczne odejście krzywej przyspieszenia od ideału liniowego. Druga zestawia
+Pierwszy z~nich uwidacznia zarówno oscylacyjny charakter czasu wykonania, jak
+i~znaczne odejście krzywej przyspieszenia od ideału liniowego. Drugi zestawia
 rosnącą objętość komunikacji z~czasem wykonania, czyniąc bezpośrednio widocznym
 związek między nasilającym się ruchem sieciowym a~stagnacją wydajności.
 
@@ -247,19 +248,20 @@ jednak kolumna średniego czasu obliczeń na krok: rośnie ona
 \emph{monotonicznie} wraz z~liczbą wątków, od \SI{0.1422}{\second} przy jednym
 wątku do \SI{0.1982}{\second} przy szesnastu. Gdyby problem był ograniczony mocą
 obliczeniową, dodawanie wątków skracałoby czas obliczeń na krok; obserwuje się
-jednak zjawisko przeciwne: czas ten rośnie. Świadczy to o~\emph{nadmiernej
-subskrypcji} (oversubscription): dodatkowe wątki nie znajdują użytecznej pracy,
-lecz rywalizują o~pasmo pamięci oraz konkurują z~wątkiem odpytującym warstwę
-komunikacyjną GASNet~\cite{gasnet-spec}. Zwiększanie liczby wątków nie pomaga, ponieważ problem
+jednak zjawisko przeciwne: czas ten rośnie. Nie jest to skutek nadmiernej liczby
+wątków względem rdzeni, bo~te pozostają wolne ($p\le 16\le 20$), lecz rywalizacji
+o~zasoby współdzielone: dodatkowe wątki nie znajdują użytecznej pracy, lecz
+konkurują o~pasmo pamięci oraz z~wątkiem odpytującym warstwę komunikacyjną
+GASNet~\cite{gasnet-spec}. Zwiększanie liczby wątków nie pomaga, ponieważ problem
 jest ograniczony komunikacją, a~nie obliczeniami. \Cref{fig:threads-9n}
 przedstawia te zależności graficznie.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\linewidth]{threads_9nodes.png}
+\includegraphics[width=0.95\linewidth]{threads_9nodes.pdf}
 \caption{Skalowanie wątkowe przy dziewięciu węzłach, dziedzina $1000^3$.
 Lewy panel: rozkład czasu wykonania. Prawy panel: średni czas obliczeń na krok
-w~funkcji liczby wątków, rosnący wskutek nadmiernej subskrypcji.}
+w~funkcji liczby wątków, rosnący wskutek rywalizacji o~zasoby współdzielone.}
 \label{fig:threads-9n}
 \end{figure}
 
@@ -269,8 +271,7 @@ w~funkcji liczby wątków, rosnący wskutek nadmiernej subskrypcji.}
 Ostatni zestaw eksperymentów bada wpływ rozmiaru dziedziny na wydajność przy
 ustalonej liczbie dziewięciu węzłów. \Cref{tab:cube-size} zestawia czasy
 wykonania, przepustowość wyrażoną w~miliardach komórek na sekundę
-(mld komórek/s) oraz udział komunikacji \texttt{comm\_frac}, zdefiniowany jako iloraz
-czasu wymiany warstw brzegowych i~sumy czasu wymiany oraz czasu obliczeń.
+(mld komórek/s) oraz udział komunikacji \texttt{comm\_frac}~\eqref{eq:commfrac}.
 
 \begin{table}[htbp]
 \centering
@@ -295,7 +296,7 @@ Przepustowość rośnie systematycznie wraz z~rozmiarem dziedziny, od zaledwie
 \SI{0.117}{} mld komórek/s dla najmniejszej kostki $125^3$ do \SI{2.722}{} mld komórek/s
 dla największej kostki $1000^3$. Jednocześnie udział komunikacji
 \texttt{comm\_frac} maleje monotonicznie z~\num{0.963} do \num{0.454}. Innymi
-słowy, dla małych dziedzin blisko dziewięćdziesiąt sześć procent czasu pochłania
+słowy, dla małych dziedzin blisko \SI{96}{\percent} czasu pochłania
 komunikacja, a~faktyczne obliczenia stanowią margines; wraz ze~wzrostem dziedziny
 proporcje te wyrównują się i~przy~$1000^3$ komunikacja oraz obliczenia zajmują już
 zbliżony czas. Nawet przy największej zbadanej kostce
@@ -303,23 +304,28 @@ komunikacja wciąż odpowiada za~blisko połowę czasu kroku; trend jest wprawdz
 korzystny, lecz w~osiągalnym zakresie rozmiarów zadanie nie przestaje być istotnie
 obciążone komunikacją.
 
-Mechanizm tego zjawiska jest geometryczny. Objętość dziedziny rośnie jak $N^3$,
-podczas gdy powierzchnia warstw brzegowych, decydująca o~ilości komunikacji,
-rośnie jedynie jak $N^2$. W~konsekwencji wraz ze wzrostem $N$ stosunek pracy
-obliczeniowej do komunikacji poprawia się, a~duże kostki znacznie lepiej
-wykorzystują dostępny klaster niż małe, które są całkowicie zdominowane przez
-narzut komunikacyjny. Pokazuje to w~praktyce znany fakt, że~efektywne
-skalowanie na maszynach rozproszonych wymaga, by~na~każdy węzeł przypadało
-dostatecznie dużo pracy obliczeniowej.
+Mechanizm tego zjawiska jest geometryczny: objętość dziedziny rośnie jak~$N^3$,
+a~powierzchnia warstw brzegowych
+jak~$N^2$, więc wraz ze wzrostem $N$ poprawia się stosunek pracy obliczeniowej
+do~komunikacji. Duże kostki znacznie lepiej wykorzystują klaster niż małe,
+zdominowane przez narzut komunikacyjny.
 
-Największą zbadaną dziedziną jest $1000^3$; dziedziny istotnie większe przekraczają
-możliwości pamięciowe i~czasowe klastra, co wyznacza praktyczną, górną granicę
-rozmiaru zadania osiągalnego na badanej infrastrukturze. Omówione zależności
-ilustruje \cref{fig:cube-size}.
+Rozmiar wymiany halo zależy od~geometrycznego układu dekompozycji. Dla
+zilustrowania rozważmy dwuwymiarową dziedzinę $100\times 100$ podzieloną na cztery
+lokale. Przy podziale plastrami wzdłuż jednej osi każdy blok ma wymiary
+$25\times 100$, dwa skrajne lokale wysyłają po $100$ komórek brzegowych, a~dwa
+wewnętrzne po $200$, co daje łącznie $600$ komórek wymienianych na krok. Przy
+podziale na bloki kwadratowe $50\times 50$ każdy z~czterech lokali wysyła do
+dwóch sąsiadów brzeg poziomy i~pionowy po $50$ komórek, co daje
+$4\cdot(50+50)=400$ komórek. W~obu przypadkach objętość wymiany jest rzędu pola
+powierzchni granicy, a~nie objętości, co w~trzech wymiarach przekłada się na
+omówioną zależność $N^2$.
+
+Największą zbadaną dziedziną jest $1000^3$. Omówione zależności ilustruje \cref{fig:cube-size}.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\linewidth]{cube_size.png}
+\includegraphics[width=0.95\linewidth]{cube_size.pdf}
 \caption{Skalowanie rozmiaru dziedziny przy dziewięciu węzłach. Lewy panel:
 rozkład czasu wykonania dla kolejnych rozmiarów. Prawy panel: przepustowość
 oraz udział komunikacji \texttt{comm\_frac} w~funkcji rozmiaru kostki.}
@@ -335,7 +341,7 @@ węzłowe płaszczy się na poziomie około \num{2.4}$\times$ (\cref{tab:node-sc
 daleko od skalowania liniowego, mimo dziewięciokrotnego zwiększenia liczby
 węzłów. Zwiększanie liczby wątków na~węzeł nie przynosi poprawy, a~w~konfiguracji
 wielowęzłowej średni czas obliczeń na~krok wręcz rośnie z~liczbą wątków
-(\cref{tab:threads-9n}), co wskazuje na~nadmierną subskrypcję, a~nie na~niedobór
+(\cref{tab:threads-9n}), co wskazuje na~nasycenie zasobów współdzielonych, a~nie na~niedobór
 mocy obliczeniowej. Udział komunikacji dominuje przy małych dziedzinach i~maleje
 dopiero dla dużych kostek (\cref{tab:cube-size}), zgodnie z~geometryczną relacją
 między objętością $N^3$ a~powierzchnią $N^2$. Na każdym węźle jeden wątek warstwy
@@ -350,22 +356,18 @@ nasyceniu. Objętość warstw brzegowych na krok rośnie zarówno z~liczbą węz
 jak i~z~kwadratem boku dziedziny, wobec czego to sieć, a~nie procesory,
 wyznacza pułap wydajności.
 
-Osobnego omówienia wymaga dobór konduitu komunikacyjnego GASNet, który okazał
-się decydujący dla tego, czy obliczenia w~ogóle kończą się poprawnie~\cite{gasnet}. Konduit \texttt{udp}
-(AMUDP) przerywa działanie z~błędem ECONGESTION w~warunkach ruchu typu wielu
-nadawców do jednego odbiorcy (incast) oraz przy utracie pakietów.
-Natomiast konduit \texttt{mpi}, oparty na implementacji
-MPICH i~korzystający z~kontroli przepływu protokołu TCP, przetrwa te warunki
-i~działa wolniej, ale kończy obliczenia poprawnie. Z~tego właśnie
-powodu nowsza seria pomiarów wykorzystuje konduit MPI. To kompromis:
-konduit MPI jest wolniejszy, ale działa poprawnie w~zawodnej sieci, co jest tu
-ważniejsze od samej szybkości.
+Osobnego omówienia wymaga dobór kanału komunikacyjnego GASNet, który okazał
+się decydujący dla tego, czy obliczenia w~ogóle kończą się poprawnie~\cite{gasnet}.
+W~pomiarach kanał \texttt{udp} przerywał działanie błędem \texttt{ECONGESTION}
+pod obciążeniem typu incast, natomiast kanał \texttt{mpi} kończył obliczenia
+poprawnie, choć wolniej. Z~tego powodu nowsza seria pomiarów wykorzystuje kanał
+MPI: odporność na~zawodną sieć jest tu ważniejsza od szybkości.
 
 Skoro system jest
 ograniczony komunikacją, dalszej poprawy wydajności nie należy szukać ani
 w~zwiększaniu liczby wątków, ani w~dokładaniu kolejnych węzłów, lecz przede
 wszystkim w~przyspieszeniu warstwy komunikacyjnej, czy to przez zastosowanie
-szybszego łącza sieciowego, czy przez wybór wydajniejszego konduitu GASNet.
+szybszego łącza sieciowego, czy przez wybór wydajniejszego kanału komunikacyjnego GASNet.
 Dopóki halo wymieniane jest przez łącze \SI{1}{\giga\bit\per\second}, klaster
 wciąż czeka na~dane z~sieci, a~część rdzeni pozostaje niewykorzystana.
 
@@ -373,7 +375,7 @@ wciąż czeka na~dane z~sieci, a~część rdzeni pozostaje niewykorzystana.
 \label{subsec:synteza-tab}
 
 Dla wygody czytelnika zebrano najważniejsze wnioski ilościowe z~poszczególnych
-rodzin eksperymentów w~jednym miejscu. \Cref{tab:synteza} podaje dla każdej
+grup eksperymentów w~jednym miejscu. \Cref{tab:synteza} podaje dla każdej
 serii kluczową miarę oraz jej najistotniejszy wynik.
 
 \begin{table}[htbp]
@@ -381,11 +383,11 @@ serii kluczową miarę oraz jej najistotniejszy wynik.
 \caption{Zestawienie zbiorcze najważniejszych wyników eksperymentalnych
 rozdziału.}
 \label{tab:synteza}
-\begin{tabular}{@{}p{4.2cm}p{4.8cm}p{4.2cm}@{}}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{4.2cm}>{\raggedright\arraybackslash}p{4.8cm}>{\raggedright\arraybackslash}p{4.2cm}@{}}
 \toprule
-Rodzina eksperymentów & Kluczowa miara & Wynik \\
+Grupa eksperymentów & Kluczowa miara & Wynik \\
 \midrule
-Wątki $1000^3$ (\cref{tab:threads-1000})    & optimum / maks. przyspieszenie & 4 wątki; \num{1.55}$\times$ \\
+Wątki $1000^3$ (\cref{tab:threads-1000})    & optimum / maks. przyspieszenie & 8 wątków; \num{1.21}$\times$ \\
 Węzły $1000^3$ (\cref{tab:node-scaling})    & optimum / plateau przyspieszenia & 6 węzłów; ok. \num{2.4}$\times$ \\
 Wątki, 9 węzłów (\cref{tab:threads-9n})     & przyspieszenie (płaskie)       & $\le \num{1.044}$ \\
 Rozmiar kostki (\cref{tab:cube-size})       & przepustowość                  & \numrange{0.117}{2.722}~mld komórek/s \\

@@ -7,7 +7,7 @@
 \subsection{Model fizyczny}
 
 Rozważanym zjawiskiem fizycznym jest dyfuzja ciepła w~jednorodnym, izotropowym
-ośrodku wypełniającym sześcian jednostkowy \(\Omega = [0,1]^3\). Pole skalarne
+ośrodku wypełniającym trójwymiarowy sześcian jednostkowy \(\Omega = [0,1]^3\). Pole skalarne
 \(u(\mathbf{x},t)\) opisuje temperaturę w~punkcie \(\mathbf{x}=(x,y,z)\in\Omega\)
 w~chwili \(t\ge 0\). Ewolucję tego pola opisuje równanie różniczkowe
 cząstkowe znane jako równanie przewodnictwa ciepła, zwane też równaniem dyfuzji:
@@ -34,7 +34,7 @@ Rozwiązanie równania~\eqref{eq:heat3d} jest jednoznaczne dopiero po~zadaniu
 warunku początkowego oraz warunków brzegowych. W~zaimplementowanym rozwiązaniu
 warunek początkowy przyjmuje jednorodne pole \(u(\mathbf{x},0)=1\) w~całej
 dziedzinie, w~którym umieszczono nagrzaną warstwę 
-o~grubości \texttt{hotThickness} płaszczyzn siatki przylegających do~ściany
+o~grubości \num{2} płaszczyzn siatki (stała konfiguracyjna \texttt{hotThickness}) przylegającą do~ściany
 \(y=0\), o~podwyższonej wartości \(u=2\). Warstwa ta modeluje gorącą ścianę,
 od~której ciepło rozchodzi się w~głąb sześcianu.
 
@@ -48,7 +48,10 @@ ciepła. Pozostałe ściany, utrzymywane na~poziomie
 warunków daje pole, które monotonnie ewoluuje i~z~czasem dąży do~stanu ustalonego,
 z~gradientem między gorącą a~zimnymi ścianami. \Cref{fig:diffusion} ilustruje jakościowo charakter tej
 ewolucji na~dwuwymiarowym przykładzie: podtrzymywane źródło ciepła stopniowo
-traci ostre krawędzie, a~ciepło rozchodzi się w~otoczenie.
+traci ostre krawędzie, a~ciepło rozchodzi się w~otoczenie. Należy zaznaczyć, że
+dla czytelności wizualnej ilustracja ta posługuje się źródłem ciepła
+w~kształcie grzebienia w~przestrzeni dwuwymiarowej, które ukazuje ten sam mechanizm rozchodzenia się ciepła,
+lecz w~układzie innym niż trójwymiarowa gorąca ściana rozważana w~niniejszej pracy.
 
 \begin{figure}[htbp]
   \centering
@@ -85,19 +88,19 @@ trzypunktowych ilorazów centralnych, na~przykład dla~kierunku
 \begin{equation}
   \frac{\partial^2 u}{\partial x^2}(x_i,y_j,z_k)
   \approx
-  \frac{u_{i-1,j,k}^{\,n} - 2\,u_{i,j,k}^{\,n} + u_{i+1,j,k}^{\,n}}{\Delta x^2},
+  \frac{u_{i-1,j,k}^{\,n} - 2\,u_{i,j,k}^{\,n} + u_{i+1,j,k}^{\,n}}{(\Delta x)^2},
   \label{eq:central}
 \end{equation}
 i~analogicznie dla~kierunków \(y\) oraz \(z\). Podstawienie tych przybliżeń
 do~\eqref{eq:heat3d} i~rozwiązanie względem wartości w~następnym kroku prowadzi
 do~jawnej formuły aktualizacji.
 
-Dla~zwięzłości wprowadza się współczynniki wagowe zależne od~osi, łączące
+Dla~zwięzłości zapisu wprowadza się współczynniki wagowe zależne od~osi, łączące
 dyfuzyjność, krok czasowy oraz krok siatki:
 \begin{equation}
-  a_x = \frac{\alpha\,\Delta t}{\Delta x^2}, \qquad
-  a_y = \frac{\alpha\,\Delta t}{\Delta y^2}, \qquad
-  a_z = \frac{\alpha\,\Delta t}{\Delta z^2}.
+  a_x = \frac{\alpha\,\Delta t}{(\Delta x)^2}, \qquad
+  a_y = \frac{\alpha\,\Delta t}{(\Delta y)^2}, \qquad
+  a_z = \frac{\alpha\,\Delta t}{(\Delta z)^2}.
   \label{eq:weights}
 \end{equation}
 Przy tych oznaczeniach regułę aktualizacji można zapisać jako
@@ -112,34 +115,42 @@ siedmiopunktowy stencil (ang.\ \emph{7-point stencil}):
 Nowa wartość w~każdym węźle zależy wyłącznie od~wartości w~tym węźle oraz
 w~jego sześciu bezpośrednich sąsiadach z~poprzedniego kroku czasowego: dwóch
 wzdłuż każdej z~trzech osi. Ten wzorzec dostępu do~pamięci, komórka centralna
-plus sześć sąsiadów, przedstawiono na~\cref{fig:stencil}. Zależność od~stanu
+plus sześć sąsiadów, przedstawiono na~rysunku~\ref{fig:stencil}. Zależność od~stanu
 wyłącznie z~poprzedniego kroku jest cechą schematu jawnego i~czyni każdy krok
 czasowy w~pełni równoległym względem węzłów siatki.
 
 \begin{figure}[htbp]
   \centering
-  \begin{tikzpicture}[scale=1.0,
-      cell/.style={circle,draw,thick,minimum size=7mm,inner sep=0pt},
-      center/.style={circle,draw,thick,fill=codekw!18,minimum size=7.5mm,inner sep=0pt},
-      nb/.style={circle,draw,thick,fill=codestr!12,minimum size=7mm,inner sep=0pt},
-      arr/.style={-{Latex[length=2mm]},thick,gray}]
-    % central node
-    \node[center] (C) at (0,0) {\small $u_{i,j,k}$};
-    % x-neighbours
-    \node[nb] (Xm) at (-2.6,0) {\small $u_{i\text{-}1}$};
-    \node[nb] (Xp) at ( 2.6,0) {\small $u_{i\text{+}1}$};
-    % y-neighbours (vertical)
-    \node[nb] (Ym) at (0,-2.2) {\small $u_{j\text{-}1}$};
-    \node[nb] (Yp) at (0, 2.2) {\small $u_{j\text{+}1}$};
-    % z-neighbours (diagonal, pseudo-3D)
-    \node[nb] (Zm) at (-1.5,-1.25) {\small $u_{k\text{-}1}$};
-    \node[nb] (Zp) at ( 1.5, 1.25) {\small $u_{k\text{+}1}$};
-    % connections
+  \begin{tikzpicture}[
+    x={(1.6cm,-0.92cm)}, y={(1.6cm,0.92cm)}, z={(0cm,2cm)},
+    cell/.style={circle,draw,thick,minimum size=11mm,inner sep=0pt,fill=codestr!16},
+    center/.style={circle,draw,thick,fill=codekw!25,minimum size=11.5mm,inner sep=0pt},
+    arr/.style={-{Latex[length=2.5mm]},thick,gray!55},
+    cubeedge/.style={gray!32,thin}]
+    % zarys sześcianu otaczającego komórkę (rogi w~$\pm 1$)
+    \draw[cubeedge] (-1,-1,-1)--(1,-1,-1)--(1,1,-1)--(-1,1,-1)--cycle;
+    \draw[cubeedge] (-1,-1,1)--(1,-1,1)--(1,1,1)--(-1,1,1)--cycle;
+    \draw[cubeedge] (-1,-1,-1)--(-1,-1,1); \draw[cubeedge] (1,-1,-1)--(1,-1,1);
+    \draw[cubeedge] (1,1,-1)--(1,1,1);     \draw[cubeedge] (-1,1,-1)--(-1,1,1);
+    % współrzędne siedmiu węzłów: środek + środki sześciu ścian
+    \coordinate (C) at (0,0,0);
+    \coordinate (Xm) at (-1,0,0); \coordinate (Xp) at (1,0,0);
+    \coordinate (Ym) at (0,-1,0); \coordinate (Yp) at (0,1,0);
+    \coordinate (Zm) at (0,0,-1); \coordinate (Zp) at (0,0,1);
+    % połączenia z~węzłem centralnym (rysowane pod węzłami)
     \foreach \n in {Xm,Xp,Ym,Yp,Zm,Zp} \draw[arr] (\n) -- (C);
-    % axis labels
-    \node[gray] at (2.6,-0.55) {\footnotesize oś $x$};
-    \node[gray] at (0.75,2.2) {\footnotesize oś $y$};
-    \node[gray] at (1.9,0.55) {\footnotesize oś $z$};
+    % węzły na~wierzchu
+    \node[center] at (C) {\footnotesize $u_{i,j,k}$};
+    \node[cell] at (Xm) {\scriptsize $u_{i\text{-}1,j,k}$};
+    \node[cell] at (Xp) {\scriptsize $u_{i\text{+}1,j,k}$};
+    \node[cell] at (Ym) {\scriptsize $u_{i,j\text{-}1,k}$};
+    \node[cell] at (Yp) {\scriptsize $u_{i,j\text{+}1,k}$};
+    \node[cell] at (Zm) {\scriptsize $u_{i,j,k\text{-}1}$};
+    \node[cell] at (Zp) {\scriptsize $u_{i,j,k\text{+}1}$};
+    % etykiety osi
+    \node[gray] at (2.2,-0.4,0) {\footnotesize oś $x$};
+    \node[gray] at (0.35,2.3,0.35) {\footnotesize oś $y$};
+    \node[gray] at (0,0,2.3) {\footnotesize oś $z$};
   \end{tikzpicture}
   \caption[Stencil siedmiopunktowy 3D]{Siedmiopunktowy stencil trójwymiarowy.
   Nowa wartość w~komórce centralnej \(u_{i,j,k}\), zaznaczonej na~niebiesko, jest ważoną
@@ -158,19 +169,24 @@ zaokrągleń i~składowe wysokoczęstotliwościowe rozwiązania numerycznego są
 wzmacniane w~każdej iteracji zamiast tłumione, co prowadzi do~gwałtownej,
 niefizycznej rozbieżności rozwiązania.
 
-Analiza stabilności metodą von~Neumanna~\cite{strikwerda,leveque} dla~schematu
-jawnego zastosowanego do~równania dyfuzji w~trzech wymiarach prowadzi do~warunku
+Analiza stabilności metodą von~Neumanna~\cite{strikwerda,leveque}, polegająca na~rozłożeniu
+błędu na~składowe falowe i~śledzeniu ich ewolucji krok po~kroku, zastosowana dla~schematu
+jawnego równania dyfuzji w~trzech wymiarach prowadzi do~warunku
 Couranta--Friedrichsa--Lewy'ego (CFL). Dla~liniowego schematu o~stałych
-współczynnikach współczynnik wzmocnienia pojedynczego modu Fouriera wynosi
-\(g = 1 - 4a_x\sin^2(\theta_x/2) - 4a_y\sin^2(\theta_y/2) - 4a_z\sin^2(\theta_z/2)\),
+współczynnikach współczynnik wzmocnienia pojedynczego modu Fouriera, określający, ile razy
+amplituda tego modu rośnie lub maleje w~jednym kroku, wynosi
+\begin{equation}
+  g = 1 - 4a_x\sin^2(\theta_x/2) - 4a_y\sin^2(\theta_y/2) - 4a_z\sin^2(\theta_z/2),
+  \label{eq:amp}
+\end{equation}
 a~żądanie \(\lvert g\rvert\le 1\) dla~najbardziej niekorzystnego modu o~naprzemiennym
 znaku między sąsiednimi węzłami redukuje się do~nierówności
 \(a_x+a_y+a_z\le\tfrac12\): sumaryczna waga dyfuzyjna nie może przekraczać jednej
 drugiej, co wyznacza maksymalny dopuszczalny krok czasowy:
 \begin{equation}
   \Delta t_{\max}
-  = \frac{1}{2\alpha\!\left(\dfrac{1}{\Delta x^2}
-    + \dfrac{1}{\Delta y^2} + \dfrac{1}{\Delta z^2}\right)}.
+  = \frac{1}{2\alpha\!\left(\dfrac{1}{(\Delta x)^2}
+    + \dfrac{1}{(\Delta y)^2} + \dfrac{1}{(\Delta z)^2}\right)}.
   \label{eq:cfl}
 \end{equation}
 Zależność~\eqref{eq:cfl} ma praktyczne konsekwencje: dwukrotne
@@ -190,7 +206,9 @@ na~podstawie warunku~\eqref{eq:cfl}, z~zastosowaniem współczynnika bezpieczeń
 \end{equation}
 Ten \SI{2}{\percent} margines (ang.\ \emph{safety back-off}) przesuwa punkt pracy
 poniżej granicy stabilności, do \(g=\num{-0.96}\) dla~najbardziej niekorzystnego
-modu. Dzięki temu schemat pozostaje stabilny nawet przy błędach zaokrągleń
+modu; wartość ujemna jest dopuszczalna, gdyż warunek stabilności wymaga jedynie
+\(\lvert g\rvert\le 1\), a~ujemne \(g\) oznacza, że dany mod zmienia znak co krok, lecz nie
+rośnie w~amplitudzie. Dzięki temu schemat pozostaje stabilny nawet przy błędach zaokrągleń
 arytmetyki zmiennoprzecinkowej i~drobnych efektach numerycznych, które mogłyby
 zepchnąć krok dokładnie na~granicy w~obszar niestabilności. Wartość bliska
 jedności jest też korzystna wydajnościowo: maksymalizuje postęp w~czasie
@@ -272,34 +290,21 @@ się faza obliczeń, gdyż przechowywane w~nich wartości pochodzą z~poprzednie
 kroku sąsiedniego węzła. Ta wymiana danych z~najbliższymi sąsiadami
 (ang.\ \emph{nearest-neighbour} lub \emph{halo exchange}) jest jedynym rodzajem
 komunikacji między węzłami wymaganym przez schemat jawny. W~zaimplementowanym
-programie realizuje ją pojedyncze wywołanie metody \texttt{updateFluff()} biblioteki
+programie realizuje ją pojedyncze wywołanie metody \texttt{updateFluff()} modułu
 rozkładów Chapel, wykonywane na~początku każdego kroku, przed~pętlą aktualizującą
-wnętrze dziedziny.
+wnętrze dziedziny. Na~więcej niż jednym lokalu wymiana ta jest obowiązkowa
+dla~poprawności: jej pominięcie sprawia, że~komórki otoczki zachowują wartości
+z~poprzedniego kroku, przez co obliczenie przebiega szybciej, lecz daje wynik
+cicho błędny.
 
 Prowadzi to do~wyraźnego rozdziału każdego kroku czasowego na~dwie fazy:
 fazę komunikacji, czyli odświeżenie warstw brzegowych, oraz fazę obliczeń, czyli wykonanie
 formuły~\eqref{eq:update} dla~wszystkich komórek wnętrza. W~programie fazy te są
 oddzielnie mierzone stoperami \texttt{fluffTimer} i~\texttt{computeTimer}, co
 pozwala rozdzielić czas spędzony na~komunikacji od~czasu obliczeń. Struktura
-pojedynczego kroku jest zwięźle widoczna w~procedurze \texttt{stepOnce},
-przedstawionej na~\cref{lst:steponce-idea}: najpierw synchronizacja brzegów, potem
+pojedynczego kroku jest zwięźle widoczna w~procedurze \texttt{stepOnce}
+(\cref{lst:steponce}): najpierw synchronizacja brzegów, potem
 równoległa aktualizacja wnętrza.
-
-\begin{lstlisting}[language=Chapel,caption={Pojedynczy krok czasowy: wymiana
-brzegów, a~następnie równoległa aktualizacja wnętrza dziedziny.},label={lst:steponce-idea}]
-proc stepOnce(ref dst, ref src, ref fluffTimer, ref computeTimer) {
-  fluffTimer.start();
-  src.updateFluff();               // jedyna komunikacja: wymiana halo
-  fluffTimer.stop();
-  computeTimer.start();
-  forall (i,j,k) in interior do    // faza obliczeń, w pełni równoległa
-    dst[i,j,k] = src[i,j,k]
-      + ax * (src[i-1,j,k] - 2*src[i,j,k] + src[i+1,j,k])
-      + ay * (src[i,j-1,k] - 2*src[i,j,k] + src[i,j+1,k])
-      + az * (src[i,j,k-1] - 2*src[i,j,k] + src[i,j,k+1]);
-  computeTimer.stop();
-}
-\end{lstlisting}
 
 \subsection{Intensywność arytmetyczna i ograniczenia wydajności}
 
@@ -316,9 +321,10 @@ podręcznej stosunek ten pozostaje niski.
 
 W~efekcie wydajność obliczeń stencilowych ogranicza nie moc procesora,
 lecz przepustowość transferu danych.
-W~ujęciu modelu \emph{roofline}~\cite{roofline} punkt pracy tego typu zadania leży daleko
-po~lewej stronie wykresu, w~obszarze ograniczonym nachyloną prostą przepustowości
-pamięci, a~nie poziomą półką szczytowej wydajności obliczeniowej. Na~pojedynczym
+W~ujęciu modelu \emph{roofline}~\cite{roofline}, który wyznacza górną granicę wydajności
+na~podstawie intensywności arytmetycznej zadania oraz przepustowości pamięci, punkt pracy
+obliczeń stencilowych leży w~obszarze ograniczonym przepustowością pamięci, a~nie
+szczytową wydajnością obliczeniową. Na~pojedynczym
 węźle oznacza to ograniczenie przepustowością pamięci (ang.\ \emph{memory-bandwidth
 bound}): dodawanie kolejnych rdzeni obliczeniowych przynosi coraz mniejsze
 korzyści, gdy magistrala pamięci ulega nasyceniu. W~obliczeniach rozproszonych,
@@ -341,8 +347,8 @@ na~każdy przesłany bajt. Wynik ten sprawdzono empirycznie w~rozdziale z~wynika
 
 Do~ilościowej oceny efektywności zrównoleglenia stosuje się standardowy aparat
 pojęciowy. \emph{Przyspieszenie} (ang.\ \emph{speedup}) przy użyciu \(p\)
-jednostek obliczeniowych definiuje się jako stosunek czasu wykonania sekwencyjnego
-do~czasu wykonania równoległego:
+jednostek obliczeniowych definiuje się jako stosunek czasu wykonania programu na~jednej
+jednostce do~czasu wykonania tego samego programu na~\(p\) jednostkach:
 \begin{equation}
   S(p) = \frac{T(1)}{T(p)},
   \label{eq:speedup}
@@ -357,18 +363,18 @@ Idealne, liniowe przyspieszenie odpowiada \(S(p)=p\) oraz \(E(p)=1\); w~praktyce
 narzuty komunikacji, synchronizacji i~nierównomiernego obciążenia sprawiają,
 że \(E(p)<1\), przy czym efektywność zwykle maleje ze~wzrostem \(p\).
 
-Wyróżnia się dwa rodzaje skalowania. \emph{Skalowanie mocne}
+Wyróżnia się dwa rodzaje skalowania. \emph{Skalowanie silne}
 (ang.\ \emph{strong scaling}) polega na~ustaleniu całkowitego rozmiaru problemu
 i~zwiększaniu liczby jednostek obliczeniowych; celem jest skrócenie czasu
 rozwiązania. Przy tym skalowaniu udział pracy przypadającej na~jednostkę maleje,
-przez co narzuty komunikacyjne stają się względnie coraz istotniejsze, a~granicę
-osiągalnego przyspieszenia opisuje prawo Amdahla. \emph{Skalowanie słabe}
+przez co narzuty komunikacyjne stają się względnie coraz istotniejsze.
+\emph{Skalowanie słabe}
 (ang.\ \emph{weak scaling}) polega na~ustaleniu rozmiaru problemu przypadającego
 na~jedną jednostkę i~proporcjonalnym zwiększaniu zarówno liczby jednostek, jak
 i~całkowitego rozmiaru problemu; celem jest rozwiązywanie coraz większych
 zadań w~stałym czasie.
 
-Fundamentalne ograniczenie skalowania mocnego formułuje \emph{prawo Amdahla}~\cite{amdahl}.
+Fundamentalne ograniczenie skalowania silnego formułuje \emph{prawo Amdahla}~\cite{amdahl}.
 Jeśli \(f\) oznacza sekwencyjną część obliczeń, której z~natury nie da się zrównoleglić, to maksymalne osiągalne przyspieszenie przy \(p\) jednostkach
 wynosi
 \begin{equation}
@@ -404,15 +410,15 @@ danych, którą daje model przekazywania komunikatów.
 
 Chapel nie jest jedynym językiem tej grupy. Poza nim model PGAS realizują m.in.
 UPC (ang.\ \emph{Unified Parallel C}), rozszerzenie języka C~o~globalne wskaźniki, Co-Array Fortran
-z~notacją współobrazów, który wszedł do~standardu Fortran~2008, a~także języki projektowane
+z~notacją współobrazów (ang.~\emph{co-arrays}), który wszedł do~standardu Fortran~2008, a~także języki projektowane
 od~podstaw dla~PGAS: X10 (IBM) i~Fortress (Sun Microsystems). Rozwiązania te różnią się głównie
 składnią, modelem zadań i~sposobem wyrażania lokalności; wspólne jest im oddanie programiście
 globalnego widoku danych przy jawnym oznaczaniu powinowactwa do~węzłów~\cite{pgas,upc}.
 
 Centralnym pojęciem w~Chapel jest \emph{locale}, abstrakcja jednostki
 systemu dysponującej własną pamięcią oraz zdolnością do~wykonywania obliczeń.
-W~konfiguracji wielowęzłowej stosowanej w~niniejszej pracy każdemu węzłowi
-fizycznemu klastra odpowiada dokładnie jeden locale, w~odwzorowaniu
+W~konfiguracji wielowęzłowej stosowanej w~niniejszej pracy każdemu
+locale'owi odpowiada dokładnie jeden węzeł fizyczny klastra, w~odwzorowaniu
 \emph{jeden-do-jednego}. Wbudowana tablica \texttt{Locales} udostępnia wszystkie
 dostępne jednostki, a~ich liczbę podaje stała \texttt{numLocales}. Dostęp
 do~danych i~przenoszenie obliczeń pomiędzy jednostkami wyraża się wprost,
@@ -424,7 +430,7 @@ Chapel oferuje dwa uzupełniające się rodzaje równoległości. Równoległoś
 wyraża pętla \texttt{forall}, która zleca wykonanie ciała iteracji dla~wszystkich
 elementów dziedziny współbieżnie, pozostawiając środowisku uruchomieniowemu
 podział pracy na~zadania i~przypisanie ich do~wątków. W~programie to właśnie
-pętla \texttt{forall} nad~dziedziną wnętrza (\cref{lst:steponce-idea}) realizuje fazę
+pętla \texttt{forall} nad~dziedziną wnętrza (\cref{lst:steponce}) realizuje fazę
 obliczeń stencila. Gdy pętla iteruje po~dziedzinie rozproszonej, jej iteracje
 wykonują się na~tych węzłach, do~których przypisane są odpowiednie elementy,
 co zapewnia lokalność obliczeń bez~jawnego zarządzania nią przez programistę.
@@ -432,7 +438,7 @@ co zapewnia lokalność obliczeń bez~jawnego zarządzania nią przez programist
 Równoległość zadaniową między węzłami wyraża konstrukcja
 \texttt{coforall \ldots on loc}, która tworzy osobne zadanie dla~każdego locale
 i~umieszcza jego wykonanie na~odpowiednim węźle. W~programie wzorzec ten
-wykorzystywany jest między innymi do~równoległego zapisu klatek wynikowych, każdy węzeł niezależnie zapisuje swój lokalny podobszar. \Cref{lst:coforall}
+wykorzystywany jest między innymi do~równoległego zapisu klatek wynikowych: każdy węzeł niezależnie zapisuje swój lokalny podobszar. \Cref{lst:coforall}
 ilustruje ten idiom.
 
 \begin{lstlisting}[language=Chapel,caption={Równoległość zadaniowa między węzłami:
@@ -450,13 +456,11 @@ węzły, jej dziedzinę wyposaża się w~\emph{odwzorowanie dziedziny}
 dzieląca zakres indeksów na~w~przybliżeniu równe, przylegające bloki i~przypisująca
 je kolejnym węzłom. Na~potrzeby obliczeń stencilowych Chapel udostępnia
 wyspecjalizowaną dystrybucję \texttt{Stencil} z~modułu \texttt{StencilDist}, która
-poza~podziałem danych utrzymuje wokół każdego lokalnego bloku warstwę komórek
-brzegowych \emph{fluff}, przechowującą buforowane kopie krawędzi sąsiadów.
-Warstwę tę odświeża się jawnym wywołaniem \texttt{updateFluff()}, co realizuje
-opisaną wcześniej wymianę \emph{halo}~\cite{stencildist}. W~programie dziedzinę tworzy się wywołaniem
+poza~podziałem danych utrzymuje opisaną wcześniej warstwę \emph{fluff}
+i~odświeża ją jawnym wywołaniem \texttt{updateFluff()}~\cite{stencildist}.
+W~programie dziedzinę tworzy się wywołaniem
 \texttt{stencilDist.\allowbreak createDomain(\ldots,\allowbreak{} fluff=(1,1,1))},
-zapewniając brzeg
-o~grubości jednej komórki, dokładnie odpowiadający zasięgowi
+ustalając grubość otoczki na jedną komórkę w~każdym kierunku zgodnie z~zasięgiem
 stencila~\eqref{eq:update}.
 
 \subsection{Konstrukcje równoległości i synchronizacja}
@@ -470,6 +474,7 @@ Instrukcja \texttt{begin} uruchamia pojedyncze zadanie w~tle i~nie blokuje dalsz
 wykonywania bieżącego wątku, a~\texttt{cobegin} wykonuje każde z~podanych zdań
 równolegle i~czeka na~zakończenie ich wszystkich. Pozwala to na~zagnieżdżanie
 zadań i~tworzenie struktur, w~których kilka operacji przeplata się w~czasie.
+\Cref{lst:cobegin} ilustruje ten idiom.
 
 \begin{lstlisting}[language=Chapel, caption={Równoległe uruchamianie zadań za pomocą \texttt{cobegin}.}, label={lst:cobegin}]
 cobegin {
@@ -482,6 +487,7 @@ cobegin {
 Konstrukcja \texttt{on} przenosi wykonanie instrukcji na~wskazany locale; wewnątrz
 bloku słowo kluczowe \texttt{here} oznacza bieżący locale, co pozwala odczytać jego
 właściwości bez jawnego odwoływania się do~elementów tablicy \texttt{Locales}.
+\Cref{lst:on-here} pokazuje ten idiom.
 
 \begin{lstlisting}[language=Chapel, caption={Przeniesienie wykonania na~konkretny locale z~użyciem \texttt{here}.}, label={lst:on-here}]
 on Locales[1] do
@@ -489,9 +495,10 @@ on Locales[1] do
 \end{lstlisting}
 
 Do synchronizacji producenta z~konsumentem służą zmienne \texttt{single} (tak zwane
-zmienne synchronizujące): zapis do~takiej zmiennej blokuje, dopóki nie zostanie
-odczytana, a~odczyt — dopóki nie zostanie zapisana. Dają one semantykę jednorazowego
-przekazania wartości między zadaniami bez jawnych zamków.
+zmienne synchronizujące): zapis do~takiej zmiennej wstrzymuje wykonanie, dopóki nie zostanie
+odczytana, a~odczyt wstrzymuje je, dopóki nie zostanie zapisana. Dają one semantykę jednorazowego
+przekazania wartości między zadaniami bez jawnych zamków (ang.~\emph{locks}).
+\Cref{lst:sync} przedstawia ten mechanizm.
 
 \begin{lstlisting}[language=Chapel, caption={Zmienna synchronizująca jako kanał jednorazowy między zadaniami.}, label={lst:sync}]
 var s: single int;          // zmienna synchronizujaca
@@ -502,7 +509,7 @@ const v = s;                    // konsument czeka na wartosc
 Dla bezpiecznej manipulacji stanem współdzielonym Chapel udostępnia typy
 \texttt{atomic}, które gwarantują niepodzielność operacji odczytu, zapisu i~dodawania.
 Typowe zastosowanie to liczniki globalne, sumy częściowe i~sekwencjonowanie
-dostępu do zasobów, bez~ryzyka wyścigu.
+dostępu do zasobów, bez~ryzyka wyścigu. \Cref{lst:atomic} pokazuje typowe użycie.
 
 \begin{lstlisting}[language=Chapel, caption={Operacje atomowe na liczniku współdzielonym.}, label={lst:atomic}]
 var counter: atomic int;
@@ -514,10 +521,10 @@ Wreszcie, dla typowych operacji redukcyjnych Chapel oferuje wyrażenia
 redukcji, które pozwalają zredukować tablicę lub pętlę do~pojedynczej wartości
 przy użyciu operatorów takich jak \texttt{+}, \texttt{min} czy \texttt{max},
 przy czym samo dzielenie pracy i~akumulacja wyniku pozostają w~rękach środowiska
-uruchomieniowego.
+uruchomieniowego. \Cref{lst:reduce} ilustruje redukcję sumy.
 
-\begin{lstlisting}[language=Chapel, caption={Redukcja sumy z~pętli równoległej.}, label={lst:reduce}]
-var s = + reduce A;   // suma wszystkich elementow tablicy A
+\begin{lstlisting}[language=Chapel, caption={Suma wszystkich elementów tablicy \texttt{A}.}, label={lst:reduce}]
+var s = + reduce A;
 \end{lstlisting}
 
 \subsection{Warstwa zadań qthreads oraz warstwa komunikacji GASNet}
@@ -525,14 +532,15 @@ var s = + reduce A;   // suma wszystkich elementow tablicy A
 Wykonywanie zadań w~obrębie pojedynczego locale obsługuje scheduler
 zadań. W~zastosowanej konfiguracji jest to biblioteka \emph{qthreads}
 (\texttt{CHPL\_TASKS=qthreads}), lekki system wątków użytkownika efektywnie
-obsługujący dużą liczbę fine-grained zadań generowanych przez pętle
+obsługujący dużą liczbę drobnoziarnistych (ang.~\emph{fine-grained}) zadań generowanych przez pętle
 \texttt{forall}~\cite{qthreads}. Liczbę wątków sprzętowych dostępnych na~danym węźle udostępnia
 własność \texttt{here.maxTaskPar}; wyznacza ona stopień równoległości fazy
-obliczeń w~obrębie węzła i~jest raportowana przez program przy starcie.
+obliczeń w~obrębie węzła; jest to liczba wątków obliczeniowych na~lokal, a~nie liczba lokali,
+i~jest raportowana przez program przy starcie.
 
-Za~komunikację między węzłami odpowiada z~kolei warstwa \emph{GASNet}, przenośna biblioteka uruchomieniowa dostarczająca prymitywów komunikacji
+Za~komunikację między węzłami odpowiada z~kolei warstwa \emph{GASNet}, przenośna biblioteka uruchomieniowa dostarczająca podstawowych operacji komunikacji
 jednostronnej (ang.\ \emph{one-sided}) oraz komunikatów aktywnych, na~których
-Chapel opiera realizację dostępów do~pamięci zdalnej i~operacji \texttt{on}~\cite{gasnet,gasnet-spec}.
+Chapel opiera realizację dostępu do~pamięci zdalnej i~operacji \texttt{on}~\cite{gasnet,gasnet-spec}.
 Uaktywnia się ją ustawieniem \texttt{CHPL\_COMM=gasnet}. W~zastosowanej
 konfiguracji przyjęto tryb segmentu
 \texttt{CHPL\_\allowbreak GASNET\_\allowbreak SEGMENT\allowbreak =everything},
@@ -549,9 +557,9 @@ sieciowy, przedstawia \cref{fig:layers}.
       lab/.style={font=\footnotesize\itshape,gray}]
     \node[layer,fill=codekw!16] (app) {Aplikacja: program 3D (stencil, \texttt{forall}, \texttt{updateFluff})};
     \node[layer,fill=codekw!12,below=2mm of app] (chpl) {Chapel: tablice globalne PGAS, \texttt{locale}, dystrybucja \texttt{Stencil}};
-    \node[layer,fill=codestr!10,below=2mm of chpl] (rt) {Warstwa uruchomieniowa: zadania \texttt{qthreads} \;$\;\vert\;$\; komunikacja \texttt{GASNet}};
-    \node[layer,fill=codestr!14,below=2mm of rt] (cond) {Konduit GASNet: \texttt{udp} (AMUDP) \; / \; \texttt{mpi} (nad~MPICH/TCP)};
-    \node[layer,fill=black!8,below=2mm of cond] (net) {Sieć węzłów klastra (Ethernet / TCP-IP)};
+    \node[layer,fill=codestr!10,below=2mm of chpl] (rt) {Warstwa uruchomieniowa: zadania \texttt{qthreads} \;+\; komunikacja \texttt{GASNet}};
+    \node[layer,fill=codestr!14,below=2mm of rt] (cond) {Konduit GASNet: \texttt{udp} (AMUDP) \; / \; \texttt{mpi} (MPICH nad~TCP)};
+    \node[layer,fill=black!8,below=2mm of cond] (net) {Sieć węzłów klastra (Ethernet, TCP/IP)};
     \draw[{Latex[length=2mm]}-{Latex[length=2mm]},thick] (app) -- (chpl);
     \draw[{Latex[length=2mm]}-{Latex[length=2mm]},thick] (chpl) -- (rt);
     \draw[{Latex[length=2mm]}-{Latex[length=2mm]},thick] (rt) -- (cond);
@@ -561,31 +569,31 @@ sieciowy, przedstawia \cref{fig:layers}.
   Kod aplikacji operuje na~globalnych tablicach PGAS języka Chapel; ich dostępy
   zdalne i~wymiana warstw brzegowych są realizowane przez warstwę uruchomieniową,
   w~której zadania \texttt{qthreads} wykonują się lokalnie, a~komunikacja \texttt{GASNet}
-  zachodzi między~węzłami; warstwa ta korzysta z~kolei z~wybranego konduitu
+  zachodzi między~węzłami; warstwa ta korzysta z~kolei z~wybranego kanału komunikacyjnego
   odwzorowującego operacje na~fizyczną sieć klastra.}
   \label{fig:layers}
 \end{figure}
 
-\subsection{Konduity GASNet}
+\subsection{Kanały komunikacyjne GASNet}
 
-GASNet abstrahuje sprzęt sieciowy poprzez wymienne \emph{konduity}
-(ang.\ \emph{conduits}), moduły implementujące prymitywy komunikacji
+GASNet abstrahuje sprzęt sieciowy poprzez wymienne \emph{kanały komunikacyjne}
+(ang.\ \emph{conduits}), moduły implementujące operacje komunikacji
 na~konkretnej technologii transportu. W~ramach niniejszej pracy porównywano dwa
-konduity dostępne na~klastrze zbudowanym z~węzłów połączonych zwykłą siecią
-Ethernet. Konduit \texttt{udp}, oparty na~warstwie AMUDP, realizuje komunikaty
-aktywne bezpośrednio nad~datagramami UDP i~jest uruchamiany za~pomocą programu
+kanały komunikacyjne dostępne na~klastrze zbudowanym z~węzłów połączonych zwykłą siecią
+Ethernet. Kanał \texttt{udp}, oparty na~warstwie AMUDP (ang.~\emph{Active Messages over UDP}),
+realizuje komunikację po~protokole UDP i~jest uruchamiany za~pomocą programu
 rozruchowego \texttt{amudprun}. Jego zaletą jest prosta konfiguracja, a~wadą
-podatność na~przeciążenie przy intensywnej, fine-grained wymianie danych.
-Konduit \texttt{mpi} przenosi komunikację GASNet na~istniejącą implementację
+podatność na~przeciążenie przy intensywnej, drobnoziarnistej (ang.~\emph{fine-grained}) wymianie danych.
+Kanał \texttt{mpi} przenosi komunikację GASNet na~istniejącą implementację
 MPI, w~zastosowanej konfiguracji opartej na~MPICH nad~TCP, i~jest uruchamiany
 programem \texttt{gasnetrun\_mpi}; zapewnia on stabilniejszy i~wydajniejszy
 transport dla~podtrzymywanych, regularnych wzorców komunikacji, jakie generuje
 cykliczna wymiana warstw brzegowych w~opisywanym programie.
 
-Wybór konduitu ma istotne znaczenie dla~rozproszonej symulacji.
+Wybór kanału komunikacyjnego ma istotne znaczenie dla~rozproszonej symulacji.
 Jak wykazano w~\cref{sec:parallel}, przy skalowaniu na~wiele węzłów zadanie
 jest ograniczone komunikacją, a~jedyną komunikacją w~kroku jest wymiana
 \emph{halo} realizowana przez \texttt{updateFluff()}. O~osiąganej skalowalności
 decydują w~praktyce właściwości warstwy komunikacyjnej: przepustowość,
-opóźnienie i~odporność na~przeciążenie. Dlatego dobór konduitu jest jednym
+opóźnienie i~odporność na~przeciążenie. Dlatego dobór kanału komunikacyjnego jest jednym
 z~głównych pytań badawczych w~tej pracy.
