@@ -271,13 +271,11 @@ do \(u\), a~w~parzystych do \(un\), dzięki czemu po parzystej liczbie kroków
 wynik znajduje się ponownie w~pierwotnym buforze, bez jakiejkolwiek jawnej
 zamiany.
 
-\begin{lstlisting}[language=Chapel, caption={Pętla główna wariantu \texttt{3d.chpl}: stałe role buforów i~jawna zamiana operatorem \texttt{<=>} po każdym kroku, mierzona osobnym stoperem.}, label={lst:swaploop}]
+\begin{lstlisting}[language=Chapel, caption={Pętla główna wariantu \texttt{3d.chpl}: stałe role buforów i~jawna zamiana operatorem \texttt{<=>} po każdym kroku.}, label={lst:swaploop}]
 for step in 1..numSteps {
-  var fluffT, computeT, swapT, saveT: stopwatch;
+  var fluffT, computeT, saveT: stopwatch;
   stepOnce(u, un, fluffT, computeT);   // stale: dst=u, src=un
-  swapT.start();
   un <=> u;                             // zamiana buforow
-  swapT.stop();
   if step % dumpEvery == 0 then
     dumpLocal(un, frame);              // un zawsze trzyma najnowszy stan
 }
@@ -311,9 +309,7 @@ proc StencilArr.doiOptimizedSwap(other: this.type) {
 }
 \end{lstlisting}
 
-Ponieważ zamiana \texttt{<=>} nie przenosi danych, jej koszt nie przekracza kosztu wspomnianej bariery, czyli ułamka czasu pojedynczego kroku. Czas kroku pozostaje zdominowany przez wymianę halo oraz zapis fragmentu na dysk, natomiast operator zamiany jest wobec nich wielkością rzędu znikomego. Z~tego powodu sposób zarządzania buforami nie ma znaczącego wpływu na wydajność. Wariant \path{3d.chpl} stosowany w~pomiarach na~klastrze Pionier jest
-wyposażony w~osobny stoper \texttt{swapT} mierzący sam czas zamiany, co pozwala
-wyodrębnić ten składnik z~całkowitego czasu kroku. Wariant ping-pong
+Ponieważ zamiana \texttt{<=>} nie przenosi danych, jej koszt nie przekracza kosztu wspomnianej bariery, czyli ułamka czasu pojedynczego kroku. Czas kroku pozostaje zdominowany przez wymianę halo oraz zapis fragmentu na dysk, natomiast operator zamiany jest wobec nich wielkością rzędu znikomego. Z~tego powodu sposób zarządzania buforami nie ma znaczącego wpływu na wydajność. Wariant ping-pong
 (\path{3d_pingpong.chpl}) pozostawiono jako punkt odniesienia pomijający barierę
 zamiany.
 
