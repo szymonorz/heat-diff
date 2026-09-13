@@ -269,7 +269,7 @@ się faza obliczeń, gdyż przechowywane w~nich wartości pochodzą z~poprzednie
 kroku sąsiedniego węzła. Ta wymiana danych z~najbliższymi sąsiadami
 (ang.\ \emph{nearest-neighbour} lub \emph{halo exchange}) jest jedynym rodzajem
 komunikacji między węzłami wymaganym przez schemat jawny. W~każdym kroku odbywa się ona
-na~początku kroku, przed~pętlą aktualizującą wnętrze dziedziny. Na~więcej niż jednym lokalu wymiana ta jest obowiązkowa
+na~początku kroku, przed~pętlą aktualizującą wnętrze dziedziny. Na~więcej niż jednym locale wymiana ta jest obowiązkowa
 dla~poprawności: jej pominięcie sprawia, że~komórki otoczki zachowują wartości
 z~poprzedniego kroku, przez co obliczenie przebiega szybciej, lecz daje wynik
 cicho błędny.
@@ -382,7 +382,7 @@ danych, którą daje model przekazywania komunikatów.
 
 Chapel nie jest jedynym językiem tej grupy. Poza nim model PGAS realizują między innymi
 UPC (ang.\ \emph{Unified Parallel C}), rozszerzenie języka C~o~globalne wskaźniki, Co-Array Fortran
-z~notacją współobrazów (ang.~\emph{co-arrays}), który wszedł do~standardu Fortran~2008, a~także języki projektowane
+z~notacją współmacierzy (ang.~\emph{co-arrays}), który wszedł do~standardu Fortran~2008, a~także języki projektowane
 od~podstaw dla~PGAS: X10 (IBM) i~Fortress (Sun Microsystems). Rozwiązania te różnią się głównie
 składnią, modelem zadań i~sposobem wyrażania lokalności, natomiast wspólne jest im oddanie programiście
 globalnego widoku danych przy jawnym oznaczaniu powinowactwa do~węzłów~\cite{pgas,upc}.
@@ -390,9 +390,9 @@ globalnego widoku danych przy jawnym oznaczaniu powinowactwa do~węzłów~\cite{
 Centralnym pojęciem w~Chapel jest \emph{locale}, abstrakcja jednostki
 systemu dysponującej własną pamięcią oraz zdolnością do~wykonywania obliczeń.
 W~konfiguracji wielowęzłowej stosowanej w~niniejszej pracy każdemu
-locale'owi odpowiada dokładnie jeden węzeł fizyczny klastra, w~odwzorowaniu
+locale odpowiada dokładnie jeden węzeł fizyczny klastra, w~odwzorowaniu
 \emph{jeden-do-jednego}. Wbudowana tablica \texttt{Locales} udostępnia wszystkie
-dostępne jednostki, a~ich liczbę podaje stała \texttt{numLocales}. Dostęp
+jednostki, a~ich liczbę podaje stała \texttt{numLocales}. Dostęp
 do~danych i~przenoszenie obliczeń pomiędzy jednostkami wyraża się wprost,
 za~pomocą konstrukcji \texttt{on}.
 
@@ -416,8 +416,10 @@ ilustruje ten idiom.
 \begin{lstlisting}[language=Chapel,caption={Równoległość zadaniowa między węzłami:
 każdy locale wykonuje operację na~swoim lokalnym podobszarze danych.},label={lst:coforall}]
 coforall loc in Locales do on loc {
-  const ld = field.localSubdomain();   // lokalny fragment tablicy globalnej
-  var block: [ld] real = field[ld];    // kopia danych bez komunikacji zdalnej
+  // lokalny fragment tablicy globalnej
+  const ld = field.localSubdomain();
+  // kopia danych bez komunikacji zdalnej   
+  var block: [ld] real = field[ld];    
   // ... zapis / obliczenia lokalne na fragmencie ...
 }
 \end{lstlisting}
@@ -457,9 +459,10 @@ cobegin {
 \end{lstlisting}
 
 Konstrukcja \texttt{on} przenosi wykonanie instrukcji na~wskazany locale. Wewnątrz
-bloku słowo kluczowe \texttt{here} oznacza bieżący locale, co pozwala odczytać jego
-właściwości bez jawnego odwoływania się do~elementów tablicy \texttt{Locales}.
-\Cref{lst:on-here} pokazuje ten idiom.
+bloku słowo kluczowe \texttt{here} oznacza locale, na~którym blok jest aktualnie
+wykonywany, czyli ten wskazany przez \texttt{on}, a~nie locale, który to wykonanie
+zlecił. Pozwala to odczytać właściwości locale wykonującego bez jawnego odwoływania
+się do~elementów tablicy \texttt{Locales}. \Cref{lst:on-here} pokazuje ten idiom.
 
 \begin{lstlisting}[language=Chapel, caption={Przeniesienie wykonania na~konkretny locale z~użyciem \texttt{here}.}, label={lst:on-here}]
 on Locales[1] do
@@ -507,8 +510,8 @@ zadań. W~zastosowanej konfiguracji jest to biblioteka \emph{qthreads}
 obsługujący dużą liczbę drobnoziarnistych (ang.~\emph{fine-grained}) zadań generowanych przez pętle
 \texttt{forall}~\cite{qthreads}. Maksymalną liczbę wątków, jakie warstwa zadań może
 uruchomić równolegle na~danym węźle, udostępnia własność \texttt{here.maxTaskPar}. Wyznacza ona
-stopień równoległości fazy obliczeń w~obrębie węzła. Jest to liczba wątków obliczeniowych na~lokal,
-a~nie liczba lokali, i~jest raportowana przez program przy starcie.
+stopień równoległości fazy obliczeń w~obrębie węzła. Jest to liczba wątków obliczeniowych na~locale,
+a~nie liczba locale, i~jest raportowana przez program przy starcie.
 
 Za~komunikację między węzłami odpowiada z~kolei warstwa \emph{GASNet}, przenośna biblioteka uruchomieniowa dostarczająca podstawowych operacji komunikacji
 jednostronnej (ang.\ \emph{one-sided}) oraz komunikatów aktywnych, na~których
@@ -530,7 +533,7 @@ sieciowy, przedstawia \cref{fig:layers}.
     \node[layer,fill=codekw!16] (app) {Aplikacja: program 3D (stencil, \texttt{forall}, \texttt{updateFluff})};
     \node[layer,fill=codekw!12,below=2mm of app] (chpl) {Chapel: tablice globalne PGAS, \texttt{locale}, dystrybucja \texttt{Stencil}};
     \node[layer,fill=codestr!10,below=2mm of chpl] (rt) {Warstwa uruchomieniowa: zadania \texttt{qthreads} \;+\; komunikacja \texttt{GASNet}};
-    \node[layer,fill=codestr!14,below=2mm of rt] (cond) {Konduit GASNet: \texttt{udp} (AMUDP) \; / \; \texttt{mpi} (MPICH nad~TCP)};
+    \node[layer,fill=codestr!14,below=2mm of rt] (cond) {Kanał komunikacyjny GASNet: \texttt{udp} (AMUDP) \; / \; \texttt{mpi} (MPICH nad~TCP)};
     \node[layer,fill=black!8,below=2mm of cond] (net) {Sieć węzłów klastra (Ethernet, TCP/IP)};
     \draw[{Latex[length=2mm]}-{Latex[length=2mm]},thick] (app) -- (chpl);
     \draw[{Latex[length=2mm]}-{Latex[length=2mm]},thick] (chpl) -- (rt);

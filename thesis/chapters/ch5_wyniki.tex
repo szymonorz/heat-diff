@@ -33,7 +33,11 @@ różnicowego lub niestabilność numeryczną.
 Kluczową rolę w~weryfikacji odgrywa jednak suma wszystkich elementów pola,
 w~przybliżeniu równa liczbie komórek siatki. Jednocześnie suma $S$ dobrze
 oddaje stan całej dziedziny i~szybko reaguje na~różnice między konfiguracjami:
-najmniejsze rozejście się wyników widać jako rozbieżność sum.
+najmniejsze rozejście się wyników widać jako rozbieżność sum. Aby suma nie
+maskowała lokalnie znoszących się błędów, kontrolę uzupełniają granice
+\(\min=1{,}0\) i~\(\max=2{,}0\), potwierdzające utrzymanie zakresu pola, oraz
+identyczność sumy dla wszystkich dziewięciu dekompozycji: przypadkowe skompensowanie
+błędów dające tę samą sumę dla każdej z~nich jest praktycznie niemożliwe.
 
 Właśnie na tej podstawie zweryfikowano poprawność obliczeń wielowęzłowych.
 Przebieg uruchomiony na pojedynczym locale (\texttt{-nl 1}) daje pewną wartość
@@ -43,7 +47,7 @@ wymiana warstw brzegowych (halo) za pomocą operacji \texttt{updateFluff}.
 Pominięcie tej wymiany skraca czas wykonania, lecz suma $S$ zaczyna się
 rozchodzić względem wartości odniesienia. Wynik staje się \emph{cicho błędny}.
 W~przeprowadzonych pomiarach (dziedzina $1000^3$, 100 kroków) suma końcowa pola
-wynosiła $1{,}00518\cdot 10^{9}$ i~była identyczna dla każdej liczby lokacji od~1 do~9
+wynosiła $1{,}00518\cdot 10^{9}$ i~była identyczna dla każdej liczby locale od~1 do~9
 (po dziesięć powtórzeń na~konfigurację), co empirycznie potwierdza niezależność
 wyniku od~dekompozycji dziedziny.
 Wymiana warstw brzegowych
@@ -74,6 +78,8 @@ zadań qthreads jest tu równa liczbie żądanej.
 \texttt{-nl 1}, \num{10} kroków $\times$ \num{10} powtórzeń, Chapel 2.9,
 kanał MPI, węzeł Pionier.}
 \label{tab:threads-1000}
+\small
+\setlength{\tabcolsep}{5pt}
 \begin{tabular}{rrrrrrrrr}
 \toprule
 Żądane & \texttt{maxTaskPar} & Mediana & Średnia & Min. & Maks. & Odch. std. & $S$ & $E$ \\
@@ -88,7 +94,8 @@ wątki & & [s] & [s] & [s] & [s] & [s] & & \\
 \end{tabular}
 \end{table}
 
-Obraz jest tu jakościowo odmienny i~znacznie korzystniejszy. Przejście z~jednego do
+Wyniki pokazują, że równoległość wątkowa na~pojedynczym węźle przynosi jedynie
+skromny zysk mimo dwudziestu dostępnych wątków. Przejście z~jednego do
 dwóch wątków nie przynosi niemal zysku: mediana rośnie z~\SI{9.812}{\second} do
 \SI{9.948}{\second}, a~trzy z~dziesięciu przebiegów dwuwątkowych były wyraźnie
 wolniejsze, około \SI{10.47}{\second}, wskutek przejściowego ograniczenia taktowania.
@@ -297,7 +304,7 @@ $1000^3$ & \num{36.741}  & \num{36.802}  & \num{2.722} & \num{0.454} \\
 
 Wynik ten najlepiej potwierdza, że ograniczenie ma charakter komunikacyjny.
 Przepustowość rośnie systematycznie wraz z~rozmiarem dziedziny, od zaledwie
-\SI{0.117}{} mld komórek/s dla najmniejszej kostki $125^3$ do \SI{2.722}{} mld komórek/s
+\num{0.117} mld komórek/s dla najmniejszej kostki $125^3$ do \num{2.722} mld komórek/s
 dla największej kostki $1000^3$. Jednocześnie udział komunikacji
 \texttt{comm\_frac} maleje monotonicznie z~\num{0.963} do \num{0.454}. Innymi
 słowy, dla małych dziedzin blisko \SI{96}{\percent} czasu pochłania
@@ -316,10 +323,10 @@ zdominowane przez narzut komunikacyjny.
 
 Rozmiar wymiany halo zależy od~geometrycznego układu dekompozycji. Dla
 zilustrowania rozważmy dwuwymiarową dziedzinę $100\times 100$ podzieloną na cztery
-lokale. Przy podziale plastrami wzdłuż jednej osi każdy blok ma wymiary
-$25\times 100$, dwa skrajne lokale wysyłają po $100$ komórek brzegowych, a~dwa
+locale. Przy podziale plastrami wzdłuż jednej osi każdy blok ma wymiary
+$25\times 100$, dwa skrajne locale wysyłają po $100$ komórek brzegowych, a~dwa
 wewnętrzne po $200$, co daje łącznie $600$ komórek wymienianych na krok. Przy
-podziale na bloki kwadratowe $50\times 50$ każdy z~czterech lokali wysyła do
+podziale na bloki kwadratowe $50\times 50$ każdy z~czterech locale wysyła do
 dwóch sąsiadów brzeg poziomy i~pionowy po $50$ komórek, co daje
 $4\cdot(50+50)=400$ komórek. W~obu przypadkach objętość wymiany jest rzędu pola
 powierzchni granicy, a~nie objętości, co w~trzech wymiarach przekłada się na
@@ -349,7 +356,7 @@ wielowęzłowej średni czas obliczeń na~krok wręcz rośnie z~liczbą wątków
 mocy obliczeniowej. Udział komunikacji dominuje przy małych dziedzinach i~maleje
 dopiero dla dużych kostek (\cref{tab:cube-size}), zgodnie z~geometryczną relacją
 między objętością $N^3$ a~powierzchnią $N^2$. Na każdym węźle jeden wątek warstwy
-komunikacyjnej GASNet obciąża rdzeń w~niemal stu procentach, prowadząc aktywne
+komunikacyjnej GASNet obciąża rdzeń niemal w~całości, prowadząc aktywne
 odpytywanie (ang.~\emph{busy-polling}) w~oczekiwaniu na~postęp komunikacji, co potwierdzono
 analizą stosów wywołań w~debugerze. To nie jest obciążenie obliczeniowe, lecz
 widoczny i~mierzalny skutek ograniczenia komunikacją.

@@ -4,15 +4,13 @@
 Symulacje zjawisk opisanych równaniami różniczkowymi cząstkowymi należą do najczęściej
 spotykanych zadań obliczeniowych w~nauce i~inżynierii. Wśród nich szczególne miejsce zajmują
 obliczenia \emph{stencilowe}, czyli takie, w~których nowa wartość w~każdym punkcie siatki jest
-funkcją wartości z punktów sąsiadujących. Wzorzec ten
-sprawia, że wydajne i~skalowalne wykonanie obliczeń stencilowych na współczesnych
-architekturach równoległych stanowi wyzwanie~\cite{datta-stencil}.
+funkcją wartości z punktów sąsiadujących.
 
 Trójwymiarowe równanie przewodnictwa ciepła jest tradycyjnym przykładem takiego problemu.
 Jego jawna dyskretyzacja różnicowa ma dokładnie te cechy, które sprawiają, że obliczenia stencilowe
 są trudne do zrównoleglenia: niską intensywność arytmetyczną
 oraz konieczność wymiany danych brzegowych między częściami dziedziny w~każdym kroku
-czasowym. Program symulujący równanie ciepła nadaje się dobrze do badania granic skalowalności.
+czasowym~\cite{datta-stencil}. Program symulujący równanie ciepła nadaje się dobrze do badania granic skalowalności.
 Choć wzorzec komunikacji jest tu prosty i~ograniczony do wymiany z~najbliższymi sąsiadami,
 a~nie do komunikacji każdy z~każdym jak w~przekształceniach Fouriera, to właśnie przy
 licznych węzłach każda taka wymiana obciąża to samo, współdzielone łącze sieciowe,
@@ -29,6 +27,6 @@ rozproszonych w~notacji zbliżonej do sekwencyjnej: z~globalnym widokiem tablic,
 iteratorami równoległymi i~gotowymi rozkładami dziedzin. Szczegóły komunikacji pozostawia
 warstwie wykonawczej, opartej na bibliotece GASNet.
 
-Celem niniejszej pracy jest zaprojektowanie, zaimplementowanie i~wdrożenie na~klastrze
+Celem niniejszej pracy było zaprojektowanie, zaimplementowanie i~wdrożenie na~klastrze
 programu symulującego równanie przewodnictwa ciepła w~Chapel oraz
 analiza jego poprawności i~skalowalności.

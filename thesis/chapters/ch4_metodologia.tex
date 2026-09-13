@@ -8,7 +8,7 @@
 
 Badania podzielono na dwie grupy: weryfikację poprawności oraz pomiary wydajności
 i~skalowania. Weryfikacja poprawności obejmowała sprawdzenie,
-że wynik obliczeń jest niezależny od~liczby lokacji, na~które rozdzielono dziedzinę, pod~warunkiem
+że wynik obliczeń jest niezależny od~liczby locale, na~które rozdzielono dziedzinę, pod~warunkiem
 prawidłowej wymiany warstw brzegowych. Jako niezmiennik kontrolny wykorzystano sumę wartości pola
 w~stanie końcowym, raportowaną przez program w~wierszu \texttt{final field: min=\ldots{}
 max=\ldots{} sum=\ldots}. Ponieważ pole przyjmuje wartości w~przedziale $[1,2]$, a~jego
@@ -16,29 +16,29 @@ max=\ldots{} sum=\ldots}. Ponieważ pole przyjmuje wartości w~przedziale $[1,2]
 
 Pomiary wydajności obejmowały cztery grupy scenariuszy, zestawione w~tabeli~\ref{tab:scenariusze}:
 \begin{itemize}
-  \item \textbf{skalowanie wątkowe w~obrębie węzła}: jedna lokacja (\texttt{-nl 1}),
+  \item \textbf{skalowanie wątkowe w~obrębie węzła}: jeden locale (\texttt{-nl 1}),
         zmienna liczba wątków $1/2/4/8/16$, przeprowadzone dla kostki $1000^3$ na~węźle
         Pionier-lab8-1 o~20~wątkach.
-  \item \textbf{skalowanie wątkowe przy 9 lokacjach}: kostka $1000^3$, ustalona
-        liczba lokacji, zmienna liczba wątków na~lokację.
-  \item \textbf{skalowanie po~liczbie węzłów}: kostka $1000^3$, $16$ wątków na~lokację,
-        liczba lokacji od~1 do~9.
-  \item \textbf{skalowanie rozmiaru zadania}: 9 lokacji, $16$ wątków na~lokację,
+  \item \textbf{skalowanie wątkowe przy 9 locale}: kostka $1000^3$, ustalona
+        liczba locale, zmienna liczba wątków na~locale.
+  \item \textbf{skalowanie po~liczbie węzłów}: kostka $1000^3$, $16$ wątków na~locale,
+        liczba locale od~1 do~9.
+  \item \textbf{skalowanie rozmiaru zadania}: 9 locale, $16$ wątków na~locale,
         krawędź kostki od~$125$ do~$1000$ (a~więc od~$125^3$ do~$1000^3$ komórek).
 \end{itemize}
 
 \begin{table}[htbp]
 \centering
 \caption{Grupy scenariuszy pomiarowych. Liczbę wątków w~pierwszej grupie oznaczono
-symbolem $p$, liczbę lokacji symbolem $L$, a~krawędź kostki symbolem $N$.}
+symbolem $p$, liczbę locale symbolem $L$, a~krawędź kostki symbolem $N$.}
 \label{tab:scenariusze}
 \small
-\begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.8cm}>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{3.2cm}@{}}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.8cm}>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.8cm}@{}}
 \toprule
 Scenariusz & Zmienna & Ustalone & Środowisko \\
 \midrule
 Wątki, $1000^3$       & $p\in\{1{,}2{,}4{,}8{,}16\}$ & $L{=}1$, $N{=}1000$, 10 kroków & węzeł Pionier-lab8-1 (20 wątków) \\
-Wątki, 9 lokacji      & $p\in\{1{,}2{,}4{,}8{,}16\}$ & $L{=}9$, $N{=}1000$, 100 kroków   & klaster (9 węzłów) \\
+Wątki, 9 locale      & $p\in\{1{,}2{,}4{,}8{,}16\}$ & $L{=}9$, $N{=}1000$, 100 kroków   & klaster (9 węzłów) \\
 Węzły                 & $L\in\{1{,}\ldots{,}9\}$ & $p{=}16$, $N{=}1000$, 100 kroków & klaster (9 węzłów) \\
 Rozmiar kostki        & $N\in\{125{,}\ldots{,}1000\}$ & $p{=}16$, $L{=}9$, 100 kroków & klaster (9 węzłów) \\
 \bottomrule
@@ -47,10 +47,10 @@ Rozmiar kostki        & $N\in\{125{,}\ldots{,}1000\}$ & $p{=}16$, $L{=}9$, 100 k
 
 Skalowanie wątkowe w~obrębie węzła i~skalowanie po~węzłach rozdzielono świadomie:
 to dwa różne mechanizmy równoległości, współdzielenie pamięci przez
-wątki jednej lokacji oraz rozproszenie danych między lokacjami połączone z~komunikacją sieciową.
+wątki jednego locale oraz rozproszenie danych między locale połączone z~komunikacją sieciową.
 Dopiero zestawienie obu perspektyw pozwala zidentyfikować czynnik ograniczający wydajność.
 
-W~scenariuszach wielowęzłowych liczbę wątków na~lokację pozostawiono wartości domyślnej
+W~scenariuszach wielowęzłowych liczbę wątków na~locale pozostawiono wartości domyślnej
 warstwy qthreads, która dla dwudziestowątkowych węzłów ustala \num{16} wątków efektywnych,
 rezerwując pozostałe rdzenie dla wątku komunikacyjnego GASNet. Jedyną zmienną niezależną
 była odpowiednio liczba węzłów lub rozmiar dziedziny.
@@ -59,30 +59,33 @@ Wszystkie przebiegi wykorzystują ten sam zestaw parametrów numerycznych. Wspó
 dyfuzji przyjęto bezwymiarowo $\alpha=\num{0.25}$, a~gorącą warstwę startową o~grubości
 \texttt{hotThickness}=\num{2} płaszczyzn inicjalizowano wzdłuż osi~$y$ przy ścianie $y=0$.
 Krok czasowy dobierany jest automatycznie z~warunku~\eqref{eq:cfl}, z~zastosowaniem
-współczynnika bezpieczeństwa obniżającego krok poniżej granicy stabilności:
+współczynnika bezpieczeństwa obniżającego krok o~\SI{2}{\percent} poniżej granicy stabilności:
 \begin{equation}
   \Delta t = \num{0.98}\cdot\Delta t_{\max},
   \label{eq:dt}
 \end{equation}
-co utrzymuje współczynnik wzmocnienia najgorszego modu ujemny, lecz co do modułu
-poniżej jedności i~zachowuje stabilność mimo błędów zaokrągleń. Dla~największej
-badanej kostki $N=1000$ daje to $\Delta t\approx 6{,}55\cdot 10^{-7}$. Liczba kroków
+co dla~najbardziej niekorzystnego modu, o~naprzemiennym znaku między sąsiednimi
+węzłami, daje współczynnik wzmocnienia~\eqref{eq:amp} równy $g=\num{-0.96}$. Ujemny
+znak oznacza jedynie, że~amplituda tego modu zmienia znak w~każdym kroku, natomiast
+warunek $\lvert g\rvert<1$ gwarantuje, że~jej moduł maleje. Błędy nie narastają,
+lecz są tłumione, więc schemat pozostaje stabilny mimo błędów zaokrągleń.
+Dla~największej badanej kostki $N=1000$ daje to $\Delta t\approx 6{,}55\cdot 10^{-7}$. Liczba kroków
 czasowych $K$ zależy od~grupy scenariusza: wynosi \num{10} przy~skalowaniu wątkowym
 na~pojedynczym węźle oraz \num{100} w~eksperymentach wielowęzłowych.
 
 \subsection{Metryki}
 
 Podstawową wielkością mierzoną jest \emph{czas wykonania} $T$, rozumiany jako czas trwania
-całej pętli czasowej, mierzony zegarem \texttt{computeTimer} w~lokalu głównym (locale~0).
-Ponieważ krok czasowy zawiera barierę synchronizacyjną wymiany halo, wszystkie lokale kończą
-krok w~tym samym czasie, więc pomiar z~lokalu głównego jest reprezentatywny dla całego
+całej pętli czasowej, mierzony zegarem \texttt{computeTimer} w~locale głównym (locale~0).
+Ponieważ krok czasowy zawiera barierę synchronizacyjną wymiany halo, wszystkie locale kończą
+krok w~tym samym czasie, więc pomiar z~locale głównego jest reprezentatywny dla całego
 przebiegu. Czas ten nie obejmuje inicjalizacji, mierzonej osobno zegarem
 \texttt{initTimer}.
 
-Na podstawie czasu wykonania zdefiniowano standardowe miary skalowania silnego~\cite{amdahl}:
+Na podstawie czasu wykonania zdefiniowano standardowe miary skalowania silnego:
 przyspieszenie $S(p)=T(1)/T(p)$ oraz wydajność równoległą $E(p)=S(p)/p$, zdefiniowane już
 wzorami~\eqref{eq:speedup} i~\eqref{eq:efficiency}, gdzie $T(1)$ jest czasem wykonania konfiguracji
-bazowej z~jednym wątkiem albo jedną lokacją.
+bazowej z~jednym wątkiem albo jednym locale.
 W~roli $p$ dla skalowania wątkowego przyjęto \emph{efektywną} liczbę wątków,
 czyli wartość \texttt{maxTaskPar} po~ewentualnym ograniczeniu przez warstwę wątkową, a~nie liczbę
 żądaną. Dla oceny wykorzystania sprzętu niezależnie od~rozmiaru zadania posłużono się
@@ -102,10 +105,10 @@ komunikacji wprowadzono \emph{udział komunikacji} w~czasie pojedynczego kroku,
   \label{eq:commfrac}
 \end{equation}
 gdzie $t_{\text{fluff}}$ i~$t_{\text{compute}}$ są uśrednionymi po~krokach czasami wymiany halo
-oraz obliczeń. Wielkość $\phi$ przyjmuje wartości bliskie jedności, gdy dominuje komunikacja,
+oraz obliczeń. Wielkość \texttt{comm\_frac} przyjmuje wartości bliskie jedności, gdy dominuje komunikacja,
 oraz bliskie zeru, gdy dominują obliczenia. Uzupełniająco rejestrowano objętość wymiany halo
 w~bajtach na~krok, obliczaną analitycznie przez procedurę \texttt{haloBytesPerStep} jako łączną
-liczbę komórek warstw brzegowych wszystkich lokacji pomnożoną przez rozmiar elementu.
+liczbę komórek warstw brzegowych wszystkich locale pomnożoną przez rozmiar elementu.
 
 \section{Procedura i narzędzia pomiarowe}
 \label{sec:procedura}
@@ -124,11 +127,11 @@ standardowym przy praktycznie niezmienionej medianie.
 
 Przebiegi danej serii wykonywano sekwencyjnie, po~jednym naraz, aby uniknąć wzajemnej
 rywalizacji o~pamięć i~pasmo. Wszystkie pomiary wydajności prowadzono na~środowisku Chapel~2.9
-z~warstwą komunikacyjną w~wariancie mpi-conduit. Liczbę wątków na~lokację ustawiano zmienną
+z~warstwą komunikacyjną w~wariancie mpi-conduit. Liczbę wątków na~locale ustawiano zmienną
 środowiskową \texttt{CHPL\_RT\_NUM\_THREADS\_PER\_LOCALE}.
 
 Konfigurację każdego przebiegu zapisywano bezpośrednio w~logu w~postaci linii
-\texttt{[cfg]} opisanych w~\cref{sec:uruchamianie}: skrypt podaje żądaną liczbę wątków i~lokacji,
+\texttt{[cfg]} opisanych w~\cref{sec:uruchamianie}: skrypt podaje żądaną liczbę wątków i~locale,
 a~program efektywną liczbę wątków po~ograniczeniu przez warstwę qthreads. Na~węzłach Pionier
 o~20~wątkach sprzętowych liczba efektywna była równa żądanej dla~wszystkich badanych
 konfiguracji ($p\le 16$).
@@ -190,7 +193,7 @@ gdzie mimo to pojawiły się wartości odstające, czyli pojedyncze wolniejsze p
 ograniczenia taktowania, fakt ten odnotowano jawnie i~potraktowano jako artefakt pomiaru, a~nie
 własność konfiguracji.
 
-Nierówny podział dziedziny pojawia się, gdy liczba lokacji nie dzieli równo boku kostki $1000^3$.
+Nierówny podział dziedziny pojawia się, gdy liczba locale nie dzieli równo boku kostki $1000^3$.
 Powoduje to nierównomierne obciążenie i~zaburza gładkość krzywej skalowania. Nie jest to
 błąd pomiaru, lecz rzeczywista własność dekompozycji. Uwzględniono ją w~interpretacji
 niemonotonicznego przebiegu skalowania po~węzłach.

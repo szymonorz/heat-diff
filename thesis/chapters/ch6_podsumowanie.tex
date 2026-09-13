@@ -12,7 +12,7 @@ obliczeń stencilowych czynnikiem ograniczającym wydajność jest nie moc oblic
 przepustowość pamięci na~poziomie węzła oraz koszt komunikacji między węzłami~\cite{roofline}.
 
 W~zakresie poprawności wykazano, że~rozwiązanie różnicowe daje wynik niezależny
-od~liczby lokacji, na~które rozdzielono dziedzinę, pod~warunkiem prawidłowej wymiany warstw
+od~liczby locale, na~które rozdzielono dziedzinę, pod~warunkiem prawidłowej wymiany warstw
 brzegowych. Niezmiennik sumy pola w~stanie końcowym okazał się prostym, lecz skutecznym
 kryterium kontrolnym. Pominięcie wymiany halo znacząco skraca czas wykonania, lecz prowadzi
 do~wyniku \emph{cicho błędnego}, co pokazuje, że~w~programowaniu rozproszonym krótki czas
@@ -33,7 +33,7 @@ krawędzi, a~powierzchnia wymiany halo jedynie z~jej kwadratem.
 Praktyczne znaczenie miał dobór kanału komunikacyjnego GASNet. Wariant AMUDP, choć prosty, ulega awarii
 typu \texttt{ECONGESTION} pod~obciążeniem typu \emph{incast} i~przy stratach pakietów, bo nie
 zapewnia kontroli przepływu~\cite{incast}, natomiast mpi-conduit oparty na~bibliotece MPICH i~protokole
-TCP przetrwa te warunki dzięki kontroli przepływu i~retransmisji, kosztem nieco niższej
+TCP jest na~nie odporne dzięki kontroli przepływu i~retransmisji, kosztem nieco niższej
 wydajności. Wyższa warstwa języka również miała znaczenie: globalny widok tablic, gotowy rozkład
 \texttt{StencilDist} z~automatyczną wymianą otoczek oraz zwięzłe iteratory równoległe pozwoliły
 zapisać poprawny kod rozproszony znacznie prościej niż przy jawnym użyciu
@@ -59,10 +59,10 @@ niż~$1000^3$ nie udało się zmieścić w~pamięci i~czasie klastra.
 Zakres pracy świadomie zawężono do~jawnej metody różnic skończonych na~siatce regularnej
 z~arytmetyką podwójnej precyzji. Metody niejawne, które są bezwarunkowo stabilne, lecz wymagają
 rozwiązywania układów równań, siatki niestrukturalne, techniki nakładania komunikacji na~obliczenia
-oraz akceleracja na~procesorach graficznych pozostają poza zakresem niniejszej pracy, a~każde z~nich mogłoby
+oraz akceleracja na~procesorach graficznych wykraczają poza ramy niniejszej pracy, a~każde z~nich mogłoby
 zmienić charakterystykę obliczeniową problemu. Wreszcie badania dotyczyły wyłącznie skalowania
 silnego, przy ustalonym rozmiarze zadania i~rosnącej liczbie jednostek równoległości.
-Skalowanie słabe, gdzie rozmiar zadania rośnie proporcjonalnie do~liczby lokacji,
+Skalowanie słabe, gdzie rozmiar zadania rośnie proporcjonalnie do~liczby locale,
 dałoby obraz uzupełniający.
 
 
@@ -81,13 +81,13 @@ Powtórzenie pomiarów na~sieci o~niskim opóźnieniu i~wysokiej przepustowości
 InfiniBand, wraz z~kanałem komunikacyjnym GASNet dobranym do~takiej sieci pozwoliłoby ustalić, w~jakim stopniu
 obserwowane granice skalowania wynikają z~samego algorytmu, a~w~jakim z~ograniczeń konkretnego
 łącza \SI{1}{\giga\bit\per\second}. Uzupełniająco warto rozważyć skalowanie słabe, gdzie
-rozmiar zadania rośnie proporcjonalnie do~liczby lokacji, co pozwoliłoby oddzielić koszty stałe
+rozmiar zadania rośnie proporcjonalnie do~liczby locale, co pozwoliłoby oddzielić koszty stałe
 od~kosztów rosnących wraz z~rozmiarem problemu.
 
 Innym naturalnym rozszerzeniem są warianty numeryczne i~sprzętowe: schematy niejawne,
 które są bezwarunkowo stabilne, lecz wymagają rozwiązywania układów równań i~globalnej komunikacji
 innego typu, siatki niestrukturalne oraz akceleracja jądra obliczeniowego na~procesorach graficznych,
-którą Chapel wspiera odpowiednimi lokacjami i~atrybutami pętli równoległych. Każde z~nich zmieniłoby
+którą Chapel wspiera odpowiednimi locale i~atrybutami pętli równoległych. Każde z~nich zmieniłoby
 charakterystykę obliczeniową problemu i~pozwoliłoby sprawdzić, na~ile wnioski tej pracy zachowują
 ważność poza klasą jawnych schematów stencilowych.
 
