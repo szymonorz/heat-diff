@@ -17,12 +17,12 @@ max=\ldots{} sum=\ldots}. Ponieważ pole przyjmuje wartości w~przedziale $[1,2]
 Pomiary wydajności obejmowały cztery grupy scenariuszy, zestawione w~tabeli~\ref{tab:scenariusze}:
 \begin{itemize}
   \item \textbf{skalowanie wątkowe w~obrębie węzła}: jedna lokacja (\texttt{-nl 1}),
-        zmienna liczba wątków $1/2/4/8/16$; przeprowadzone dla kostki $1000^3$ na~węźle
-        Pionier-lab8-1 o~20~wątkach;
+        zmienna liczba wątków $1/2/4/8/16$, przeprowadzone dla kostki $1000^3$ na~węźle
+        Pionier-lab8-1 o~20~wątkach.
   \item \textbf{skalowanie wątkowe przy 9 lokacjach}: kostka $1000^3$, ustalona
-        liczba lokacji, zmienna liczba wątków na~lokację;
+        liczba lokacji, zmienna liczba wątków na~lokację.
   \item \textbf{skalowanie po~liczbie węzłów}: kostka $1000^3$, $16$ wątków na~lokację,
-        liczba lokacji od~1 do~9;
+        liczba lokacji od~1 do~9.
   \item \textbf{skalowanie rozmiaru zadania}: 9 lokacji, $16$ wątków na~lokację,
         krawędź kostki od~$125$ do~$1000$ (a~więc od~$125^3$ do~$1000^3$ komórek).
 \end{itemize}
@@ -52,17 +52,23 @@ Dopiero zestawienie obu perspektyw pozwala zidentyfikować czynnik ograniczając
 
 W~scenariuszach wielowęzłowych liczbę wątków na~lokację pozostawiono wartości domyślnej
 warstwy qthreads, która dla dwudziestowątkowych węzłów ustala \num{16} wątków efektywnych,
-rezerwując pozostałe rdzenie dla wątku komunikacyjnego GASNet; jedyną zmienną niezależną
+rezerwując pozostałe rdzenie dla wątku komunikacyjnego GASNet. Jedyną zmienną niezależną
 była odpowiednio liczba węzłów lub rozmiar dziedziny.
 
 Wszystkie przebiegi wykorzystują ten sam zestaw parametrów numerycznych. Współczynnik
 dyfuzji przyjęto bezwymiarowo $\alpha=\num{0.25}$, a~gorącą warstwę startową o~grubości
 \texttt{hotThickness}=\num{2} płaszczyzn inicjalizowano wzdłuż osi~$y$ przy ścianie $y=0$.
-Krok czasowy dobierany jest automatycznie z~warunku~\eqref{eq:cfl} ze~współczynnikiem
-bezpieczeństwa $\Delta t=\num{0.98}\,\Delta t_{\max}$ (wzór~\eqref{eq:dt}); dla~największej
+Krok czasowy dobierany jest automatycznie z~warunku~\eqref{eq:cfl}, z~zastosowaniem
+współczynnika bezpieczeństwa obniżającego krok poniżej granicy stabilności:
+\begin{equation}
+  \Delta t = \num{0.98}\cdot\Delta t_{\max},
+  \label{eq:dt}
+\end{equation}
+co utrzymuje współczynnik wzmocnienia najgorszego modu ujemny, lecz co do modułu
+poniżej jedności i~zachowuje stabilność mimo błędów zaokrągleń. Dla~największej
 badanej kostki $N=1000$ daje to $\Delta t\approx 6{,}55\cdot 10^{-7}$. Liczba kroków
 czasowych $K$ zależy od~grupy scenariusza: wynosi \num{10} przy~skalowaniu wątkowym
-na~pojedynczym węźle oraz \num{100} w~eksperymentach wielowęzłowych (patrz \cref{tab:scenariusze}).
+na~pojedynczym węźle oraz \num{100} w~eksperymentach wielowęzłowych.
 
 \subsection{Metryki}
 
@@ -76,9 +82,9 @@ przebiegu. Czas ten nie obejmuje inicjalizacji, mierzonej osobno zegarem
 Na podstawie czasu wykonania zdefiniowano standardowe miary skalowania silnego~\cite{amdahl}:
 przyspieszenie $S(p)=T(1)/T(p)$ oraz wydajność równoległą $E(p)=S(p)/p$, zdefiniowane już
 wzorami~\eqref{eq:speedup} i~\eqref{eq:efficiency}, gdzie $T(1)$ jest czasem wykonania konfiguracji
-odniesienia z~jednym wątkiem albo jedną lokacją.
-Przy czym w~roli $p$ dla skalowania wątkowego przyjęto \emph{efektywną} liczbę wątków,
-tj. wartość \texttt{maxTaskPar} po~ewentualnym ograniczeniu przez warstwę wątkową, a~nie liczbę
+bazowej z~jednym wątkiem albo jedną lokacją.
+W~roli $p$ dla skalowania wątkowego przyjęto \emph{efektywną} liczbę wątków,
+czyli wartość \texttt{maxTaskPar} po~ewentualnym ograniczeniu przez warstwę wątkową, a~nie liczbę
 żądaną. Dla oceny wykorzystania sprzętu niezależnie od~rozmiaru zadania posłużono się
 \emph{przepustowością} wyrażoną w~miliardach aktualizacji komórek na~sekundę,
 \begin{equation}
@@ -87,12 +93,12 @@ tj. wartość \texttt{maxTaskPar} po~ewentualnym ograniczeniu przez warstwę wą
 \end{equation}
 gdzie $N^3 \cdot K$ jest łączną liczbą aktualizacji komórek (wielkość bezwymiarowa),
 $T$ jest czasem wykonania w~sekundach, a~czynnik $10^{9}$ jest prefiksem giga
-zamieniającym aktualizacje na~giga-aktualizacje; w~konsekwencji $\Pi$ wyrażone jest
+zamieniającym aktualizacje na~giga-aktualizacje. $\Pi$ wyrażone jest
 w~giga-aktualizacjach komórek na~sekundę, co odpowiada konwencji metryki GUPS z~systemu
 HPC Challenge~\cite{hpcchallenge}. Dla oszacowania roli
 komunikacji wprowadzono \emph{udział komunikacji} w~czasie pojedynczego kroku,
 \begin{equation}
-  \phi = \frac{t_{\text{fluff}}}{t_{\text{fluff}} + t_{\text{compute}}},
+  \texttt{comm\_frac} = \frac{t_{\text{fluff}}}{t_{\text{fluff}} + t_{\text{compute}}},
   \label{eq:commfrac}
 \end{equation}
 gdzie $t_{\text{fluff}}$ i~$t_{\text{compute}}$ są uśrednionymi po~krokach czasami wymiany halo
@@ -113,7 +119,7 @@ czas, lecz nie odzwierciedlają właściwości badanej konfiguracji. Mediana jes
 wartości odstające, podczas gdy średnia zostaje przez nie zawyżona. Przykładem jest jedna
 z~serii jednowęzłowych, w~której trzy z~dziesięciu przebiegów były wolniejsze o~około pół
 sekundy (około \SI{5}{\percent} czasu pojedynczego przebiegu) wskutek przejściowego ograniczenia
-taktowania; skutkowało to podwyższonym odchyleniem
+taktowania. Skutkowało to podwyższonym odchyleniem
 standardowym przy praktycznie niezmienionej medianie.
 
 Przebiegi danej serii wykonywano sekwencyjnie, po~jednym naraz, aby uniknąć wzajemnej
@@ -134,7 +140,7 @@ Czasy mierzono wbudowanymi w~język stoperami (\texttt{stopwatch}), opartymi na~
 monotonicznym wysokiej rozdzielczości o~praktycznej rozdzielczości pojedynczych
 mikrosekund, osobno dla inicjalizacji, całej pętli czasowej oraz, w~każdym kroku,
 dla wymiany halo, obliczeń i~zapisu. Objętość i~liczbę operacji komunikacyjnych GET, PUT, zdalnych i~atomowych rejestrowano za~pomocą modułu diagnostyki komunikacji GASNet,
-włączanego przełącznikiem \texttt{commLog}; wypisywany raz wiersz \texttt{[comm]} podaje
+włączanego przełącznikiem \texttt{commLog}. Wypisywany raz wiersz \texttt{[comm]} podaje
 analityczną objętość wymiany halo na~krok. Zużycie pamięci procesu kontrolowano narzędziem
 systemowym \texttt{/usr/bin/time -v}, odczytując maksymalny rezydentny zbiór stron
 (ang.~\emph{Resident Set Size}, RSS), co pozwoliło ustalić
@@ -143,7 +149,7 @@ graniczne rozmiary kostek mieszczące się w~pamięci danego węzła.
 Przetwarzanie zebranych logów oraz rysowanie wykresów zrealizowano skryptami w~języku Python
 z~biblioteką \texttt{matplotlib}. Podstawową formą prezentacji jest wykres pudełkowy
 rozkładu czasu wykonania z~naniesionymi punktami poszczególnych przebiegów, medianą
-oraz średnią; uzupełniają go wykresy metryk pochodnych: przyspieszenia, wydajności,
+oraz średnią. Uzupełniają go wykresy metryk pochodnych: przyspieszenia, wydajności,
 przepustowości i~udziału komunikacji. Taka forma pokazuje jednocześnie środek rozkładu
 i~rozrzut, co jest istotne przy ocenie powtarzalności.
 
@@ -160,13 +166,15 @@ i~dyskowych oraz uzasadnić wybór wariantu transportu opartego na~protokole TCP
 \subsection{Przykład wyznaczenia metryk}
 
 Dla uporządkowania powyższych definicji poniżej przedstawiono sposób wyznaczenia metryk pochodnych na~jednym
-scenariuszu. Rozważono skalowanie wątkowe kostki $1000^3$ na~węźle Pionier o~20~wątkach. Konfiguracja
-odniesienia z~jednym wątkiem osiągnęła medianę czasu wykonania $T(1)=\SI{9.812}{\second}$, natomiast
+scenariuszu. Rozważono skalowanie wątkowe kostki $1000^3$ na~węźle Pionier o~20~wątkach. Jednowątkowa
+konfiguracja bazowa osiągnęła medianę czasu wykonania $T(1)=\SI{9.812}{\second}$, natomiast
 optymalna konfiguracja ośmiowątkowa $T(8)=\SI{8.094}{\second}$. Zgodnie z~\eqref{eq:speedup}
 przyspieszenie wynosi $S(8)=9{,}812/8{,}094\approx\num{1.212}$, a~wydajność równoległa według
 \eqref{eq:efficiency}, $E(8)=1{,}212/8\approx\num{0.152}$. Przepustowość dla tej konfiguracji, przy
-$K=10$ krokach, obliczono z~\eqref{eq:throughput} jako
-$\Pi = 1000^3\cdot 10/(8{,}094\cdot 10^{9})\approx\num{1.24}$ miliarda aktualizacji komórek na~sekundę.
+$K=10$ krokach, obliczono z~\eqref{eq:throughput}: $1000^3\cdot 10 = 10^{10}$ aktualizacji komórek
+w~czasie $T(8)=\SI{8.094}{\second}$ daje $10^{10}/8{,}094 \approx \num{1.24}\cdot 10^{9}$ aktualizacji
+na~sekundę, a~po~podzieleniu przez $10^{9}$ (prefiks giga) $\Pi \approx \num{1.24}$ miliarda
+aktualizacji komórek na~sekundę.
 Zabieg ten powtórzono dla każdej konfiguracji każdego scenariusza, dzięki czemu wszystkie wykresy
 i~zestawienia w~\cref{ch:wyniki} opierają się na~jednolicie zdefiniowanych wielkościach.
 
@@ -182,13 +190,13 @@ gdzie mimo to pojawiły się wartości odstające, czyli pojedyncze wolniejsze p
 ograniczenia taktowania, fakt ten odnotowano jawnie i~potraktowano jako artefakt pomiaru, a~nie
 własność konfiguracji.
 
-Nierówny podział dziedziny pojawia się, gdy liczba lokacji nie dzieli równo boku kostki $1000^3$;
-powoduje to nierównomierne obciążenie i~zaburza gładkość krzywej skalowania. Nie jest to
-błąd pomiaru, lecz rzeczywista własność dekompozycji; uwzględniono ją w~interpretacji
+Nierówny podział dziedziny pojawia się, gdy liczba lokacji nie dzieli równo boku kostki $1000^3$.
+Powoduje to nierównomierne obciążenie i~zaburza gładkość krzywej skalowania. Nie jest to
+błąd pomiaru, lecz rzeczywista własność dekompozycji. Uwzględniono ją w~interpretacji
 niemonotonicznego przebiegu skalowania po~węzłach.
 
 Trafność zewnętrzna wyników jest ograniczona: uzyskano je na~konkretnym, niewielkim klastrze z~siecią
-\SI{1}{\giga\bit\per\second}. Wartości bezwzględne nie przenoszą się wprost na~inne środowiska,
-natomiast wnioski, ograniczenie przepustowością pamięci i~komunikacją, korzystny
-wpływ większych zadań na~wykorzystanie klastra, mają charakter ogólny i~wynikają z~właściwości samych
-obliczeń stencilowych~\cite{roofline,datta-stencil}.
+\SI{1}{\giga\bit\per\second}. Wartości bezwzględne nie przenoszą się wprost na~inne środowiska. Wnioski mają
+jednak charakter ogólny i~wynikają z~właściwości samych obliczeń stencilowych:
+obliczenia te są ograniczone przepustowością pamięci oraz komunikacją sieciową, a~większe
+zadania lepiej wykorzystują klaster~\cite{roofline,datta-stencil}.

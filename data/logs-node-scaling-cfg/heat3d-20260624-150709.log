@@ -1,0 +1,65 @@
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+[cfg] threadsPerLocale(requested)=20 numLocales=10
+Initialization time: 0.413905 s
+[mem] after init (u+un allocated) locale 0: 1962.51 MB
+[mem] after init (u+un allocated) locale 1: 1962.45 MB
+[mem] after init (u+un allocated) locale 2: 1962.45 MB
+[mem] after init (u+un allocated) locale 3: 1962.45 MB
+[mem] after init (u+un allocated) locale 4: 1962.45 MB
+[mem] after init (u+un allocated) locale 5: 1962.45 MB
+[mem] after init (u+un allocated) locale 6: 1962.45 MB
+[mem] after init (u+un allocated) locale 7: 1962.45 MB
+[mem] after init (u+un allocated) locale 8: 1962.45 MB
+[mem] after init (u+un allocated) locale 9: 1962.45 MB
+[cfg] locale 0 maxTaskPar=16
+[cfg] locale 1 maxTaskPar=16
+[cfg] locale 2 maxTaskPar=16
+[cfg] locale 3 maxTaskPar=16
+[cfg] locale 4 maxTaskPar=16
+[cfg] locale 5 maxTaskPar=16
+[cfg] locale 6 maxTaskPar=16
+[cfg] locale 7 maxTaskPar=16
+[cfg] locale 8 maxTaskPar=16
+[cfg] locale 9 maxTaskPar=16
+[comm] 80128000 B/step across 10 locale(s)
+step 1  updateFluff=0.154628 s  compute=0.182371 s  save=0.0 s
+  comm[1] put=0 get=558 on=60 amo=0 | data=80128000 B/step  cum=80128000 B
+step 2  updateFluff=0.158713 s  compute=0.184499 s  save=0.0 s
+  comm[2] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=160256000 B
+step 3  updateFluff=0.169361 s  compute=0.182844 s  save=1e-06 s
+  comm[3] put=10 get=558 on=69 amo=0 | data=80128000 B/step  cum=240384000 B
+step 4  updateFluff=0.16995 s  compute=0.18153 s  save=0.0 s
+  comm[4] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=320512000 B
+step 5  updateFluff=0.175271 s  compute=0.184931 s  save=0.0 s
+  comm[5] put=10 get=558 on=69 amo=0 | data=80128000 B/step  cum=400640000 B
+step 6  updateFluff=0.183198 s  compute=0.182803 s  save=0.0 s
+  comm[6] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=480768000 B
+step 7  updateFluff=0.185142 s  compute=0.180963 s  save=0.0 s
+  comm[7] put=10 get=558 on=69 amo=0 | data=80128000 B/step  cum=560896000 B
+step 8  updateFluff=0.163446 s  compute=0.182219 s  save=0.0 s
+  comm[8] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=641024000 B
+step 9  updateFluff=0.154669 s  compute=0.181895 s  save=0.0 s
+  comm[9] put=10 get=558 on=69 amo=0 | data=80128000 B/step  cum=721152000 B
+step 10  updateFluff=0.159983 s  compute=0.181537 s  save=0.0 s
+  comm[10] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=801280000 B
+step 11  updateFluff=0.15691 s  compute=0.183157 s  save=0.0 s
+  comm[11] put=10 get=558 on=69 amo=0 | data=80128000 B/step  cum=881408000 B
+step 12  updateFluff=0.164235 s  compute=0.181504 s  save=0.0 s
+  comm[12] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=961536000 B
+step 13  updateFluff=0.17303 s  compute=0.182247 s  save=1e-06 s
+  comm[13] put=10 get=558 on=69 amo=0 | data=80128000 B/step  cum=1041664000 B
+step 14  updateFluff=0.176008 s  compute=0.181987 s  save=0.0 s
+  comm[14] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=1121792000 B
+step 15  updateFluff=0.182911 s  compute=0.18025 s  save=0.0 s
+  comm[15] put=10 get=558 on=69 amo=0 | data=80128000 B/step  cum=1201920000 B
+step 16  updateFluff=0.172478 s  compute=0.183236 s  save=0.0 s
+  comm[16] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=1282048000 B

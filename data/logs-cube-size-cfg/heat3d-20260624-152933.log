@@ -1,0 +1,42 @@
+[cfg] threadsPerLocale(requested)=20 numLocales=1
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+
+===================================================================================
+=   BAD TERMINATION OF ONE OF YOUR APPLICATION PROCESSES
+=   PID 11241 RUNNING AT 192.168.128.127
+=   EXIT CODE: 9
+=   CLEANING UP REMAINING PROCESSES
+=   YOU CAN IGNORE THE BELOW CLEANUP MESSAGES
+===================================================================================
+[proxy:0@Pionier-lab8-1] HYD_pmcd_pmip_control_cmd_cb (proxy/pmip_cb.c:487): assert (!closed) failed
+[proxy:0@Pionier-lab8-1] HYDT_dmxu_poll_wait_for_event (lib/tools/demux/demux_poll.c:76): callback returned error status
+[proxy:0@Pionier-lab8-1] main (proxy/pmip.c:122): demux engine error waiting for event
+[proxy:2@Pionier-lab8-3] HYD_pmcd_pmip_control_cmd_cb (proxy/pmip_cb.c:487): assert (!closed) failed
+[proxy:2@Pionier-lab8-3] HYDT_dmxu_poll_wait_for_event (lib/tools/demux/demux_poll.c:76): callback returned error status
+[proxy:2@Pionier-lab8-3] main (proxy/pmip.c:122): demux engine error waiting for event
+[proxy:5@Pionier-lab8-6] HYD_pmcd_pmip_control_cmd_cb (proxy/pmip_cb.c:487): assert (!closed) failed
+[proxy:5@Pionier-lab8-6] HYDT_dmxu_poll_wait_for_event (lib/tools/demux/demux_poll.c:76): callback returned error status
+[proxy:5@Pionier-lab8-6] main (proxy/pmip.c:122): demux engine error waiting for event
+[proxy:7@Pionier-lab8-8] HYD_pmcd_pmip_control_cmd_cb (proxy/pmip_cb.c:487): assert (!closed) failed
+[proxy:7@Pionier-lab8-8] HYDT_dmxu_poll_wait_for_event (lib/tools/demux/demux_poll.c:76): callback returned error status
+[proxy:7@Pionier-lab8-8] main (proxy/pmip.c:122): demux engine error waiting for event
+[proxy:8@Pionier-lab8-9] HYD_pmcd_pmip_control_cmd_cb (proxy/pmip_cb.c:487): assert (!closed) failed
+[proxy:8@Pionier-lab8-9] HYDT_dmxu_poll_wait_for_event (lib/tools/demux/demux_poll.c:76): callback returned error status
+[proxy:8@Pionier-lab8-9] main (proxy/pmip.c:122): demux engine error waiting for event
+[proxy:3@Pionier-lab8-4] HYD_pmcd_pmip_control_cmd_cb (proxy/pmip_cb.c:487): assert (!closed) failed
+[proxy:3@Pionier-lab8-4] HYDT_dmxu_poll_wait_for_event (lib/tools/demux/demux_poll.c:76): callback returned error status
+[proxy:3@Pionier-lab8-4] main (proxy/pmip.c:122): demux engine error waiting for event
+[mpiexec@Pionier-lab8-1] HYDT_bscu_wait_for_completion (lib/tools/bootstrap/utils/bscu_wait.c:109): one of the processes terminated badly; aborting
+[mpiexec@Pionier-lab8-1] HYDT_bsci_wait_for_completion (lib/tools/bootstrap/src/bsci_wait.c:21): launcher returned error waiting for completion
+[mpiexec@Pionier-lab8-1] HYD_pmci_wait_for_completion (mpiexec/pmiserv_pmci.c:189): launcher returned error waiting for completion
+[mpiexec@Pionier-lab8-1] main (mpiexec/mpiexec.c:260): process manager error waiting for completion
+
+[cfg] locale 0 maxTaskPar=16

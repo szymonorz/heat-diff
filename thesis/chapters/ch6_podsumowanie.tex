@@ -8,12 +8,12 @@ Celem pracy było zaprojektowanie, zaimplementowanie i~wdrożenie na~klastrze ro
 programu symulacyjnego rozwiązującego trójwymiarowe równanie przewodnictwa ciepła w~języku Chapel oraz przeprowadzenie
 systematycznej analizy jego poprawności i~skalowalności. Zrealizowano wszystkie założone cele,
 a~wyniki potwierdzają tezę pracy: dla rozważanej klasy
-obliczeń stencilowych o~czynniku ograniczającym wydajność decyduje nie moc obliczeniowa, lecz
+obliczeń stencilowych czynnikiem ograniczającym wydajność jest nie moc obliczeniowa, lecz
 przepustowość pamięci na~poziomie węzła oraz koszt komunikacji między węzłami~\cite{roofline}.
 
 W~zakresie poprawności wykazano, że~rozwiązanie różnicowe daje wynik niezależny
 od~liczby lokacji, na~które rozdzielono dziedzinę, pod~warunkiem prawidłowej wymiany warstw
-brzegowych; niezmiennik sumy pola w~stanie końcowym okazał się prostym, lecz skutecznym
+brzegowych. Niezmiennik sumy pola w~stanie końcowym okazał się prostym, lecz skutecznym
 kryterium kontrolnym. Pominięcie wymiany halo znacząco skraca czas wykonania, lecz prowadzi
 do~wyniku \emph{cicho błędnego}, co pokazuje, że~w~programowaniu rozproszonym krótki czas
 wykonania nie oznacza jeszcze poprawnego wyniku.
@@ -24,7 +24,7 @@ szesnastu dostępnych wątków, co jest sygnaturą ograniczenia przepustowości�
 po~węzłach zatrzymuje się na~poziomie około $2{,}4\times$ i~pozostaje daleko od~zależności
 liniowej, a~jego przebieg jest niemonotoniczny, z~najlepszym czasem przy~sześciu węzłach,
 wskutek nierównego podziału kostki $1000^3$ dla ,,niewygodnych'' dzielników oraz rosnącej
-objętości wymiany halo; przy łączu \SI{1}{\giga\bit\per\second} czyni to obliczenia
+objętości wymiany halo. Przy łączu \SI{1}{\giga\bit\per\second} czyni to obliczenia
 ograniczonymi komunikacją. Poprawę przynosi dopiero powiększanie zadania: wraz ze~wzrostem
 krawędzi kostki przepustowość rośnie z~$0{,}117$ do~$2{,}722$ mld komórek na~sekundę,
 a~udział komunikacji maleje z~$0{,}96$ do~$0{,}45$, ponieważ objętość rośnie z~sześcianem
@@ -32,7 +32,7 @@ krawędzi, a~powierzchnia wymiany halo jedynie z~jej kwadratem.
 
 Praktyczne znaczenie miał dobór kanału komunikacyjnego GASNet. Wariant AMUDP, choć prosty, ulega awarii
 typu \texttt{ECONGESTION} pod~obciążeniem typu \emph{incast} i~przy stratach pakietów, bo nie
-zapewnia kontroli przepływu~\cite{incast}; mpi-conduit oparty na~bibliotece MPICH i~protokole
+zapewnia kontroli przepływu~\cite{incast}, natomiast mpi-conduit oparty na~bibliotece MPICH i~protokole
 TCP przetrwa te warunki dzięki kontroli przepływu i~retransmisji, kosztem nieco niższej
 wydajności. Wyższa warstwa języka również miała znaczenie: globalny widok tablic, gotowy rozkład
 \texttt{StencilDist} z~automatyczną wymianą otoczek oraz zwięzłe iteratory równoległe pozwoliły
@@ -59,10 +59,10 @@ niż~$1000^3$ nie udało się zmieścić w~pamięci i~czasie klastra.
 Zakres pracy świadomie zawężono do~jawnej metody różnic skończonych na~siatce regularnej
 z~arytmetyką podwójnej precyzji. Metody niejawne, które są bezwarunkowo stabilne, lecz wymagają
 rozwiązywania układów równań, siatki niestrukturalne, techniki nakładania komunikacji na~obliczenia
-oraz akceleracja na~procesorach graficznych pozostają poza zakresem, a~każde z~nich mogłoby
+oraz akceleracja na~procesorach graficznych pozostają poza zakresem niniejszej pracy, a~każde z~nich mogłoby
 zmienić charakterystykę obliczeniową problemu. Wreszcie badania dotyczyły wyłącznie skalowania
-silnego, przy ustalonym rozmiarze zadania i~rosnącej liczbie jednostek równoległości;
-skalowanie słabe, gdzie rozmiar zadania rośnie proporcjonalnie do~liczby lokacji,
+silnego, przy ustalonym rozmiarze zadania i~rosnącej liczbie jednostek równoległości.
+Skalowanie słabe, gdzie rozmiar zadania rośnie proporcjonalnie do~liczby lokacji,
 dałoby obraz uzupełniający.
 
 

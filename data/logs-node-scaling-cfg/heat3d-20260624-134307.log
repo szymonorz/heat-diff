@@ -1,0 +1,4 @@
+[cfg] threadsPerLocale(requested)=20 numLocales=1
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+
+[cfg] locale 0 maxTaskPar=16

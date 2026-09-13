@@ -1,0 +1,8 @@
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+[cfg] threadsPerLocale(requested)=20 numLocales=1
+Initialization time: 2.43699 s
+[mem] after init (u+un allocated) locale 0: 15350.7 MB
+[cfg] locale 0 maxTaskPar=16
+[comm] 0 B/step across 1 locale(s)
+step 1  updateFluff=0.000134 s  compute=0.871828 s  save=0.0 s
+  comm[1] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B

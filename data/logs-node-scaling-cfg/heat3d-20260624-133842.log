@@ -1,0 +1,4 @@
+[cfg] threadsPerLocale(requested)=20 numLocales=1
+<command-line arg>:5: error: Unexpected flag:  "-nx"
+
+[cfg] locale 0 maxTaskPar=16

@@ -1,0 +1,28 @@
+[cfg] threadsPerLocale(requested)=2 numLocales=1
+Initialization time: 3.07918 s
+[mem] after init (u+un allocated) locale 0: 15350.7 MB
+[cfg] locale 0 maxTaskPar=2
+[comm] 0 B/step across 1 locale(s)
+step 1  updateFluff=4.1e-05 s  compute=0.996616 s  save=1e-06 s
+  comm[1] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 2  updateFluff=3.9e-05 s  compute=0.993238 s  save=0.0 s
+  comm[2] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 3  updateFluff=3.9e-05 s  compute=0.994853 s  save=0.0 s
+  comm[3] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 4  updateFluff=4.6e-05 s  compute=0.992537 s  save=0.0 s
+  comm[4] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 5  updateFluff=3.7e-05 s  compute=0.995449 s  save=0.0 s
+  comm[5] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 6  updateFluff=4.1e-05 s  compute=0.996322 s  save=0.0 s
+  comm[6] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 7  updateFluff=3.8e-05 s  compute=0.994525 s  save=0.0 s
+  comm[7] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 8  updateFluff=3.2e-05 s  compute=0.994673 s  save=0.0 s
+  comm[8] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 9  updateFluff=3.8e-05 s  compute=0.994543 s  save=0.0 s
+  comm[9] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 10  updateFluff=4.4e-05 s  compute=0.993727 s  save=0.0 s
+  comm[10] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+[mem] after run locale 0: 15350.7 MB
+final field: min=1.0 max=2.0 sum=1.00242e+09
+Execution time:    9.94713 s

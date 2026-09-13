@@ -1,0 +1,21 @@
+[cfg] threadsPerLocale(requested)=20 numLocales=9
+Initialization time: 0.424386 s
+[mem] after init (u+un allocated) locale 0: 2001.43 MB
+[mem] after init (u+un allocated) locale 1: 1996.23 MB
+[mem] after init (u+un allocated) locale 2: 1996.23 MB
+[mem] after init (u+un allocated) locale 3: 1996.23 MB
+[mem] after init (u+un allocated) locale 4: 1990.29 MB
+[mem] after init (u+un allocated) locale 5: 1990.29 MB
+[mem] after init (u+un allocated) locale 6: 1996.23 MB
+[mem] after init (u+un allocated) locale 7: 1990.29 MB
+[mem] after init (u+un allocated) locale 8: 1990.29 MB
+[cfg] locale 0 maxTaskPar=16
+[cfg] locale 1 maxTaskPar=16
+[cfg] locale 2 maxTaskPar=16
+[cfg] locale 3 maxTaskPar=16
+[cfg] locale 4 maxTaskPar=16
+[cfg] locale 5 maxTaskPar=16
+[cfg] locale 6 maxTaskPar=16
+[cfg] locale 7 maxTaskPar=16
+[cfg] locale 8 maxTaskPar=16
+[comm] 64128000 B/step across 9 locale(s)

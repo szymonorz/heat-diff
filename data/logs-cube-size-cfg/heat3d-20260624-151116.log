@@ -1,0 +1,20 @@
+[cfg] threadsPerLocale(requested)=20 numLocales=1
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+uncaught IllegalArgumentError: bad cast from string '{125,' to int(64)
+  <command line setting of 'nx'>:0: thrown here
+  <command line setting of 'nx'>:0: uncaught here
+Stacktrace
+
+_command_line_cast() at $CHPL_HOME/modules/internal/ChapelUtil.chpl:134
+
+Disable full stacktrace by setting 'CHPL_RT_UNWIND=0'
+
+[cfg] locale 0 maxTaskPar=16

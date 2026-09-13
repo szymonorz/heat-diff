@@ -1,0 +1,245 @@
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+[cfg] threadsPerLocale(requested)=20 numLocales=10
+Initialization time: 0.414771 s
+[mem] after init (u+un allocated) locale 0: 1962.51 MB
+[mem] after init (u+un allocated) locale 1: 1962.45 MB
+[mem] after init (u+un allocated) locale 2: 1962.45 MB
+[mem] after init (u+un allocated) locale 3: 1962.45 MB
+[mem] after init (u+un allocated) locale 4: 1962.45 MB
+[mem] after init (u+un allocated) locale 5: 1962.45 MB
+[mem] after init (u+un allocated) locale 6: 1962.45 MB
+[mem] after init (u+un allocated) locale 7: 1962.45 MB
+[mem] after init (u+un allocated) locale 8: 1962.45 MB
+[mem] after init (u+un allocated) locale 9: 1962.45 MB
+[cfg] locale 0 maxTaskPar=16
+[cfg] locale 1 maxTaskPar=16
+[cfg] locale 2 maxTaskPar=16
+[cfg] locale 3 maxTaskPar=16
+[cfg] locale 4 maxTaskPar=16
+[cfg] locale 5 maxTaskPar=16
+[cfg] locale 6 maxTaskPar=16
+[cfg] locale 7 maxTaskPar=16
+[cfg] locale 8 maxTaskPar=16
+[cfg] locale 9 maxTaskPar=16
+[comm] 80128000 B/step across 10 locale(s)
+step 1  updateFluff=0.179997 s  compute=0.181918 s  save=1e-06 s
+  comm[1] put=0 get=559 on=60 amo=0 | data=80128000 B/step  cum=80128000 B
+step 2  updateFluff=0.182533 s  compute=0.182677 s  save=0.0 s
+  comm[2] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=160256000 B
+step 3  updateFluff=0.179039 s  compute=0.182105 s  save=0.0 s
+  comm[3] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=240384000 B
+step 4  updateFluff=0.154196 s  compute=0.183363 s  save=0.0 s
+  comm[4] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=320512000 B
+step 5  updateFluff=0.160275 s  compute=0.181867 s  save=0.0 s
+  comm[5] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=400640000 B
+step 6  updateFluff=0.187341 s  compute=0.184565 s  save=0.0 s
+  comm[6] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=480768000 B
+step 7  updateFluff=0.165436 s  compute=0.181101 s  save=1e-06 s
+  comm[7] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=560896000 B
+step 8  updateFluff=0.168604 s  compute=0.182603 s  save=0.0 s
+  comm[8] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=641024000 B
+step 9  updateFluff=0.175235 s  compute=0.183748 s  save=0.0 s
+  comm[9] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=721152000 B
+step 10  updateFluff=0.186166 s  compute=0.181727 s  save=0.0 s
+  comm[10] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=801280000 B
+step 11  updateFluff=0.176603 s  compute=0.180676 s  save=0.0 s
+  comm[11] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=881408000 B
+step 12  updateFluff=0.176088 s  compute=0.180765 s  save=0.0 s
+  comm[12] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=961536000 B
+step 13  updateFluff=0.174903 s  compute=0.181066 s  save=0.0 s
+  comm[13] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=1041664000 B
+step 14  updateFluff=0.171463 s  compute=0.182302 s  save=0.0 s
+  comm[14] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=1121792000 B
+step 15  updateFluff=0.177364 s  compute=0.183608 s  save=0.0 s
+  comm[15] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=1201920000 B
+step 16  updateFluff=0.170652 s  compute=0.184067 s  save=0.0 s
+  comm[16] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=1282048000 B
+step 17  updateFluff=0.164578 s  compute=0.181879 s  save=0.0 s
+  comm[17] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=1362176000 B
+step 18  updateFluff=0.1719 s  compute=0.182191 s  save=0.0 s
+  comm[18] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=1442304000 B
+step 19  updateFluff=0.172117 s  compute=0.184868 s  save=0.0 s
+  comm[19] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=1522432000 B
+step 20  updateFluff=0.199319 s  compute=0.181564 s  save=0.0 s
+  comm[20] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=1602560000 B
+step 21  updateFluff=0.181977 s  compute=0.179905 s  save=0.0 s
+  comm[21] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=1682688000 B
+step 22  updateFluff=0.209746 s  compute=0.183629 s  save=0.0 s
+  comm[22] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=1762816000 B
+step 23  updateFluff=0.173551 s  compute=0.181713 s  save=0.0 s
+  comm[23] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=1842944000 B
+step 24  updateFluff=0.175775 s  compute=0.184396 s  save=1e-06 s
+  comm[24] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=1923072000 B
+step 25  updateFluff=0.173099 s  compute=0.184576 s  save=0.0 s
+  comm[25] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=2003200000 B
+step 26  updateFluff=0.174856 s  compute=0.184554 s  save=0.0 s
+  comm[26] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=2083328000 B
+step 27  updateFluff=0.161246 s  compute=0.180845 s  save=0.0 s
+  comm[27] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=2163456000 B
+step 28  updateFluff=0.143883 s  compute=0.181527 s  save=0.0 s
+  comm[28] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=2243584000 B
+step 29  updateFluff=0.168545 s  compute=0.182114 s  save=0.0 s
+  comm[29] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=2323712000 B
+step 30  updateFluff=0.39221 s  compute=0.185715 s  save=1e-05 s
+  comm[30] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=2403840000 B
+step 31  updateFluff=0.182256 s  compute=0.179453 s  save=0.0 s
+  comm[31] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=2483968000 B
+step 32  updateFluff=0.164542 s  compute=0.182076 s  save=0.0 s
+  comm[32] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=2564096000 B
+step 33  updateFluff=0.195219 s  compute=0.181363 s  save=0.0 s
+  comm[33] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=2644224000 B
+step 34  updateFluff=0.172619 s  compute=0.182022 s  save=1e-06 s
+  comm[34] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=2724352000 B
+step 35  updateFluff=0.159985 s  compute=0.183813 s  save=1.5e-05 s
+  comm[35] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=2804480000 B
+step 36  updateFluff=0.174608 s  compute=0.182784 s  save=0.0 s
+  comm[36] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=2884608000 B
+step 37  updateFluff=0.175663 s  compute=0.183293 s  save=0.0 s
+  comm[37] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=2964736000 B
+step 38  updateFluff=0.171222 s  compute=0.181438 s  save=0.0 s
+  comm[38] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=3044864000 B
+step 39  updateFluff=0.162941 s  compute=0.181497 s  save=1e-06 s
+  comm[39] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=3124992000 B
+step 40  updateFluff=0.192029 s  compute=0.184925 s  save=0.0 s
+  comm[40] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=3205120000 B
+step 41  updateFluff=0.193073 s  compute=0.183444 s  save=0.0 s
+  comm[41] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=3285248000 B
+step 42  updateFluff=0.16406 s  compute=0.181449 s  save=0.0 s
+  comm[42] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=3365376000 B
+step 43  updateFluff=0.16508 s  compute=0.181521 s  save=1e-06 s
+  comm[43] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=3445504000 B
+step 44  updateFluff=0.168685 s  compute=0.180903 s  save=1e-06 s
+  comm[44] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=3525632000 B
+step 45  updateFluff=0.172342 s  compute=0.181445 s  save=0.0 s
+  comm[45] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=3605760000 B
+step 46  updateFluff=0.298301 s  compute=0.181328 s  save=1e-06 s
+  comm[46] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=3685888000 B
+step 47  updateFluff=0.184969 s  compute=0.184614 s  save=0.0 s
+  comm[47] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=3766016000 B
+step 48  updateFluff=0.188347 s  compute=0.182568 s  save=0.0 s
+  comm[48] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=3846144000 B
+step 49  updateFluff=0.185178 s  compute=0.183406 s  save=0.0 s
+  comm[49] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=3926272000 B
+step 50  updateFluff=0.169669 s  compute=0.182581 s  save=0.0 s
+  comm[50] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=4006400000 B
+step 51  updateFluff=0.200388 s  compute=0.181369 s  save=1e-06 s
+  comm[51] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=4086528000 B
+step 52  updateFluff=0.184875 s  compute=0.182163 s  save=0.0 s
+  comm[52] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=4166656000 B
+step 53  updateFluff=0.168971 s  compute=0.18211 s  save=1e-06 s
+  comm[53] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=4246784000 B
+step 54  updateFluff=0.191385 s  compute=0.181956 s  save=0.0 s
+  comm[54] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=4326912000 B
+step 55  updateFluff=0.189855 s  compute=0.181477 s  save=0.0 s
+  comm[55] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=4407040000 B
+step 56  updateFluff=0.191269 s  compute=0.181713 s  save=0.0 s
+  comm[56] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=4487168000 B
+step 57  updateFluff=0.190707 s  compute=0.185077 s  save=0.0 s
+  comm[57] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=4567296000 B
+step 58  updateFluff=0.175005 s  compute=0.182075 s  save=0.0 s
+  comm[58] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=4647424000 B
+step 59  updateFluff=0.144991 s  compute=0.182921 s  save=0.0 s
+  comm[59] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=4727552000 B
+step 60  updateFluff=0.18825 s  compute=0.182373 s  save=0.0 s
+  comm[60] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=4807680000 B
+step 61  updateFluff=0.181512 s  compute=0.181734 s  save=1e-06 s
+  comm[61] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=4887808000 B
+step 62  updateFluff=0.179341 s  compute=0.181696 s  save=1e-06 s
+  comm[62] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=4967936000 B
+step 63  updateFluff=0.183394 s  compute=0.184464 s  save=0.0 s
+  comm[63] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=5048064000 B
+step 64  updateFluff=0.158896 s  compute=0.181835 s  save=0.0 s
+  comm[64] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=5128192000 B
+step 65  updateFluff=0.159376 s  compute=0.182966 s  save=0.0 s
+  comm[65] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=5208320000 B
+step 66  updateFluff=0.153265 s  compute=0.182528 s  save=0.0 s
+  comm[66] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=5288448000 B
+step 67  updateFluff=0.186963 s  compute=0.18454 s  save=0.0 s
+  comm[67] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=5368576000 B
+step 68  updateFluff=0.180552 s  compute=0.181642 s  save=0.0 s
+  comm[68] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=5448704000 B
+step 69  updateFluff=0.145298 s  compute=0.181783 s  save=0.0 s
+  comm[69] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=5528832000 B
+step 70  updateFluff=0.184397 s  compute=0.185341 s  save=1e-06 s
+  comm[70] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=5608960000 B
+step 71  updateFluff=0.166574 s  compute=0.181773 s  save=0.0 s
+  comm[71] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=5689088000 B
+step 72  updateFluff=0.148219 s  compute=0.181089 s  save=0.0 s
+  comm[72] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=5769216000 B
+step 73  updateFluff=0.178226 s  compute=0.18092 s  save=1e-06 s
+  comm[73] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=5849344000 B
+step 74  updateFluff=0.167299 s  compute=0.181164 s  save=0.0 s
+  comm[74] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=5929472000 B
+step 75  updateFluff=0.17217 s  compute=0.183448 s  save=0.0 s
+  comm[75] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=6009600000 B
+step 76  updateFluff=0.178063 s  compute=0.184347 s  save=0.0 s
+  comm[76] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=6089728000 B
+step 77  updateFluff=0.207612 s  compute=0.179717 s  save=0.0 s
+  comm[77] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=6169856000 B
+step 78  updateFluff=0.378691 s  compute=0.185079 s  save=0.0 s
+  comm[78] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=6249984000 B
+step 79  updateFluff=0.198298 s  compute=0.183925 s  save=0.0 s
+  comm[79] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=6330112000 B
+step 80  updateFluff=0.188574 s  compute=0.183298 s  save=0.0 s
+  comm[80] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=6410240000 B
+step 81  updateFluff=0.170219 s  compute=0.18322 s  save=0.0 s
+  comm[81] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=6490368000 B
+step 82  updateFluff=0.153606 s  compute=0.18414 s  save=1e-06 s
+  comm[82] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=6570496000 B
+step 83  updateFluff=0.169453 s  compute=0.182923 s  save=0.0 s
+  comm[83] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=6650624000 B
+step 84  updateFluff=0.204225 s  compute=0.182142 s  save=0.0 s
+  comm[84] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=6730752000 B
+step 85  updateFluff=0.180712 s  compute=0.181453 s  save=0.0 s
+  comm[85] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=6810880000 B
+step 86  updateFluff=0.190268 s  compute=0.182166 s  save=0.0 s
+  comm[86] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=6891008000 B
+step 87  updateFluff=0.166027 s  compute=0.182005 s  save=0.0 s
+  comm[87] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=6971136000 B
+step 88  updateFluff=0.171037 s  compute=0.182232 s  save=0.0 s
+  comm[88] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=7051264000 B
+step 89  updateFluff=0.184034 s  compute=0.182089 s  save=1e-06 s
+  comm[89] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=7131392000 B
+step 90  updateFluff=0.17721 s  compute=0.18213 s  save=0.0 s
+  comm[90] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=7211520000 B
+step 91  updateFluff=0.172871 s  compute=0.183404 s  save=0.0 s
+  comm[91] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=7291648000 B
+step 92  updateFluff=0.169385 s  compute=0.182817 s  save=0.0 s
+  comm[92] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=7371776000 B
+step 93  updateFluff=0.15981 s  compute=0.182957 s  save=0.0 s
+  comm[93] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=7451904000 B
+step 94  updateFluff=0.172248 s  compute=0.184645 s  save=0.0 s
+  comm[94] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=7532032000 B
+step 95  updateFluff=0.153275 s  compute=0.183227 s  save=0.0 s
+  comm[95] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=7612160000 B
+step 96  updateFluff=0.154117 s  compute=0.182281 s  save=1e-06 s
+  comm[96] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=7692288000 B
+step 97  updateFluff=0.172823 s  compute=0.182242 s  save=0.0 s
+  comm[97] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=7772416000 B
+step 98  updateFluff=0.175342 s  compute=0.184691 s  save=0.0 s
+  comm[98] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=7852544000 B
+step 99  updateFluff=0.179776 s  compute=0.184096 s  save=0.0 s
+  comm[99] put=10 get=559 on=69 amo=0 | data=80128000 B/step  cum=7932672000 B
+step 100  updateFluff=0.175207 s  compute=0.183989 s  save=0.0 s
+  comm[100] put=10 get=555 on=69 amo=0 | data=80128000 B/step  cum=8012800000 B
+[mem] after run locale 0: 1962.51 MB
+[mem] after run locale 1: 1962.45 MB
+[mem] after run locale 2: 1962.45 MB
+[mem] after run locale 3: 1962.45 MB
+[mem] after run locale 4: 1962.45 MB
+[mem] after run locale 5: 1962.45 MB
+[mem] after run locale 6: 1962.45 MB
+[mem] after run locale 7: 1962.45 MB
+[mem] after run locale 8: 1962.45 MB
+[mem] after run locale 9: 1962.45 MB
+final field: min=1.0 max=2.0 sum=1.00518e+09
+Execution time:    36.8654 s

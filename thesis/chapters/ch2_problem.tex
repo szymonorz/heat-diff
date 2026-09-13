@@ -23,18 +23,16 @@ cząstkowe znane jako równanie przewodnictwa ciepła, zwane też równaniem dyf
 gdzie \(\nabla^2\) oznacza operator Laplace'a, natomiast
 \(\alpha>0\) to współczynnik dyfuzyjności cieplnej (ang.\ \emph{thermal
 diffusivity}), wyrażony w~jednostkach \si{\metre\squared\per\second}. Wielkość
-\(\alpha\) łączy przewodność cieplną ośrodka z~jego pojemnością cieplną i~gęstością;
-im większa jej wartość, tym szybciej lokalne różnice temperatury ulegają
-wygładzeniu. W~zaimplementowanym programie przyjęto bezwymiarową wartość
-\(\alpha = \num{0.25}\) jako parametr konfiguracyjny.
+\(\alpha\) łączy przewodność cieplną ośrodka z~jego pojemnością cieplną i~gęstością.
+Im większa jej wartość, tym szybciej lokalne różnice temperatury ulegają
+wygładzeniu.
 
 \subsection{Warunki początkowe i brzegowe}
 
 Rozwiązanie równania~\eqref{eq:heat3d} jest jednoznaczne dopiero po~zadaniu
-warunku początkowego oraz warunków brzegowych. W~zaimplementowanym rozwiązaniu
-warunek początkowy przyjmuje jednorodne pole \(u(\mathbf{x},0)=1\) w~całej
-dziedzinie, w~którym umieszczono nagrzaną warstwę 
-o~grubości \num{2} płaszczyzn siatki (stała konfiguracyjna \texttt{hotThickness}) przylegającą do~ściany
+warunku początkowego oraz warunków brzegowych. Warunek początkowy
+przyjmuje jednorodne pole \(u(\mathbf{x},0)=1\) w~całej
+dziedzinie, w~którym umieszczono nagrzaną warstwę przylegającą do~ściany
 \(y=0\), o~podwyższonej wartości \(u=2\). Warstwa ta modeluje gorącą ścianę,
 od~której ciepło rozchodzi się w~głąb sześcianu.
 
@@ -48,8 +46,8 @@ ciepła. Pozostałe ściany, utrzymywane na~poziomie
 warunków daje pole, które monotonnie ewoluuje i~z~czasem dąży do~stanu ustalonego,
 z~gradientem między gorącą a~zimnymi ścianami. \Cref{fig:diffusion} ilustruje jakościowo charakter tej
 ewolucji na~dwuwymiarowym przykładzie: podtrzymywane źródło ciepła stopniowo
-traci ostre krawędzie, a~ciepło rozchodzi się w~otoczenie. Należy zaznaczyć, że
-dla czytelności wizualnej ilustracja ta posługuje się źródłem ciepła
+traci ostre krawędzie, a~ciepło rozchodzi się w~otoczenie. Dla czytelności wizualnej
+ilustracja ta posługuje się źródłem ciepła
 w~kształcie grzebienia w~przestrzeni dwuwymiarowej, które ukazuje ten sam mechanizm rozchodzenia się ciepła,
 lecz w~układzie innym niż trójwymiarowa gorąca ściana rozważana w~niniejszej pracy.
 
@@ -197,24 +195,6 @@ z~ośmiokrotnym wzrostem liczby węzłów siatki daje to duży
 wzrost całkowitego nakładu obliczeniowego, co jest jedną z~przyczyn, dla~których
 symulacje dużych siatek wymagają obliczeń rozproszonych.
 
-W~zaimplementowanym programie krok czasowy dobierany jest automatycznie
-na~podstawie warunku~\eqref{eq:cfl}, z~zastosowaniem współczynnika bezpieczeństwa
-\num{0.98}:
-\begin{equation}
-  \Delta t = \num{0.98}\cdot\Delta t_{\max}.
-  \label{eq:dt}
-\end{equation}
-Ten \SI{2}{\percent} margines (ang.\ \emph{safety back-off}) przesuwa punkt pracy
-poniżej granicy stabilności, do \(g=\num{-0.96}\) dla~najbardziej niekorzystnego
-modu; wartość ujemna jest dopuszczalna, gdyż warunek stabilności wymaga jedynie
-\(\lvert g\rvert\le 1\), a~ujemne \(g\) oznacza, że dany mod zmienia znak co krok, lecz nie
-rośnie w~amplitudzie. Dzięki temu schemat pozostaje stabilny nawet przy błędach zaokrągleń
-arytmetyki zmiennoprzecinkowej i~drobnych efektach numerycznych, które mogłyby
-zepchnąć krok dokładnie na~granicy w~obszar niestabilności. Wartość bliska
-jedności jest też korzystna wydajnościowo: maksymalizuje postęp w~czasie
-fizycznym na~jeden krok i~zmniejsza liczbę wymian danych między węzłami, o~których
-mowa w~dalszej części rozdziału.
-
 \section{Zrównoleglenie obliczeń stencilowych}
 \label{sec:parallel}
 
@@ -235,9 +215,8 @@ znajdujących się już w~podobszarze sąsiedniego węzła. Rozwiązaniem jest
 otoczenie każdego lokalnego podobszaru dodatkową warstwą komórek brzegowych
 (ang.\ \emph{ghost cells} lub \emph{halo}), które przechowują kopie wartości
 z~krawędzi sąsiednich podobszarów. W~terminologii Chapel warstwa ta nosi nazwę
-\emph{fluff}; w~zaimplementowanym programie zadeklarowano ją o~grubości jednej
-komórki w~każdym kierunku, \texttt{fluff=(1,1,1)}, co odpowiada zasięgowi
-siedmiopunktowego stencila. \Cref{fig:domain} przedstawia schematycznie podział
+\emph{fluff}. Przyjmuje się ją o~grubości jednej komórki w~każdym kierunku, co odpowiada
+zasięgowi siedmiopunktowego stencila. \Cref{fig:domain} przedstawia schematycznie podział
 dziedziny na~podobszary wraz z~warstwami brzegowymi.
 
 \begin{figure}[htbp]
@@ -259,8 +238,8 @@ dziedziny na~podobszary wraz z~warstwami brzegowymi.
     % exchange arrows
     \draw[exch] (1.2,1.3) -- (2.0,1.3);
     \draw[exch] (4.4,1.3) -- (5.2,1.3);
-    \node[lab,codestr] at (1.6,1.7) {updateFluff()};
-    \node[lab,codestr] at (4.8,1.7) {updateFluff()};
+    \node[lab,codestr] at (1.6,1.7) {wymiana halo};
+    \node[lab,codestr] at (4.8,1.7) {wymiana halo};
     % opisy z liniami odniesienia (rozsunięte, aby się nie nakładały)
     \node[lab] (lc0) at (0,-2.5) {podobszar};
     \draw[thin,gray] (lc0.north) -- (0,-1.05);
@@ -275,11 +254,11 @@ dziedziny na~podobszary wraz z~warstwami brzegowymi.
   \end{tikzpicture}
   \caption[Dekompozycja dziedziny z~warstwami brzegowymi]{Dekompozycja dziedziny
   w~postaci plastrów (ang.\ \emph{slab decomposition}) na~trzy jednostki
-  (\emph{locale}). Globalna siatka jest cięta wzdłuż jednej osi, którą wskazuje strzałka na~dole;
-  każdy podobszar, zaznaczony na~niebiesko, otoczony jest warstwą komórek brzegowych
+  (\emph{locale}). Globalna siatka jest cięta wzdłuż jednej osi, którą wskazuje strzałka na~dole.
+  Każdy podobszar, zaznaczony na~niebiesko, otoczony jest warstwą komórek brzegowych
   \emph{fluff}, zaznaczoną na~czerwono linią przerywaną, przechowującą kopie krawędzi
-  sąsiadów. Przed~każdym krokiem obliczeń wywołanie \texttt{updateFluff()}
-  realizuje wymianę brzegów z~najbliższymi sąsiadami.}
+  sąsiadów. Przed~każdym krokiem obliczeń warstwy brzegowe są odświeżane w~ramach
+  wymiany z~najbliższymi sąsiadami.}
   \label{fig:domain}
 \end{figure}
 
@@ -289,22 +268,15 @@ W~każdym kroku czasowym warstwy brzegowe muszą zostać odświeżone, zanim roz
 się faza obliczeń, gdyż przechowywane w~nich wartości pochodzą z~poprzedniego
 kroku sąsiedniego węzła. Ta wymiana danych z~najbliższymi sąsiadami
 (ang.\ \emph{nearest-neighbour} lub \emph{halo exchange}) jest jedynym rodzajem
-komunikacji między węzłami wymaganym przez schemat jawny. W~zaimplementowanym
-programie realizuje ją pojedyncze wywołanie metody \texttt{updateFluff()} modułu
-rozkładów Chapel, wykonywane na~początku każdego kroku, przed~pętlą aktualizującą
-wnętrze dziedziny. Na~więcej niż jednym lokalu wymiana ta jest obowiązkowa
+komunikacji między węzłami wymaganym przez schemat jawny. W~każdym kroku odbywa się ona
+na~początku kroku, przed~pętlą aktualizującą wnętrze dziedziny. Na~więcej niż jednym lokalu wymiana ta jest obowiązkowa
 dla~poprawności: jej pominięcie sprawia, że~komórki otoczki zachowują wartości
 z~poprzedniego kroku, przez co obliczenie przebiega szybciej, lecz daje wynik
 cicho błędny.
 
 Prowadzi to do~wyraźnego rozdziału każdego kroku czasowego na~dwie fazy:
 fazę komunikacji, czyli odświeżenie warstw brzegowych, oraz fazę obliczeń, czyli wykonanie
-formuły~\eqref{eq:update} dla~wszystkich komórek wnętrza. W~programie fazy te są
-oddzielnie mierzone stoperami \texttt{fluffTimer} i~\texttt{computeTimer}, co
-pozwala rozdzielić czas spędzony na~komunikacji od~czasu obliczeń. Struktura
-pojedynczego kroku jest zwięźle widoczna w~procedurze \texttt{stepOnce}
-(\cref{lst:steponce}): najpierw synchronizacja brzegów, potem
-równoległa aktualizacja wnętrza.
+formuły~\eqref{eq:update} dla~wszystkich komórek wnętrza.
 
 \subsection{Intensywność arytmetyczna i ograniczenia wydajności}
 
@@ -314,8 +286,9 @@ wykonanych operacji zmiennoprzecinkowych do~liczby bajtów przeniesionych z~pami
 Aktualizacja jednego węzła według~\eqref{eq:update}
 wymaga zaledwie kilkunastu operacji zmiennoprzecinkowych, sześciu odejmowań, trzech
 mnożeń przez wagi i~kilku dodawań, a~jednocześnie odczytu siedmiu wartości
-i~zapisu jednej, przy \SI{8}{\byte} na~liczbę w~podwójnej precyzji daje to
-zaledwie ułamek operacji na~każdy przeniesiony bajt. Co więcej, sąsiednie węzły
+i~zapisu jednej. Ponieważ liczba zmiennoprzecinkowa podwójnej precyzji zajmuje
+\num{8}~bajtów, na~każdy przeniesiony
+bajt przypada zaledwie ułamek operacji. Sąsiednie węzły
 współdzielą większość odczytów, lecz nawet przy idealnym wykorzystaniu pamięci
 podręcznej stosunek ten pozostaje niski.
 
@@ -341,7 +314,7 @@ czyli jak \(N^2\). Stosunek nakładu obliczeń do~nakładu komunikacji jest zate
 rzędu \(N^3/N^2 = N\) i~rośnie liniowo z~rozmiarem krawędzi siatki. Większe
 sześciany mają zatem korzystniejszy stosunek obliczeń do~komunikacji, bo
 koszt komunikacji zostaje zamortyzowany większą liczbą obliczeń przypadających
-na~każdy przesłany bajt. Wynik ten sprawdzono empirycznie w~rozdziale z~wynikami.
+na~każdy przesłany bajt.
 
 \subsection{Miary skalowalności}
 
@@ -359,19 +332,19 @@ przyspieszenie znormalizowane liczbą jednostek:
   E(p) = \frac{S(p)}{p} = \frac{T(1)}{p\,T(p)}.
   \label{eq:efficiency}
 \end{equation}
-Idealne, liniowe przyspieszenie odpowiada \(S(p)=p\) oraz \(E(p)=1\); w~praktyce
+Idealne, liniowe przyspieszenie odpowiada \(S(p)=p\) oraz \(E(p)=1\), a~w~praktyce
 narzuty komunikacji, synchronizacji i~nierównomiernego obciążenia sprawiają,
-że \(E(p)<1\), przy czym efektywność zwykle maleje ze~wzrostem \(p\).
+że \(E(p)<1\). Efektywność zwykle maleje ze~wzrostem \(p\).
 
 Wyróżnia się dwa rodzaje skalowania. \emph{Skalowanie silne}
 (ang.\ \emph{strong scaling}) polega na~ustaleniu całkowitego rozmiaru problemu
-i~zwiększaniu liczby jednostek obliczeniowych; celem jest skrócenie czasu
+i~zwiększaniu liczby jednostek obliczeniowych. Celem jest skrócenie czasu
 rozwiązania. Przy tym skalowaniu udział pracy przypadającej na~jednostkę maleje,
 przez co narzuty komunikacyjne stają się względnie coraz istotniejsze.
 \emph{Skalowanie słabe}
 (ang.\ \emph{weak scaling}) polega na~ustaleniu rozmiaru problemu przypadającego
 na~jedną jednostkę i~proporcjonalnym zwiększaniu zarówno liczby jednostek, jak
-i~całkowitego rozmiaru problemu; celem jest rozwiązywanie coraz większych
+i~całkowitego rozmiaru problemu. Celem jest rozwiązywanie coraz większych
 zadań w~stałym czasie.
 
 Fundamentalne ograniczenie skalowania silnego formułuje \emph{prawo Amdahla}~\cite{amdahl}.
@@ -384,10 +357,10 @@ wynosi
   \label{eq:amdahl}
 \end{equation}
 Nawet niewielki udział części sekwencyjnej narzuca twardą górną granicę
-przyspieszenia, niezależnie od~liczby dostępnych jednostek. W~kontekście
-rozważanego programu rolę nieusuwalnego narzutu pełni głównie komunikacja, wymiana warstw brzegowych oraz synchronizacja między krokami,
+przyspieszenia, niezależnie od~liczby dostępnych jednostek. W~obliczeniach
+stencilowych rolę nieusuwalnego narzutu pełni głównie komunikacja, wymiana warstw brzegowych oraz synchronizacja między krokami,
 co, w~połączeniu z~ograniczeniem przepustowością pamięci i~sieci omówionym
-wcześniej, wyznacza granice skalowalności, które badano w~rozdziale z~wynikami.
+wcześniej, wyznacza granice skalowalności.
 
 \section{Chapel, PGAS i GASNet}
 \label{sec:chapel}
@@ -397,8 +370,7 @@ wcześniej, wyznacza granice skalowalności, które badano w~rozdziale z~wynikam
 Implementację programu oparto na~języku Chapel, języku programowania
 równoległego rozwijanym z~naciskiem na~wygodę programisty przy zachowaniu
 wysokiej wydajności na~systemach wieloprocesorowych i~rozproszonych~\cite{chapel-overview,chapel-book}. Chapel
-realizuje model \emph{PGAS} (ang.\ \emph{Partitioned Global Address Space},
-partycjonowana globalna przestrzeń adresowa)~\cite{pgas,upc}. Idea PGAS polega na~tym, że pamięć
+realizuje model \emph{PGAS}~\cite{pgas,upc}. Idea PGAS polega na~tym, że pamięć
 wszystkich węzłów tworzy jedną logicznie wspólną przestrzeń adresową, która
 jest jednak podzielona na~partycje o~jawnie określonym powinowactwie do~węzłów.
 Programista operuje na~danych za~pomocą jednolitej, globalnej perspektywy
@@ -408,11 +380,11 @@ komunikacji sieciowej. W~ten sposób PGAS łączy wygodę programowania w~pamię
 wspólnej, typową dla modelu pamięci współdzielonej, z~kontrolą rozmieszczenia
 danych, którą daje model przekazywania komunikatów.
 
-Chapel nie jest jedynym językiem tej grupy. Poza nim model PGAS realizują m.in.
+Chapel nie jest jedynym językiem tej grupy. Poza nim model PGAS realizują między innymi
 UPC (ang.\ \emph{Unified Parallel C}), rozszerzenie języka C~o~globalne wskaźniki, Co-Array Fortran
 z~notacją współobrazów (ang.~\emph{co-arrays}), który wszedł do~standardu Fortran~2008, a~także języki projektowane
 od~podstaw dla~PGAS: X10 (IBM) i~Fortress (Sun Microsystems). Rozwiązania te różnią się głównie
-składnią, modelem zadań i~sposobem wyrażania lokalności; wspólne jest im oddanie programiście
+składnią, modelem zadań i~sposobem wyrażania lokalności, natomiast wspólne jest im oddanie programiście
 globalnego widoku danych przy jawnym oznaczaniu powinowactwa do~węzłów~\cite{pgas,upc}.
 
 Centralnym pojęciem w~Chapel jest \emph{locale}, abstrakcja jednostki
@@ -450,9 +422,9 @@ coforall loc in Locales do on loc {
 }
 \end{lstlisting}
 
-Tablice w~Chapel definiowane są nad~\emph{dziedzinami} (ang.\ \emph{domain}), obiektami opisującymi zbiór indeksów. Aby tablica została rozproszona pomiędzy
-węzły, jej dziedzinę wyposaża się w~\emph{odwzorowanie dziedziny}
-(ang.\ \emph{domain map}, dystrybucję). Najprostszą dystrybucją jest \texttt{Block},
+  Tablice w~Chapel definiowane są nad~\emph{dziedzinami} (ang.\ \emph{domains}), obiektami opisującymi zbiór indeksów. Aby tablica została rozproszona pomiędzy
+  węzły, jej dziedzinę wyposaża się w~\emph{odwzorowanie dziedziny}
+  (ang.\ \emph{domain map}) lub inaczej \emph{dystrybucję}. Najprostszą dystrybucją jest \texttt{Block},
 dzieląca zakres indeksów na~w~przybliżeniu równe, przylegające bloki i~przypisująca
 je kolejnym węzłom. Na~potrzeby obliczeń stencilowych Chapel udostępnia
 wyspecjalizowaną dystrybucję \texttt{Stencil} z~modułu \texttt{StencilDist}, która
@@ -484,7 +456,7 @@ cobegin {
 // oba zadania kończą się zanim sterowanie przejdzie dalej
 \end{lstlisting}
 
-Konstrukcja \texttt{on} przenosi wykonanie instrukcji na~wskazany locale; wewnątrz
+Konstrukcja \texttt{on} przenosi wykonanie instrukcji na~wskazany locale. Wewnątrz
 bloku słowo kluczowe \texttt{here} oznacza bieżący locale, co pozwala odczytać jego
 właściwości bez jawnego odwoływania się do~elementów tablicy \texttt{Locales}.
 \Cref{lst:on-here} pokazuje ten idiom.
@@ -533,10 +505,10 @@ Wykonywanie zadań w~obrębie pojedynczego locale obsługuje scheduler
 zadań. W~zastosowanej konfiguracji jest to biblioteka \emph{qthreads}
 (\texttt{CHPL\_TASKS=qthreads}), lekki system wątków użytkownika efektywnie
 obsługujący dużą liczbę drobnoziarnistych (ang.~\emph{fine-grained}) zadań generowanych przez pętle
-\texttt{forall}~\cite{qthreads}. Liczbę wątków sprzętowych dostępnych na~danym węźle udostępnia
-własność \texttt{here.maxTaskPar}; wyznacza ona stopień równoległości fazy
-obliczeń w~obrębie węzła; jest to liczba wątków obliczeniowych na~lokal, a~nie liczba lokali,
-i~jest raportowana przez program przy starcie.
+\texttt{forall}~\cite{qthreads}. Maksymalną liczbę wątków, jakie warstwa zadań może
+uruchomić równolegle na~danym węźle, udostępnia własność \texttt{here.maxTaskPar}. Wyznacza ona
+stopień równoległości fazy obliczeń w~obrębie węzła. Jest to liczba wątków obliczeniowych na~lokal,
+a~nie liczba lokali, i~jest raportowana przez program przy starcie.
 
 Za~komunikację między węzłami odpowiada z~kolei warstwa \emph{GASNet}, przenośna biblioteka uruchomieniowa dostarczająca podstawowych operacji komunikacji
 jednostronnej (ang.\ \emph{one-sided}) oraz komunikatów aktywnych, na~których
@@ -566,10 +538,10 @@ sieciowy, przedstawia \cref{fig:layers}.
     \draw[{Latex[length=2mm]}-{Latex[length=2mm]},thick] (cond) -- (net);
   \end{tikzpicture}
   \caption[Warstwy stosu Chapel/PGAS/GASNet]{Warstwowa architektura wykonania.
-  Kod aplikacji operuje na~globalnych tablicach PGAS języka Chapel; ich dostępy
+  Kod aplikacji operuje na~globalnych tablicach PGAS języka Chapel. Ich dostępy
   zdalne i~wymiana warstw brzegowych są realizowane przez warstwę uruchomieniową,
   w~której zadania \texttt{qthreads} wykonują się lokalnie, a~komunikacja \texttt{GASNet}
-  zachodzi między~węzłami; warstwa ta korzysta z~kolei z~wybranego kanału komunikacyjnego
+  zachodzi między~węzłami. Warstwa ta korzysta z~kolei z~wybranego kanału komunikacyjnego
   odwzorowującego operacje na~fizyczną sieć klastra.}
   \label{fig:layers}
 \end{figure}
@@ -583,10 +555,10 @@ kanały komunikacyjne dostępne na~klastrze zbudowanym z~węzłów połączonych
 Ethernet. Kanał \texttt{udp}, oparty na~warstwie AMUDP (ang.~\emph{Active Messages over UDP}),
 realizuje komunikację po~protokole UDP i~jest uruchamiany za~pomocą programu
 rozruchowego \texttt{amudprun}. Jego zaletą jest prosta konfiguracja, a~wadą
-podatność na~przeciążenie przy intensywnej, drobnoziarnistej (ang.~\emph{fine-grained}) wymianie danych.
+podatność na~przeciążenie przy intensywnej, drobnoziarnistej wymianie danych.
 Kanał \texttt{mpi} przenosi komunikację GASNet na~istniejącą implementację
 MPI, w~zastosowanej konfiguracji opartej na~MPICH nad~TCP, i~jest uruchamiany
-programem \texttt{gasnetrun\_mpi}; zapewnia on stabilniejszy i~wydajniejszy
+programem \texttt{gasnetrun\_mpi}. Zapewnia on stabilniejszy i~wydajniejszy
 transport dla~podtrzymywanych, regularnych wzorców komunikacji, jakie generuje
 cykliczna wymiana warstw brzegowych w~opisywanym programie.
 

@@ -1,0 +1,43 @@
+[cfg] threadsPerLocale(requested)=20 numLocales=9
+Initialization time: 4.14611 s
+[mem] after init (u+un allocated) locale 0: 14771.4 MB
+[mem] after init (u+un allocated) locale 1: 14771.4 MB
+[mem] after init (u+un allocated) locale 2: 14750.9 MB
+[mem] after init (u+un allocated) locale 3: 14771.4 MB
+[mem] after init (u+un allocated) locale 4: 14771.4 MB
+[mem] after init (u+un allocated) locale 5: 14750.9 MB
+[mem] after init (u+un allocated) locale 6: 14750.9 MB
+[mem] after init (u+un allocated) locale 7: 14750.9 MB
+[mem] after init (u+un allocated) locale 8: 14728.9 MB
+[cfg] locale 0 maxTaskPar=16
+[cfg] locale 1 maxTaskPar=16
+[cfg] locale 2 maxTaskPar=16
+[cfg] locale 3 maxTaskPar=16
+[cfg] locale 4 maxTaskPar=16
+[cfg] locale 5 maxTaskPar=16
+[cfg] locale 6 maxTaskPar=16
+[cfg] locale 7 maxTaskPar=16
+[cfg] locale 8 maxTaskPar=16
+[comm] 256256000 B/step across 9 locale(s)
+step 1  updateFluff=0.71941 s  compute=1.6134 s  save=0.0 s
+  comm[1] put=0 get=529 on=56 amo=0 | data=256256000 B/step  cum=256256000 B
+step 2  updateFluff=0.698688 s  compute=1.59872 s  save=0.0 s
+  comm[2] put=9 get=525 on=64 amo=0 | data=256256000 B/step  cum=512512000 B
+step 3  updateFluff=0.688945 s  compute=1.61262 s  save=0.0 s
+  comm[3] put=9 get=529 on=64 amo=0 | data=256256000 B/step  cum=768768000 B
+step 4  updateFluff=0.694193 s  compute=1.59862 s  save=0.0 s
+  comm[4] put=9 get=525 on=64 amo=0 | data=256256000 B/step  cum=1025024000 B
+step 5  updateFluff=0.702738 s  compute=1.61268 s  save=1e-06 s
+  comm[5] put=9 get=529 on=64 amo=0 | data=256256000 B/step  cum=1281280000 B
+step 6  updateFluff=0.693888 s  compute=1.5984 s  save=0.0 s
+  comm[6] put=9 get=525 on=64 amo=0 | data=256256000 B/step  cum=1537536000 B
+step 7  updateFluff=0.696097 s  compute=1.61251 s  save=1e-06 s
+  comm[7] put=9 get=529 on=64 amo=0 | data=256256000 B/step  cum=1793792000 B
+step 8  updateFluff=0.695238 s  compute=1.59884 s  save=0.0 s
+  comm[8] put=9 get=525 on=64 amo=0 | data=256256000 B/step  cum=2050048000 B
+step 9  updateFluff=0.699956 s  compute=1.61261 s  save=0.0 s
+  comm[9] put=9 get=529 on=64 amo=0 | data=256256000 B/step  cum=2306304000 B
+step 10  updateFluff=0.691064 s  compute=1.59888 s  save=0.0 s
+  comm[10] put=9 get=525 on=64 amo=0 | data=256256000 B/step  cum=2562560000 B
+step 11  updateFluff=0.688535 s  compute=1.61231 s  save=0.0 s
+  comm[11] put=9 get=529 on=64 amo=0 | data=256256000 B/step  cum=2818816000 B

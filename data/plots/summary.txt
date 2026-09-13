@@ -1,0 +1,71 @@
+heat3d performance summary
+============================================================
+
+Threads @ 9 nodes (logs-cpu) — 5 time-ordered batches -> 1,2,4,8,16 threads:
+   1t: n=10  time 153318-153841  mean compute/step=0.1422s
+   2t: n=8   time 153916-154334  mean compute/step=0.1481s
+   4t: n=10  time 154542-155048  mean compute/step=0.1600s
+   8t: n=10  time 155122-155644  mean compute/step=0.1775s
+  16t: n=10  time 155720-160300  mean compute/step=0.1982s
+Node scaling (logs-node-scaling) — grouped by explicit locale count:
+   1 node(s): n=12
+   2 node(s): n=10
+   3 node(s): n=10
+   4 node(s): n=10
+   5 node(s): n=11
+   6 node(s): n=11
+   7 node(s): n=11
+   8 node(s): n=11
+   9 node(s): n=12
+Cube size @ 9 nodes (logs-cube-size) — grouped by N=round(cbrt(sum)):
+  125^3: n=10
+  250^3: n=10
+  500^3: n=10
+  1000^3: n=10
+Single-node threads (logs-test) — 5 time-ordered batches -> 1,2,4,8,16 threads:
+   1t: n=10  time 161126-161354  mean compute/step=0.9814s
+   2t: n=10  time 161411-161627  mean compute/step=1.0103s
+   4t: n=10  time 161642-161832  mean compute/step=0.8361s
+   8t: n=10  time 161845-162030  mean compute/step=0.8092s
+  16t: n=10  time 162042-162232  mean compute/step=0.8740s
+
+
+Thread scaling @ 9 nodes (1000³, 100 steps)
+-------------------------------------------
+  config  runs   median    mean      min     std    speedup  compute
+    1t  n=10  med= 34.003s  mean= 34.245s  min= 33.805s  std=0.740  speedup=1.000  compute/step=0.1422s
+    2t  n=10  med= 35.217s  mean= 35.252s  min= 33.715s  std=1.184  speedup=0.966  compute/step=0.1481s
+    4t  n=10  med= 32.563s  mean= 32.850s  min= 32.090s  std=1.086  speedup=1.044  compute/step=0.1600s
+    8t  n=10  med= 34.694s  mean= 34.616s  min= 34.215s  std=0.245  speedup=0.980  compute/step=0.1775s
+   16t  n=10  med= 36.623s  mean= 36.633s  min= 36.208s  std=0.195  speedup=0.928  compute/step=0.1982s
+
+Node scaling (1000³)
+--------------------
+  config  runs   median    mean      min     std    speedup  eff    bytes/step
+    1N  n=10  med= 87.344s  mean= 87.307s  min= 87.104s  std=0.092  speedup=1.000  eff=1.000  bytes/step=0
+    2N  n=10  med= 51.943s  mean= 51.957s  min= 51.858s  std=0.107  speedup=1.682  eff=0.841  bytes/step=16000000
+    3N  n=10  med= 52.978s  mean= 53.413s  min= 52.862s  std=1.316  speedup=1.649  eff=0.550  bytes/step=32000000
+    4N  n=10  med= 36.670s  mean= 36.889s  min= 36.203s  std=0.894  speedup=2.382  eff=0.595  bytes/step=32032000
+    5N  n=10  med= 41.476s  mean= 41.482s  min= 41.347s  std=0.093  speedup=2.106  eff=0.421  bytes/step=64000000
+    6N  n=10  med= 32.240s  mean= 32.243s  min= 32.076s  std=0.115  speedup=2.709  eff=0.452  bytes/step=48064000
+    7N  n=10  med= 37.114s  mean= 37.112s  min= 36.909s  std=0.156  speedup=2.353  eff=0.336  bytes/step=96000000
+    8N  n=10  med= 42.941s  mean= 42.909s  min= 42.419s  std=0.198  speedup=2.034  eff=0.254  bytes/step=48096064
+    9N  n=10  med= 36.832s  mean= 36.817s  min= 36.469s  std=0.157  speedup=2.371  eff=0.263  bytes/step=64128000
+
+Cube-size scaling (9 nodes)
+---------------------------
+  config   runs    median      mean      throughput        comm
+   125^3  n=10  med=   1.668s  mean=   1.670s  throughput= 0.117 mld komórek/s  comm_frac=0.963
+   250^3  n=10  med=   2.640s  mean=   2.652s  throughput= 0.592 mld komórek/s  comm_frac=0.947
+   500^3  n=10  med=   7.625s  mean=   7.673s  throughput= 1.639 mld komórek/s  comm_frac=0.729
+  1000^3  n=10  med=  36.741s  mean=  36.802s  throughput= 2.722 mld komórek/s  comm_frac=0.454
+
+Single-node thread scaling (1000³, 10 steps)
+--------------------------------------------
+  config  runs   median    mean      min     std    speedup  compute
+    1t  n=10  med=  9.812s  mean=  9.814s  min=  9.803s  std=0.008  speedup=1.000  compute/step=0.9814s
+    2t  n=10  med=  9.948s  mean= 10.104s  min=  9.941s  std=0.240  speedup=0.986  compute/step=1.0103s
+    4t  n=10  med=  8.362s  mean=  8.362s  min=  8.356s  std=0.003  speedup=1.173  compute/step=0.8361s
+    8t  n=10  med=  8.094s  mean=  8.095s  min=  8.087s  std=0.004  speedup=1.212  compute/step=0.8092s
+   16t  n=10  med=  8.739s  mean=  8.741s  min=  8.731s  std=0.008  speedup=1.123  compute/step=0.8740s
+

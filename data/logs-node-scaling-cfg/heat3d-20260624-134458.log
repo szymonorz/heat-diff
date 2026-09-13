@@ -1,0 +1,209 @@
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+[cfg] threadsPerLocale(requested)=20 numLocales=1
+Initialization time: 2.44556 s
+[mem] after init (u+un allocated) locale 0: 15350.7 MB
+[cfg] locale 0 maxTaskPar=16
+[comm] 0 B/step across 1 locale(s)
+step 1  updateFluff=0.000145 s  compute=0.870371 s  save=0.0 s
+  comm[1] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 2  updateFluff=9.1e-05 s  compute=0.868293 s  save=0.0 s
+  comm[2] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 3  updateFluff=6.8e-05 s  compute=0.870118 s  save=1e-06 s
+  comm[3] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 4  updateFluff=6.5e-05 s  compute=0.872561 s  save=0.0 s
+  comm[4] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 5  updateFluff=6.6e-05 s  compute=0.871986 s  save=0.0 s
+  comm[5] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 6  updateFluff=5.9e-05 s  compute=0.871586 s  save=1e-06 s
+  comm[6] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 7  updateFluff=6.4e-05 s  compute=0.87278 s  save=0.0 s
+  comm[7] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 8  updateFluff=6.4e-05 s  compute=0.872572 s  save=0.0 s
+  comm[8] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 9  updateFluff=6.3e-05 s  compute=0.872866 s  save=1e-06 s
+  comm[9] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 10  updateFluff=6.1e-05 s  compute=0.872427 s  save=0.0 s
+  comm[10] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 11  updateFluff=0.000172 s  compute=0.871873 s  save=0.0 s
+  comm[11] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 12  updateFluff=6.6e-05 s  compute=0.871638 s  save=0.0 s
+  comm[12] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 13  updateFluff=6.2e-05 s  compute=0.871941 s  save=0.0 s
+  comm[13] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 14  updateFluff=6.5e-05 s  compute=0.871793 s  save=0.0 s
+  comm[14] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 15  updateFluff=6.5e-05 s  compute=0.872116 s  save=1e-06 s
+  comm[15] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 16  updateFluff=6.4e-05 s  compute=0.872236 s  save=0.0 s
+  comm[16] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 17  updateFluff=6.1e-05 s  compute=0.87248 s  save=0.0 s
+  comm[17] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 18  updateFluff=9.2e-05 s  compute=0.872973 s  save=0.0 s
+  comm[18] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 19  updateFluff=6e-05 s  compute=0.87186 s  save=0.0 s
+  comm[19] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 20  updateFluff=5.6e-05 s  compute=0.872438 s  save=1e-06 s
+  comm[20] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 21  updateFluff=5.4e-05 s  compute=0.872754 s  save=0.0 s
+  comm[21] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 22  updateFluff=6.4e-05 s  compute=0.873705 s  save=0.0 s
+  comm[22] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 23  updateFluff=6e-05 s  compute=0.872994 s  save=1e-06 s
+  comm[23] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 24  updateFluff=5.8e-05 s  compute=0.872104 s  save=0.0 s
+  comm[24] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 25  updateFluff=8.5e-05 s  compute=0.870594 s  save=0.0 s
+  comm[25] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 26  updateFluff=6.2e-05 s  compute=0.870117 s  save=1e-06 s
+  comm[26] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 27  updateFluff=5.7e-05 s  compute=0.870655 s  save=1e-06 s
+  comm[27] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 28  updateFluff=5.7e-05 s  compute=0.871227 s  save=0.0 s
+  comm[28] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 29  updateFluff=6.2e-05 s  compute=0.871521 s  save=0.0 s
+  comm[29] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 30  updateFluff=6.3e-05 s  compute=0.87192 s  save=0.0 s
+  comm[30] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 31  updateFluff=6.6e-05 s  compute=0.871627 s  save=0.0 s
+  comm[31] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 32  updateFluff=6.2e-05 s  compute=0.871368 s  save=0.0 s
+  comm[32] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 33  updateFluff=6.7e-05 s  compute=0.870582 s  save=0.0 s
+  comm[33] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 34  updateFluff=6.7e-05 s  compute=0.870678 s  save=0.0 s
+  comm[34] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 35  updateFluff=7e-05 s  compute=0.870731 s  save=0.0 s
+  comm[35] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 36  updateFluff=6.7e-05 s  compute=0.870163 s  save=0.0 s
+  comm[36] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 37  updateFluff=6e-05 s  compute=0.869919 s  save=0.0 s
+  comm[37] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 38  updateFluff=5.4e-05 s  compute=0.870827 s  save=0.0 s
+  comm[38] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 39  updateFluff=6.3e-05 s  compute=0.870809 s  save=0.0 s
+  comm[39] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 40  updateFluff=5.5e-05 s  compute=0.870802 s  save=0.0 s
+  comm[40] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 41  updateFluff=6.5e-05 s  compute=0.871249 s  save=0.0 s
+  comm[41] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 42  updateFluff=5.9e-05 s  compute=0.871141 s  save=0.0 s
+  comm[42] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 43  updateFluff=7e-05 s  compute=0.87284 s  save=0.0 s
+  comm[43] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 44  updateFluff=6.4e-05 s  compute=0.873014 s  save=1e-06 s
+  comm[44] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 45  updateFluff=6.7e-05 s  compute=0.874251 s  save=0.0 s
+  comm[45] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 46  updateFluff=6.1e-05 s  compute=0.872703 s  save=1e-06 s
+  comm[46] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 47  updateFluff=6.5e-05 s  compute=0.872747 s  save=0.0 s
+  comm[47] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 48  updateFluff=6e-05 s  compute=0.873345 s  save=0.0 s
+  comm[48] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 49  updateFluff=5.9e-05 s  compute=0.87137 s  save=0.0 s
+  comm[49] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 50  updateFluff=6.6e-05 s  compute=0.87082 s  save=0.0 s
+  comm[50] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 51  updateFluff=4.9e-05 s  compute=0.870848 s  save=0.0 s
+  comm[51] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 52  updateFluff=5.7e-05 s  compute=0.872398 s  save=0.0 s
+  comm[52] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 53  updateFluff=6.2e-05 s  compute=0.872275 s  save=1e-06 s
+  comm[53] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 54  updateFluff=5.5e-05 s  compute=0.87193 s  save=0.0 s
+  comm[54] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 55  updateFluff=5.1e-05 s  compute=0.871865 s  save=0.0 s
+  comm[55] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 56  updateFluff=5e-05 s  compute=0.871178 s  save=1e-06 s
+  comm[56] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 57  updateFluff=7e-05 s  compute=0.872295 s  save=0.0 s
+  comm[57] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 58  updateFluff=5.6e-05 s  compute=0.872883 s  save=0.0 s
+  comm[58] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 59  updateFluff=6.3e-05 s  compute=0.873738 s  save=1e-06 s
+  comm[59] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 60  updateFluff=6.1e-05 s  compute=0.872142 s  save=0.0 s
+  comm[60] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 61  updateFluff=6.1e-05 s  compute=0.871395 s  save=0.0 s
+  comm[61] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 62  updateFluff=5.9e-05 s  compute=0.871962 s  save=0.0 s
+  comm[62] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 63  updateFluff=8.2e-05 s  compute=0.872618 s  save=0.0 s
+  comm[63] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 64  updateFluff=6.7e-05 s  compute=0.870823 s  save=0.0 s
+  comm[64] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 65  updateFluff=6.2e-05 s  compute=0.86959 s  save=0.0 s
+  comm[65] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 66  updateFluff=7.1e-05 s  compute=0.870479 s  save=0.0 s
+  comm[66] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 67  updateFluff=6.4e-05 s  compute=0.86973 s  save=0.0 s
+  comm[67] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 68  updateFluff=5.9e-05 s  compute=0.871588 s  save=0.0 s
+  comm[68] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 69  updateFluff=6.7e-05 s  compute=0.872329 s  save=0.0 s
+  comm[69] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 70  updateFluff=6.4e-05 s  compute=0.871313 s  save=0.0 s
+  comm[70] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 71  updateFluff=6e-05 s  compute=0.871191 s  save=0.0 s
+  comm[71] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 72  updateFluff=6.4e-05 s  compute=0.871476 s  save=0.0 s
+  comm[72] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 73  updateFluff=8.9e-05 s  compute=0.87138 s  save=0.0 s
+  comm[73] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 74  updateFluff=6.3e-05 s  compute=0.86969 s  save=0.0 s
+  comm[74] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 75  updateFluff=6.8e-05 s  compute=0.871127 s  save=0.0 s
+  comm[75] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 76  updateFluff=6.8e-05 s  compute=0.870838 s  save=1e-06 s
+  comm[76] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 77  updateFluff=5.6e-05 s  compute=0.872015 s  save=0.0 s
+  comm[77] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 78  updateFluff=6.1e-05 s  compute=0.87279 s  save=0.0 s
+  comm[78] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 79  updateFluff=7.2e-05 s  compute=0.872216 s  save=0.0 s
+  comm[79] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 80  updateFluff=6.7e-05 s  compute=0.872603 s  save=0.0 s
+  comm[80] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 81  updateFluff=6.2e-05 s  compute=0.872422 s  save=0.0 s
+  comm[81] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 82  updateFluff=7.2e-05 s  compute=0.873804 s  save=0.0 s
+  comm[82] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 83  updateFluff=5.9e-05 s  compute=0.87296 s  save=0.0 s
+  comm[83] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 84  updateFluff=6.5e-05 s  compute=0.873413 s  save=0.0 s
+  comm[84] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 85  updateFluff=6.1e-05 s  compute=0.872522 s  save=1e-06 s
+  comm[85] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 86  updateFluff=5.4e-05 s  compute=0.873159 s  save=0.0 s
+  comm[86] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 87  updateFluff=5.9e-05 s  compute=0.873384 s  save=1e-06 s
+  comm[87] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 88  updateFluff=5.6e-05 s  compute=0.872208 s  save=0.0 s
+  comm[88] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 89  updateFluff=6.1e-05 s  compute=0.871826 s  save=0.0 s
+  comm[89] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 90  updateFluff=6.5e-05 s  compute=0.870977 s  save=0.0 s
+  comm[90] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 91  updateFluff=5.7e-05 s  compute=0.870945 s  save=0.0 s
+  comm[91] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 92  updateFluff=6e-05 s  compute=0.868999 s  save=0.0 s
+  comm[92] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 93  updateFluff=8.7e-05 s  compute=0.86719 s  save=0.0 s
+  comm[93] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 94  updateFluff=4.8e-05 s  compute=0.870911 s  save=0.0 s
+  comm[94] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 95  updateFluff=6.4e-05 s  compute=0.870733 s  save=0.0 s
+  comm[95] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 96  updateFluff=6.1e-05 s  compute=0.871032 s  save=0.0 s
+  comm[96] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 97  updateFluff=5.3e-05 s  compute=0.872137 s  save=0.0 s
+  comm[97] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 98  updateFluff=5.5e-05 s  compute=0.871933 s  save=0.0 s
+  comm[98] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 99  updateFluff=6.6e-05 s  compute=0.872047 s  save=0.0 s
+  comm[99] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+step 100  updateFluff=5e-05 s  compute=0.871981 s  save=0.0 s
+  comm[100] put=0 get=0 on=0 amo=0 | data=0 B/step  cum=0 B
+[mem] after run locale 0: 15350.7 MB
+final field: min=1.0 max=2.0 sum=1.00518e+09
+Execution time:    87.1806 s

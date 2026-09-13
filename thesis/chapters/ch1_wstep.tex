@@ -19,10 +19,10 @@ licznych węzłach każda taka wymiana obciąża to samo, współdzielone łącz
 co czyni problem dobrym obiektem do ujawniania ograniczeń komunikacyjnych klastra.
 
 Równoległe programowanie systemów rozproszonych tradycyjnie realizuje się za pomocą interfejsu
-przekazywania komunikatów (ang.~\emph{Message Passing Interface}, MPI), co daje wysoką wydajność kosztem znacznej złożoności kodu:
+przekazywania komunikatów MPI (ang.~\emph{Message Passing Interface}), co daje wysoką wydajność kosztem znacznej złożoności kodu:
 programista jawnie zarządza podziałem danych, buforami wymiany oraz synchronizacją~\cite{mpi-standard}. Alternatywę
 oferują języki i~biblioteki oparte na modelu \emph{PGAS} (ang.\ \emph{Partitioned Global Address
-Space}, partycjonowana globalna przestrzeń adresowa)~\cite{pgas}. Język Chapel,
+Space})~\cite{pgas}. Język Chapel,
 rozwijany pierwotnie przez firmę Cray, jest
 jednym z~bardziej rozwiniętych języków w~tej grupie~\cite{chapel-overview}. Umożliwia zapisywanie obliczeń
 rozproszonych w~notacji zbliżonej do sekwencyjnej: z~globalnym widokiem tablic, wysokopoziomowymi
@@ -30,5 +30,5 @@ iteratorami równoległymi i~gotowymi rozkładami dziedzin. Szczegóły komunika
 warstwie wykonawczej, opartej na bibliotece GASNet.
 
 Celem niniejszej pracy jest zaprojektowanie, zaimplementowanie i~wdrożenie na~klastrze
-rozproszonego programu symulującego równanie przewodnictwa ciepła w~Chapel oraz
+programu symulującego równanie przewodnictwa ciepła w~Chapel oraz
 analiza jego poprawności i~skalowalności.
