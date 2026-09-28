@@ -12,6 +12,8 @@ INSTALL_DIR=""
 MPI_DIR=""
 CONDUIT="udp"
 TARGET_CPU="native"
+LLVM="none"
+LLVM_CONFIG=""
 SKIP_BUILD=false
 HOSTFILE=""
 
@@ -30,6 +32,13 @@ The communication conduit is selected with --conduit (default: udp).
 Options:
   -f, --hostfile FILE  File with one IP/hostname per line (required)
   -c, --conduit K      Conduit: udp (default) or mpi
+  -L, --llvm K         Compiler backend baked into the toolchain: none (default, C backend),
+                       system (use an installed LLVM via llvm-config; version must be in Chapel's
+                       supported range), or bundled (build LLVM from source; large + slow).
+                       Only the BUILD node needs LLVM: it is a compile-time dependency, so the
+                       shipped program binaries do NOT link libLLVM and run on nodes without it.
+      --llvm-config P  Path to llvm-config for --llvm system (e.g. /usr/bin/llvm-config-16);
+                       defaults to 'llvm-config' from PATH.
   -u, --user USER      SSH user (default: chapel, or \$CHAPEL_SSH_USER)
   -p, --port PORT      SSH port (default: 22, or \$CHAPEL_SSH_PORT)
   -d, --dir DIR        Remote install dir (default: /home/<user>); CHPL_HOME=<DIR>/chapel-${CHAPEL_VERSION}
@@ -56,6 +65,8 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         -f|--hostfile) HOSTFILE="$2"; shift 2 ;;
         -c|--conduit)  CONDUIT="$2"; shift 2 ;;
+        -L|--llvm) LLVM="$2"; shift 2 ;;
+        --llvm-config) LLVM_CONFIG="$2"; shift 2 ;;
         -u|--user) SSH_USER="$2"; shift 2 ;;
         -p|--port) SSH_PORT="$2"; SSH_OPTS="-o StrictHostKeyChecking=no -o ConnectTimeout=10 -p ${SSH_PORT}"; shift 2 ;;
         -d|--dir)  INSTALL_DIR="$2"; shift 2 ;;
@@ -77,6 +88,10 @@ ARCHIVE="chapel-${CHAPEL_VERSION}-built.tar.gz"
 
 if [[ "$CONDUIT" != "udp" && "$CONDUIT" != "mpi" ]]; then
     echo "Error: --conduit must be 'udp' or 'mpi' (got '$CONDUIT')." >&2
+    exit 1
+fi
+if [[ "$LLVM" != "none" && "$LLVM" != "system" && "$LLVM" != "bundled" ]]; then
+    echo "Error: --llvm must be 'none', 'system' or 'bundled' (got '$LLVM')." >&2
     exit 1
 fi
 
@@ -150,12 +165,23 @@ else
 
     LOCAL_CHPL_HOME="$(cd "$CHAPEL_DIR" && pwd)"
 
-    # Generate chplconfig from the chosen conduit (overwrites any stale one).
-    echo ">>> Writing chplconfig (CHPL_COMM_SUBSTRATE=$CONDUIT, CHPL_TARGET_CPU=$TARGET_CPU)..."
+    # system LLVM: resolve llvm-config on the BUILD node (LLVM is only a compile-time dependency).
+    if [[ "$LLVM" == "system" ]]; then
+        [[ -z "$LLVM_CONFIG" ]] && LLVM_CONFIG="$(command -v llvm-config || true)"
+        if [[ -z "$LLVM_CONFIG" || ! -x "$LLVM_CONFIG" ]]; then
+            echo "Error: --llvm system but no usable llvm-config on this build node. Install the LLVM dev packages or pass --llvm-config PATH." >&2
+            exit 1
+        fi
+        export CHPL_LLVM_CONFIG="$LLVM_CONFIG"
+        echo ">>> Using system LLVM: $("$LLVM_CONFIG" --version) ($LLVM_CONFIG)"
+    fi
+
+    # Generate chplconfig from the chosen conduit + backend (overwrites any stale one).
+    echo ">>> Writing chplconfig (CHPL_COMM_SUBSTRATE=$CONDUIT, CHPL_LLVM=$LLVM, CHPL_TARGET_CPU=$TARGET_CPU)..."
     cat > "$CHAPEL_DIR/chplconfig" <<CHPLCFG
 CHPL_COMM=gasnet
 CHPL_COMM_SUBSTRATE=$CONDUIT
-CHPL_LLVM=none
+CHPL_LLVM=$LLVM
 CHPL_TARGET_CPU=$TARGET_CPU
 CHPLCFG
 
@@ -170,9 +196,11 @@ CHPLCFG
 
     export CHPL_HOME="$LOCAL_CHPL_HOME"
     export MANPATH="${MANPATH:-}"
+    # Export as env vars too (they override chplconfig, which some hosts do not honor for these keys).
+    export CHPL_LLVM="$LLVM"
     source "$CHPL_HOME/util/setchplenv.bash"
 
-    echo ">>> Building Chapel ${CHAPEL_VERSION} ($CONDUIT conduit; this will take a while)..."
+    echo ">>> Building Chapel ${CHAPEL_VERSION} ($CONDUIT conduit, LLVM=$LLVM; this will take a while)..."
     make -C "$CHPL_HOME" -j"$(nproc)"
 
     echo ">>> Chapel build complete."
@@ -257,7 +285,7 @@ done
 
 echo ""
 echo "========================================"
-echo "  Distribution complete ($CONDUIT)"
+echo "  Distribution complete ($CONDUIT, LLVM=$LLVM)"
 echo "========================================"
 echo "  Succeeded: $(( ${#HOSTS[@]} - ${#FAILED[@]} )) / ${#HOSTS[@]}"
 if [[ ${#FAILED[@]} -gt 0 ]]; then

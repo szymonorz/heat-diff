@@ -77,7 +77,7 @@ So ping-pong (`3d_pingpong.chpl`) is a small but consistent win on this multiloc
 
 ## Prerequisites
 
-- Chapel 2.9.0 (built with `CHPL_COMM=gasnet`, `CHPL_LLVM=none`)
+- Chapel 2.9.0 (built with `CHPL_COMM=gasnet`; `CHPL_LLVM=none` by default, or `system`/`bundled` via `--llvm`, see below)
 - Build tools: `gcc g++ make m4 perl python3 cmake wget` + `gmp.h` (no package manager is
   assumed — the scripts check and tell you the install command for your distro)
 - ffmpeg (for video rendering)
@@ -109,6 +109,97 @@ packet loss / incast at scale (see the note above).
 `build-mpi.sh` and the MPI distribution are idempotent (skipped if already present), so re-runs
 are cheap. `run-nl.sh` is a **testbed-only** helper for oversubscribing many locales across a
 couple of physical nodes; production launches use the generated `run-<bin>.sh`.
+
+### Compiler backend (`--llvm none|system|bundled`)
+
+By default Chapel uses its C backend (`CHPL_LLVM=none`). To generate code through LLVM instead,
+pass `--llvm` to **both** `distribute-chapel.sh` (or `build-chapel.sh`) and
+`compile-and-distribute.sh` — the value must match, just like `--conduit`:
+
+- `none` — C backend (default). No LLVM needed anywhere.
+- `system` — use an installed LLVM via `llvm-config` (its major version must be in Chapel's
+  supported range, 14–22 for 2.9). Add `--llvm-config /usr/bin/llvm-config-<N>` if it is
+  versioned. Needs the LLVM dev packages **only on the build node**
+  (`llvm-N-dev clang-N libclang-N-dev libclang-cppN-dev`) — LLVM is a compile-time dependency,
+  so the shipped program binaries do **not** link `libLLVM` and run on worker nodes without it.
+- `bundled` — build LLVM from source into the Chapel tree (large + slow), for a self-contained
+  toolchain that needs no system LLVM even to run `chpl`.
+
+Installing a system LLVM (build node only), pick a major version in range (14–22 for Chapel 2.9):
+
+```bash
+# Fedora / RHEL (uses the distro's LLVM if it is in range):
+sudo dnf install llvm-devel clang-devel
+
+# Debian / recent Ubuntu (if the distro ships a version in range):
+sudo apt-get install -y llvm-16-dev clang-16 libclang-16-dev libclang-cpp16-dev
+
+# Ubuntu 20.04 "focal" and older (distro LLVM maxes at 12, too old) -> LLVM's own apt repo.
+# NOTE: llvm.sh is run as root and adds an APT repo + signing key; it is LLVM.org's official
+#       installer (https://apt.llvm.org). Only the build node needs this.
+wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh 16
+sudo apt-get install -y llvm-16-dev clang-16 libclang-16-dev libclang-cpp16-dev
+# then point Chapel at it (versioned llvm-config):  --llvm-config /usr/bin/llvm-config-16
+```
+
+`libclang-cpp<N>-dev` is easy to miss — without it Chapel's `printchplenv` fails with
+"Could not find the clang library …/libclang-cpp.so". Verify with `llvm-config-<N> --version`.
+
+```bash
+# Example: mpi conduit + system LLVM 16 (build node needs the LLVM dev packages first)
+./distribute-chapel.sh     --conduit mpi --llvm system --llvm-config /usr/bin/llvm-config-16 \
+                           -f hosts.txt      -d /home/chapel/workspace/chapel-mpi-llvm
+./compile-and-distribute.sh --conduit mpi --llvm system --llvm-config /usr/bin/llvm-config-16 \
+                           -f hosts-both.txt -d /home/chapel/workspace/chapel-mpi-llvm
+```
+
+Measured effect on the 3D solver: LLVM gives only a small win (~3–5% on the compute loop, none
+on communication) because the stencil is memory-bandwidth-bound; the LLVM major version makes no
+reliable difference. Use a distinct `-d` per backend so `none`/`system` installs coexist.
+
+## Benchmark suites (`bench.sh`)
+
+`bench.sh` runs the thesis benchmark families from one configurable entry point and writes,
+per suite, the per-run logs plus a `RESULTS.tsv` and a `summary.txt` (median/mean/min/max/std).
+Every run emits the thesis-standard `[cfg] threadsPerLocale(requested)=N numLocales=M` header,
+so the logs are consumable the same way as the existing `data/logs-*` sets.
+
+Suites (`--suite`, comma-separated or `all`):
+
+| suite | sweeps | fixed |
+|-------|--------|-------|
+| `threads` | `--threads "1 2 4 8 16"` | `--cube-base`, `--nodes-fixed` |
+| `cube` | `--cubes "125 250 500 1000"` | `--thread-fixed`, `--nodes-fixed` |
+| `nodes` | `--nodes "1 2 …"` (cluster) | `--cube-base`, `--thread-fixed` |
+| `llvm` | each of `--llvm-binaries "path:label …"` | `--cube-base`, `--thread-fixed`, `--nodes-fixed` |
+
+Modes (`--mode`): `local` runs `./<binary> -nl 1` directly; `cluster` runs multilocale **on the
+master node**, sourcing the `run-env.sh` that `compile-and-distribute.sh` generated (single source
+of the launcher env — conduit, `MPIRUN_CMD`/iface wrapper or `GASNET_SSH_SERVERS`, and the host
+list) and using its first *n* hosts, so node count varies freely. Point it at that file with
+`--run-env` (default `<workdir>/run-env.sh`); `--chpl-home`/`--mpi-dir` are local-mode only.
+
+Parameters are flags over thesis defaults (`--steps 100`, `--reps 10`, `--alpha 0.25`,
+`--dumpevery` large = no frame I/O, …); `./bench.sh --help` lists them all, and `--dry-run`
+prints the planned runs without executing. `--binary` is **optional** (default `heat3d`, which is
+what `compile-and-distribute.sh` produces); the `llvm` suite ignores it and uses `--llvm-binaries`.
+
+```bash
+# Preview the full plan, no runs:
+./bench.sh --mode local --dry-run
+
+# Local sweeps on this host (its fresh binaries are heat3d_none / heat3d_llvm):
+./bench.sh --mode local --suite threads,cube,llvm --binary heat3d_none \
+           --llvm-binaries "heat3d_none:none heat3d_llvm:llvm"
+
+# Full thesis matrix on the cluster (run on the master), 1000³ -- conduit/hosts come from run-env.sh:
+./bench.sh --mode cluster --run-env /home/pionier/.../chapel/run-env.sh \
+           --workdir /home/pionier/.../chapel \
+           --suite all --cube-base 1000 --nodes "1 2 4 8 9"
+```
+
+`bench.sh` only *runs* benchmarks against already-built binaries; pick the compiler backend and
+conduit when you build them (`distribute-chapel.sh` / `compile-and-distribute.sh --llvm …`).
 
 ## VM Setup
 

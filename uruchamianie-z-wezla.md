@@ -34,6 +34,11 @@ CHAPEL_SSH_USER=$NODE_USER CHAPEL_SSH_PORT=$SSH_PORT \
 # tylko rozesłanie gotowego archiwum (bez ponownej budowy):
 # CHAPEL_SSH_USER=$NODE_USER CHAPEL_SSH_PORT=$SSH_PORT \
 #   bash ~/distribute-chapel.sh -f ~/hosts.txt -d "$INSTALL_DIR" --skip-build
+# backend kompilatora (domyślnie C): dodaj --llvm system (LLVM z systemu; pakiety dev
+# tylko na węźle budującym) lub --llvm bundled (LLVM budowany ze źródeł):
+# CHAPEL_SSH_USER=$NODE_USER CHAPEL_SSH_PORT=$SSH_PORT \
+#   bash ~/distribute-chapel.sh -f ~/hosts.txt -d "$INSTALL_DIR" \
+#        --llvm system --llvm-config /usr/bin/llvm-config-16
 ```
 
 (Alternatywa bez dystrybucji — budowa tylko na tym węźle: `cd "$INSTALL_DIR" && bash ~/build-chapel.sh`.)
@@ -131,5 +136,13 @@ cd "$INSTALL_DIR"
 - `distribute-chapel.sh` buduje w bieżącym katalogu (`$(pwd)/chapel-2.7.0`) — stąd
   `cd "$INSTALL_DIR"` przed uruchomieniem, by węzeł główny też miał Chapela pod tą ścieżką.
 - Opcjonalnie `-o NAZWA` zmienia nazwę binarki (domyślnie `heat3d`).
+- **Backend kompilatora `--llvm none|system|bundled`** (domyślnie `none`, backend C). Aby
+  generować kod przez LLVM, podaj tę samą wartość `--llvm` do `distribute-chapel.sh` (lub
+  `build-chapel.sh`) **oraz** do `compile-and-distribute.sh` (tak jak `--conduit`). Dla
+  `system` dodaj `--llvm-config /usr/bin/llvm-config-<N>`, jeśli `llvm-config` jest wersjonowany;
+  pakiety dev LLVM (`llvm-N-dev clang-N libclang-N-dev libclang-cppN-dev`) potrzebne są **tylko
+  na węźle budującym** — binarki programu nie linkują `libLLVM`, więc działają na węzłach bez
+  LLVM. Efekt dla solvera 3D jest niewielki (ok. 3–5% na pętli obliczeniowej, zero na
+  komunikacji), a wersja LLVM nie robi istotnej różnicy.
 - `setup-vm.sh` / `start-vm.sh` / `start-cluster.sh` są **po stronie hosta** (tworzą węzły)
   i nie uruchamia się ich z węzła klastra.

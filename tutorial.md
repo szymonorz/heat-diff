@@ -103,22 +103,28 @@ ssh $SSHOPT -p 2222 chapel@localhost 'sudo apt-get install -y python3-pip'
 ```bash
 R=/home/sorzechowski/schule/heat-diff
 ssh $SSHOPT -p 2222 chapel@localhost 'mkdir -p ~/src'
-scp $SSHOPT -P 2222 "$R/distribute-chapel.sh" "$R/compile-and-distribute.sh" \
-                    "$R/chplconfig" "$R/hosts.txt" chapel@localhost:~/
-scp $SSHOPT -P 2222 "$R/src/3d.chpl" "$R/src/3d_pingpong.chpl" "$R/src/Diagnostics.chpl" \
+# mpi flow needs build-mpi.sh (called by distribute-chapel --conduit mpi) and mpi-iface-wrap.sh
+# (used by compile-and-distribute for the mpi launcher); bench.sh drives the suites in step 10.
+scp $SSHOPT -P 2222 "$R/distribute-chapel.sh" "$R/build-chapel.sh" "$R/build-mpi.sh" \
+                    "$R/compile-and-distribute.sh" "$R/mpi-iface-wrap.sh" "$R/bench.sh" \
+                    "$R/hosts.txt" chapel@localhost:~/
+scp $SSHOPT -P 2222 "$R/src/3d.chpl" "$R/src/3d_pingpong.chpl" \
                     "$R/src/ImageUtils.chpl" "$R/src/aggregate3d.chpl" chapel@localhost:~/src/
 ssh $SSHOPT -p 2222 chapel@localhost 'chmod +x ~/*.sh'
 ```
 
 ## 7. Build & distribute Chapel (runs on vm1; builds locally, ships to vm2)
 
-`hosts.txt` contains `10.0.0.2`. This builds Chapel 2.7.0 from source on vm1
-(`CHPL_COMM=gasnet`, `CHPL_LLVM=none`) and distributes the archive to vm2.
-**~20–40 min.**
+`hosts.txt` contains `10.0.0.2`. This builds Chapel 2.9.0 + MPICH from source on vm1 and ships
+both to vm2. Use the **mpi conduit** (`--conduit mpi`): the udp conduit `ECONGESTION`-aborts on
+the QEMU socket-multicast link. Add `--llvm system|bundled` (and `--llvm-config PATH`) here to
+bake in the LLVM backend; default is the C backend. **~20–40 min.** Run from `~` so vm1's own
+tree lands at `/home/chapel/chapel-2.9.0` (same path as vm2).
 
 ```bash
 ssh $SSHOPT -p 2222 chapel@localhost \
-  'cd ~ && CHAPEL_SSH_USER=chapel CHAPEL_SSH_PORT=22 bash distribute-chapel.sh -f hosts.txt'
+  'cd ~ && CHAPEL_SSH_USER=chapel CHAPEL_SSH_PORT=22 \
+     bash distribute-chapel.sh --conduit mpi -f hosts.txt -d /home/chapel -m /home/chapel/mpi'
 ```
 
 Then apply fixup **4(c)** (it silences the `.bashrc` line this step just added).
@@ -126,84 +132,141 @@ Then apply fixup **4(c)** (it silences the `.bashrc` line this step just added).
 ## 8. Compile & distribute the program
 
 Run `compile-and-distribute.sh` from a **build subdir** (so the master's self-copy uses a
-distinct path and can't truncate the freshly compiled binary) with a **2-node hostfile**
-(so the generated run scripts get `MASTER=10.0.0.1`, `NUM_LOCALES=2`):
+distinct path and can't truncate the freshly compiled binary) with a **2-node hostfile**, master
+first (so the generated run scripts get `MASTER=10.0.0.1`, `NUM_LOCALES=2`). Use the **same
+`--conduit`/`--llvm`** as step 7. `mpi-iface-wrap.sh` must sit beside the script (the mpi launcher
+uses it):
 
 ```bash
 ssh $SSHOPT -p 2222 chapel@localhost 'bash -s' <<'REMOTE'
-mkdir -p ~/prog-build
-ln -sfn ~/src ~/prog-build/src
-cp ~/compile-and-distribute.sh ~/prog-build/
+mkdir -p ~/prog-build && ln -sfn ~/src ~/prog-build/src
+cp ~/compile-and-distribute.sh ~/mpi-iface-wrap.sh ~/prog-build/
 printf '10.0.0.1\n10.0.0.2\n' > ~/prog-build/hosts-both.txt
 cd ~/prog-build
-source ~/chapel-2.7.0/util/setchplenv.bash >/dev/null 2>&1
-CHAPEL_SSH_USER=chapel CHAPEL_SSH_PORT=22 bash compile-and-distribute.sh -f hosts-both.txt
-# make sure the master's /home/chapel has the binaries (build dir -> install dir)
+CHAPEL_SSH_USER=chapel CHAPEL_SSH_PORT=22 \
+  bash compile-and-distribute.sh --conduit mpi -f hosts-both.txt -d /home/chapel -m /home/chapel/mpi
+# ensure the master's /home/chapel has the fresh binaries (build subdir -> install dir):
 cp -f ~/prog-build/heat3d ~/prog-build/heat3d_real \
-      ~/prog-build/heat3d-swap ~/prog-build/heat3d-swap_real \
-      ~/prog-build/aggregate3d ~/prog-build/aggregate3d_real ~/
+      ~/prog-build/aggregate3d ~/prog-build/aggregate3d_real /home/chapel/
 REMOTE
 ```
 
 If the script's `scp` to vm2 failed (it does if 4(c) wasn't applied yet), re-push the
-binaries — **all of `<bin>` AND `<bin>_real`**, every node needs both for `-nl 2`:
+binaries — **both `heat3d` AND `heat3d_real`**, every node needs both for `-nl 2`:
 
 ```bash
 ssh $SSHOPT -p 2222 chapel@localhost \
-  'scp -o StrictHostKeyChecking=no ~/heat3d ~/heat3d_real ~/heat3d-swap ~/heat3d-swap_real \
-       ~/aggregate3d ~/aggregate3d_real 10.0.0.2:~/'
+  'scp -o StrictHostKeyChecking=no ~/heat3d ~/heat3d_real \
+       ~/aggregate3d ~/aggregate3d_real 10.0.0.2:/home/chapel/'
 ```
 
-This also generates `~/run-heat3d.sh`, `~/run-heat3d-swap.sh`, and
-`~/aggregate-heat3d.sh` on vm1.
+This also generates, in `/home/chapel`, the shared launcher env **`run-env.sh`** plus
+`run-heat3d.sh` and `aggregate-heat3d.sh` (the run script sources `run-env.sh`).
 
 ## 9. Run heat3d across 2 locales
 
 ```bash
-ssh $SSHOPT -p 2222 chapel@localhost 'bash -s' <<'REMOTE'
-export GASNET_NETWORKDEPTH_TOTAL=8192 GASNET_REQUESTTIMEOUT_MAX=60000000
-bash ~/run-heat3d.sh --nx=100 --ny=100 --nz=100 --numSteps=5 \
-     --dumpDir=/home/chapel/out100 --trackMem=true --memTrack=true
-REMOTE
+# mpi conduit sustains the run (no ECONGESTION), so no GASNET_* buffer/timeout tuning is needed.
+ssh $SSHOPT -p 2222 chapel@localhost \
+  'bash ~/run-heat3d.sh --nx=100 --ny=100 --nz=100 --numSteps=100 \
+       --dumpDir=/home/chapel/out100 --trackMem=true --memTrack=true'
 ```
 
 Each locale writes only its own slab to its **local** disk (`out100/frame_<step>_loc_<id>.bin`):
 vm1 holds the `loc_0` frames, vm2 the `loc_1` frames — no gather.
 
+## 10. Run the benchmark suites (`bench.sh`)
+
+`bench.sh` drives the thesis benchmark families (thread scaling, cube-size sweep, node scaling,
+and the compiler-backend comparison) from one place and writes, per suite, the logs plus a
+`RESULTS.tsv` and `summary.txt`. Run it **on vm1** in `--mode cluster`: it sources the
+`run-env.sh` that step 8 generated (conduit + host list + launcher env), so it varies `-nl`
+across the sweep on its own.
+
+```bash
+# stage bench.sh on vm1 (once)
+scp $SSHOPT -P 2222 "$R/bench.sh" chapel@localhost:~/
+
+# run the matrix on the 2-VM cluster; conduit + hosts come from /home/chapel/run-env.sh
+ssh $SSHOPT -p 2222 chapel@localhost 'bash ~/bench.sh \
+     --mode cluster --run-env /home/chapel/run-env.sh --workdir /home/chapel \
+     --suite threads,cube,nodes --cube-base 500 --nodes "1 2" \
+     --binary heat3d --outdir /home/chapel/bench-out'
+```
+
+`--dry-run` prints the planned runs first; `bash ~/bench.sh --help` lists every flag (steps, reps,
+alpha, thread/cube/node lists, etc.). To compare compiler backends, build a second binary with
+`--llvm system` (step 8) and add `--suite llvm --llvm-binaries "heat3d:none heat3d_llvm:llvm"`.
+Pull results back with `scp -r ... chapel@localhost:/home/chapel/bench-out data/`.
+
+> Selecting the compiler backend: `distribute-chapel.sh`, `build-chapel.sh` and
+> `compile-and-distribute.sh` take `--llvm none|system|bundled` (default `none`) plus
+> `--llvm-config PATH`. Only the build node needs LLVM installed; the shipped binaries run on
+> workers without it. `bench.sh` itself only *runs* benchmarks, it does not build toolchains.
+
+## 11. Add the LLVM backend to an existing (mpi, no-LLVM) build
+
+LLVM is a compile-time backend, so you add it **without a from-scratch rebuild**: it slots a new
+compiler config next to the existing `none` one, reusing MPICH, GASNet and the source tree. All on
+the **build/master node** (vm1); workers are untouched (they run the shipped binary without LLVM).
+
+```bash
+# 0. (once) install LLVM dev packages -- a major version in Chapel 2.9's range (14-22):
+ssh $SSHOPT -p 2222 chapel@localhost \
+  'sudo apt-get install -y llvm-16-dev clang-16 libclang-16-dev libclang-cpp16-dev'   # focal: use apt.llvm.org
+
+# 1. rebuild the toolchain to ADD the LLVM backend (incremental: MPICH + GASNet reused, ~10-20 min).
+#    build-chapel.sh rebuilds locally only -- run it from the dir holding chapel-2.9.0 (/home/chapel):
+ssh $SSHOPT -p 2222 chapel@localhost \
+  'cd /home/chapel && bash ~/build-chapel.sh --conduit mpi --llvm system --llvm-config /usr/bin/llvm-config-16'
+
+# 2. recompile + redistribute the program with the LLVM backend, under a new name:
+ssh $SSHOPT -p 2222 chapel@localhost 'bash -s' <<'REMOTE'
+cd ~/prog-build
+CHAPEL_SSH_USER=chapel CHAPEL_SSH_PORT=22 \
+  bash compile-and-distribute.sh --conduit mpi --llvm system --llvm-config /usr/bin/llvm-config-16 \
+       -o heat3d_llvm -f hosts-both.txt -d /home/chapel -m /home/chapel/mpi
+cp -f ~/prog-build/heat3d_llvm ~/prog-build/heat3d_llvm_real /home/chapel/
+REMOTE
+```
+
+Notes:
+- Use **`build-chapel.sh`** (local rebuild on the master), **not** `distribute-chapel.sh`: the
+  workers never compile, so the LLVM toolchain is only needed on the build node. Re-ship the whole
+  toolchain (`distribute-chapel.sh --llvm system`) only if you intend to compile on the workers.
+- The `none` toolchain **and** its binary stay intact -- from now on you can compile either backend
+  on demand (`compile-and-distribute.sh --llvm none|system`).
+- `--llvm-config` is only needed for a versioned `llvm-config` (e.g. `llvm-config-16`); omit it if a
+  plain in-range `llvm-config` is on `PATH`.
+- Compare the two backends with
+  `bench.sh ... --suite llvm --llvm-binaries "heat3d:none heat3d_llvm:llvm"`.
+
 ---
 
 
 ```bash
-  build-chapel.sh — zbuduj Chapel lokalnie na tym węźle
+  distribute-chapel.sh — zbuduj Chapel (+MPICH) tu i rozdystrybuuj na węzły z hosts.txt
+  CHAPEL_SSH_USER=chapel CHAPEL_SSH_PORT=22 \
+    bash distribute-chapel.sh --conduit mpi -f hosts.txt -d /home/chapel -m /home/chapel/mpi \
+         [--llvm system --llvm-config /usr/bin/llvm-config-16]   # backend LLVM (opcjonalnie)
+  # tylko rozesłanie gotowego archiwum (bez ponownej budowy): dodaj --skip-build
+  # (build-chapel.sh --conduit mpi ... buduje tylko lokalnie, bez dystrybucji)
 
-  Bez argumentów; buduje ./chapel-2.7.0 w bieżącym katalogu (instaluje zależności przez sudo apt):
-  bash build-chapel.sh
+  compile-and-distribute.sh — skompiluj program i rozdystrybuuj (te same --conduit/--llvm co wyżej)
+  bash compile-and-distribute.sh --conduit mpi -f hosts-both.txt -d /home/chapel -m /home/chapel/mpi
+  # generuje w -d: run-env.sh (wspólne środowisko launchera) + run-heat3d.sh + aggregate-heat3d.sh
 
-  distribute-chapel.sh — zbuduj Chapel tu i rozdystrybuuj na pozostałe węzły
+  Wygenerowane skrypty uruchomieniowe (powstają w -d na węźle głównym)
+  ./run-heat3d.sh       --nx=1000 --ny=1000 --nz=1000 --numSteps=100
+  ./aggregate-heat3d.sh --nx=1000 --ny=1000 --nz=1000 --numFrames=100
 
-  Buduje na bieżącym węźle i wysyła archiwum do węzłów z hosts.txt:
-  CHAPEL_SSH_USER=chapel CHAPEL_SSH_PORT=22 bash distribute-chapel.sh -f hosts.txt
-  # równoważnie z flagami:
-  bash distribute-chapel.sh -f hosts.txt -u chapel -p 22
-  # jeśli Chapel jest już zbudowany i chcesz tylko rozesłać archiwum:
-  bash distribute-chapel.sh -f hosts.txt -u pionier -d /home/pionier/szyorz/chapel -p 22 --skip-build
+  bench.sh — zestaw testów wydajności (uruchom na węźle głównym; conduit/węzły z run-env.sh)
+  bash bench.sh --mode cluster --run-env /home/chapel/run-env.sh --workdir /home/chapel \
+       --suite threads,cube,nodes --cube-base 1000 --nodes "1 2 4 8 9" --outdir /home/chapel/bench-out
 
-  compile-and-distribute.sh — skompiluj program i rozdystrybuuj
-
-  source /home/pionier/szyorz/chapel/chapel-2.7.0/util/setchplenv.bash
-  bash compile-and-distribute.sh -f hosts.txt -u pionier -p 22 -d /home/pionier/szyorz/chapel
-  
-  Wygenerowane skrypty uruchomieniowe (powstają na węźle głównym)
-
-  ./run-heat3d.sh       --nx=100 --ny=100 --nz=100 --numSteps=100
-  ./run-heat3d-swap.sh  --nx=100 --ny=100 --nz=100 --numSteps=100
-  ./aggregate-heat3d.sh --nx=100 --ny=100 --nz=100 --numFrames=100
-
-  Uruchomienie programu „ręcznie" (alternatywa dla run-skryptu)
-
-  source /home/pionier/szyorz/chapel/chapel-2.7.0/util/setchplenv.bash
-  export GASNET_SSH_SERVERS="10.0.0.1 10.0.0.2"
-  export GASNET_MASTERIP=10.0.0.1
-  export CHPL_RT_NUM_THREADS_PER_LOCALE=$(nproc)
-  ./heat3d -nl 2 --nx=100 --ny=100 --nz=100 --numSteps=100 --dumpDir=frames
+  Uruchomienie „ręcznie" (alternatywa dla run-skryptu) — przez wspólne run-env.sh
+  source /home/chapel/run-env.sh
+  set_run_env 2                    # środowisko launchera dla 2 pierwszych węzłów
+  cd /home/chapel
+  ./heat3d -nl 2 --nx=1000 --ny=1000 --nz=1000 --numSteps=100 --dumpDir=/home/chapel/frames
 ```

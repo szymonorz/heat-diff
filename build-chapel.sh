@@ -12,17 +12,25 @@ CHAPEL_VERSION="${CHAPEL_VERSION:-2.9.0}"
 CONDUIT="udp"
 MPI_DIR=""
 TARGET_CPU="native"
+LLVM="none"
+LLVM_CONFIG=""
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() {
     cat <<EOF
-Usage: $0 [--conduit udp|mpi] [--mpi-dir DIR] [--target-cpu CPU] [--chapel-version VER]
+Usage: $0 [--conduit udp|mpi] [--llvm none|system|bundled] [--mpi-dir DIR] [--target-cpu CPU] [--chapel-version VER]
 
-Build Chapel ${CHAPEL_VERSION} in \$PWD/chapel-${CHAPEL_VERSION} (CHPL_LLVM=none).
+Build Chapel ${CHAPEL_VERSION} in \$PWD/chapel-${CHAPEL_VERSION} (CHPL_LLVM defaults to none).
 
 Options:
   -c, --conduit K       Conduit: udp (default) or mpi
+  -L, --llvm K          Compiler backend: none (default, C backend), system (use an installed LLVM
+                        via llvm-config; version must be in Chapel's supported range), or bundled
+                        (build LLVM from source; large + slow). system needs the LLVM dev packages
+                        incl. libclang-cpp (e.g. llvm-N-dev clang-N libclang-N-dev libclang-cppN-dev).
+      --llvm-config P   Path to llvm-config for --llvm system (e.g. /usr/bin/llvm-config-16). If unset,
+                        Chapel uses 'llvm-config' from PATH.
   -m, --mpi-dir DIR     MPI prefix for --conduit mpi (default: \$PWD/mpi); MPICH is auto-built there
   -t, --target-cpu C    CHPL_TARGET_CPU baked into the runtime (default: native). 'native' tunes for
                         this build host's CPU — safe on a CPU-homogeneous cluster. Use 'unknown' to
@@ -36,6 +44,8 @@ EOF
 while [[ $# -gt 0 ]]; do
     case "$1" in
         -c|--conduit) CONDUIT="$2"; shift 2 ;;
+        -L|--llvm) LLVM="$2"; shift 2 ;;
+        --llvm-config) LLVM_CONFIG="$2"; shift 2 ;;
         -m|--mpi-dir) MPI_DIR="$2"; shift 2 ;;
         -t|--target-cpu) TARGET_CPU="$2"; shift 2 ;;
         -V|--chapel-version) CHAPEL_VERSION="$2"; shift 2 ;;
@@ -49,7 +59,19 @@ CHAPEL_TAR="chapel-${CHAPEL_VERSION}.tar.gz"
 CHAPEL_URL="https://github.com/chapel-lang/chapel/releases/download/${CHAPEL_VERSION}/${CHAPEL_TAR}"
 INSTALL_DIR="$PWD/chapel-${CHAPEL_VERSION}"
 [[ "$CONDUIT" == "udp" || "$CONDUIT" == "mpi" ]] || { echo "Error: --conduit must be udp or mpi." >&2; exit 1; }
+[[ "$LLVM" == "none" || "$LLVM" == "system" || "$LLVM" == "bundled" ]] || { echo "Error: --llvm must be none, system or bundled." >&2; exit 1; }
 [[ -z "$MPI_DIR" ]] && MPI_DIR="$PWD/mpi"
+
+# system LLVM: resolve llvm-config and expose it so Chapel's build picks the right toolchain
+if [[ "$LLVM" == "system" ]]; then
+    [[ -z "$LLVM_CONFIG" ]] && LLVM_CONFIG="$(command -v llvm-config || true)"
+    if [[ -z "$LLVM_CONFIG" || ! -x "$LLVM_CONFIG" ]]; then
+        echo "Error: --llvm system but no usable llvm-config found. Install LLVM dev packages or pass --llvm-config PATH." >&2
+        exit 1
+    fi
+    export CHPL_LLVM_CONFIG="$LLVM_CONFIG"
+    echo ">>> Using system LLVM: $("$LLVM_CONFIG" --version) ($LLVM_CONFIG)"
+fi
 
 # ──────────────────────────────────────────────
 # 1. Verify build dependencies (portable; no auto-install without root)
@@ -99,11 +121,11 @@ cd "$INSTALL_DIR"
 # ──────────────────────────────────────────────
 # 4. chplconfig from the chosen conduit
 # ──────────────────────────────────────────────
-echo ">>> Writing chplconfig (CHPL_COMM_SUBSTRATE=$CONDUIT, CHPL_TARGET_CPU=$TARGET_CPU)..."
+echo ">>> Writing chplconfig (CHPL_COMM_SUBSTRATE=$CONDUIT, CHPL_LLVM=$LLVM, CHPL_TARGET_CPU=$TARGET_CPU)..."
 cat > chplconfig <<CHPLCFG
 CHPL_COMM=gasnet
 CHPL_COMM_SUBSTRATE=$CONDUIT
-CHPL_LLVM=none
+CHPL_LLVM=$LLVM
 CHPL_TARGET_CPU=$TARGET_CPU
 CHPLCFG
 cat chplconfig
@@ -112,13 +134,15 @@ cat chplconfig
 # 5. Build
 # ──────────────────────────────────────────────
 export CHPL_HOME="$INSTALL_DIR"
+# Export as env vars too (they override chplconfig, which some hosts do not honor for these keys).
+export CHPL_LLVM="$LLVM"
 source "$CHPL_HOME/util/setchplenv.bash"
-echo ">>> Building Chapel ${CHAPEL_VERSION} ($CONDUIT conduit; this will take a while)..."
+echo ">>> Building Chapel ${CHAPEL_VERSION} ($CONDUIT conduit, LLVM=$LLVM; this will take a while)..."
 make -j"$(nproc)"
 
 echo ""
 echo "============================================"
-echo "  Chapel ${CHAPEL_VERSION} build complete ($CONDUIT)!"
+echo "  Chapel ${CHAPEL_VERSION} build complete ($CONDUIT, LLVM=$LLVM)!"
 echo "============================================"
 echo "  export CHPL_HOME=\"$CHPL_HOME\""
 [[ "$CONDUIT" == "mpi" ]] && echo "  export PATH=\"$MPI_DIR/bin:\$PATH\"   # for mpirun/mpicc"
