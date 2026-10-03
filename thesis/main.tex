@@ -66,8 +66,11 @@
   commentstyle=\color{codecm}\itshape,morecomment=[l]{\#}}
 % ---- nie dziel listingów między strony: całe środowisko w nierozrywalnym boksie ----
 % (jeśli listing nie mieści się na dole strony, przechodzi w całości na następną)
-\AddToHook{env/lstlisting/before}{\par\medskip\noindent\begin{minipage}{\linewidth}}
-\AddToHook{env/lstlisting/after}{\end{minipage}\par\medskip}
+% Wyjątek: listing poprzedzony \global\lstfloattrue staje się pływający (float=...)
+% i nie jest pakowany w minipage (minipage nie może zawierać floata).
+\newif\iflstfloat
+\AddToHook{env/lstlisting/before}{\iflstfloat\else\par\medskip\noindent\begin{minipage}{\linewidth}\fi}
+\AddToHook{env/lstlisting/after}{\iflstfloat\global\lstfloatfalse\else\end{minipage}\par\medskip\fi}
 
 % ---------- diagramy ----------
 \usepackage{tikz}
@@ -117,7 +120,7 @@
 % ---------- meta ----------
 \newcommand{\thesistitle}{Programowanie równoległe w~języku Chapel na~przykładzie problemu rozchodzenia się ciepła}
 \newcommand{\thesisauthor}{Szymon Orzechowski}
-\newcommand{\thesissupervisor}{dr. Marek Nowicki}
+\newcommand{\thesissupervisor}{dr Marek Nowicki}
 \newcommand{\thesisuniversity}{Uniwersytet Mikołaja Kopernika \\ w Toruniu \\ Wydział Matematyki i Informatyki\\
 Kierunek Informatyka}
 \newcommand{\thesisyear}{2026}

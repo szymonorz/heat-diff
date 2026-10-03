@@ -1,55 +1,47 @@
 #!/usr/bin/env bash
-#
-# bench.sh -- run the thesis heat3d benchmark suites with configurable parameters.
-#
-# Suites (choose with --suite, comma-separated, or "all"):
-#   threads : thread scaling at a fixed cube + node count   (sweeps --threads)
-#   cube    : cube-size sweep at fixed threads + nodes        (sweeps --cubes)
-#   nodes   : node/locale scaling at fixed cube + threads     (sweeps --nodes; cluster)
-#   llvm    : compiler-backend comparison, runs each of --llvm-binaries
-#
-# Modes (--mode):
-#   local   : single machine, runs ./<binary> -nl <n> directly (n defaults to 1)
-#   cluster : multilocale on the master node; sets the conduit launcher env itself
-#             (mpi -> MPIRUN_CMD + iface wrapper; udp -> GASNET_SSH_SERVERS) using the
-#             first <n> hosts of --hostfile, so node count can vary freely.
-#
-# Each run emits the thesis-standard header line
-#   [cfg] threadsPerLocale(requested)=<t> numLocales=<n>
-# then the solver output, tee'd to a per-suite log. Cube size is recoverable from
-# "final field: sum=" and steps from the "step N" lines, exactly as analyze_logs.py expects.
-#
-# This script RUNS benchmarks against already-built binaries. Build/select the compiler
-# backend with distribute-chapel.sh / build-chapel.sh / compile-and-distribute.sh --llvm.
-#
 set -eo pipefail
 
-# ---------------------------------------------------------------- defaults (override via flags/env)
-MODE="${MODE:-local}"                 # local | cluster
-SUITE="${SUITE:-all}"                 # threads,cube,nodes,llvm | all
-CONDUIT="${CONDUIT:-mpi}"             # mpi | udp  (cluster launcher; also affects PATH)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+MODE="${MODE:-local}"
+SUITE="${SUITE:-all}"
+CONDUIT="${CONDUIT:-mpi}"
 STEPS="${STEPS:-100}"
 REPS="${REPS:-10}"
 ALPHA="${ALPHA:-0.25}"
-DUMPEVERY="${DUMPEVERY:-1000000}"     # > STEPS  => no frame output
-THREADS="${THREADS:-1 2 4 8 16}"      # thread sweep for the 'threads' suite
-CUBES="${CUBES:-125 250 500 1000}"    # cube sweep for the 'cube' suite
-NODES="${NODES:-1 2}"                 # node sweep for the 'nodes' suite (cluster)
-CUBE_BASE="${CUBE_BASE:-}"            # cube for threads/nodes/llvm suites (default 500 local, 1000 cluster)
-THREAD_FIXED="${THREAD_FIXED:-}"      # threads for cube/nodes/llvm suites (default: nproc)
-NODES_FIXED="${NODES_FIXED:-}"        # locales for threads/cube/llvm suites (default: 1 local, hostfile size cluster)
-BINARY="${BINARY:-heat3d}"           # binary name for threads/cube/nodes suites
-LLVM_BINARIES="${LLVM_BINARIES:-heat3d_none:none heat3d_llvm:llvm}"  # 'path:label ...' for the llvm suite
-WORKDIR="${WORKDIR:-$PWD}"            # dir holding the binaries (cd here before running)
+DUMPEVERY="${DUMPEVERY:-1000000}"
+THREADS="${THREADS:-1 2 4 8 16}"
+CUBES="${CUBES:-125 250 500 1000}"
+NODES="${NODES:-1 2}"
+CUBE_BASE="${CUBE_BASE:-}"
+THREAD_FIXED="${THREAD_FIXED:-}"
+NODES_FIXED="${NODES_FIXED:-}"
+BINARY="${BINARY:-heat3d}"
+LLVM_BINARIES="${LLVM_BINARIES:-heat3d_none:none heat3d_llvm:llvm}"
+WORKDIR="${WORKDIR:-$PWD}"
 CHPL_HOME_DIR="${CHPL_HOME:-$PWD/chapel-2.9.0}"
 MPI_DIR="${MPI_DIR:-$PWD/mpi}"
-RUN_ENV="${RUN_ENV:-}"               # cluster: run-env.sh from compile-and-distribute.sh (default: <workdir>/run-env.sh)
+RUN_ENV="${RUN_ENV:-}"
 OUTDIR="${OUTDIR:-data/bench-$(date +%Y%m%d-%H%M%S)}"
 DRY_RUN=false
 
 usage() {
-    sed -n '2,32p' "$0" | sed 's/^# \{0,1\}//'
     cat <<EOF
+bench.sh -- run the thesis heat3d benchmark suites against already-built binaries.
+Build/select the compiler backend with distribute-chapel.sh / build-chapel.sh /
+compile-and-distribute.sh --llvm.
+
+Suites (--suite, comma-separated, or "all"):
+  threads : thread scaling at a fixed cube + node count   (sweeps --threads)
+  cube    : cube-size sweep at fixed threads + nodes        (sweeps --cubes)
+  nodes   : node/locale scaling at fixed cube + threads     (sweeps --nodes; cluster)
+  llvm    : compiler-backend comparison, runs each of --llvm-binaries
+
+Modes (--mode):
+  local   : single machine, runs ./<binary> -nl <n> directly (n defaults to 1)
+  cluster : multilocale on the master node; sets the conduit launcher env itself
+            (mpi -> MPIRUN_CMD + iface wrapper; udp -> GASNET_SSH_SERVERS) using the
+            first <n> hosts of --hostfile, so node count can vary freely.
 
 Usage: $0 [options]
   --mode local|cluster        (default: $MODE)
@@ -110,21 +102,17 @@ done
 [[ "$MODE" == "local" || "$MODE" == "cluster" ]] || { echo "Error: --mode must be local or cluster." >&2; exit 1; }
 [[ "$CONDUIT" == "mpi" || "$CONDUIT" == "udp" ]] || { echo "Error: --conduit must be mpi or udp." >&2; exit 1; }
 
-# resolve mode-dependent defaults
 [[ -z "$CUBE_BASE" ]]   && { [[ "$MODE" == "local" ]] && CUBE_BASE=500 || CUBE_BASE=1000; }
 [[ -z "$THREAD_FIXED" ]] && THREAD_FIXED="$(nproc)"
 
-# activate the toolchain / launcher env
 HOSTS=()
 if [[ "$MODE" == "cluster" ]]; then
-    # cluster delegates ALL launcher env to run-env.sh (single source of truth, generated by
-    # compile-and-distribute.sh): CHPL_HOME, PATH, conduit, host list, and set_run_env().
     [[ -z "$RUN_ENV" ]] && RUN_ENV="$WORKDIR/run-env.sh"
     [[ -f "$RUN_ENV" ]] || { echo "Error: cluster mode needs run-env.sh (generated by compile-and-distribute.sh); not found: $RUN_ENV. Pass --run-env." >&2; exit 1; }
     source "$RUN_ENV"
     read -ra HOSTS <<< "${RUN_ALL_HOSTS:-}"
     [[ ${#HOSTS[@]} -gt 0 ]] || { echo "Error: run-env.sh defines no hosts (RUN_ALL_HOSTS empty)." >&2; exit 1; }
-    CONDUIT="${RUN_CONDUIT:-$CONDUIT}"   # report the conduit run-env.sh was built for
+    CONDUIT="${RUN_CONDUIT:-$CONDUIT}"
 else
     export CHPL_HOME="$CHPL_HOME_DIR"
     export PATH="$MPI_DIR/bin:$CHPL_HOME/bin/linux64-x86_64:$CHPL_HOME/util:$PATH"
@@ -135,72 +123,53 @@ fi
 mkdir -p "$OUTDIR"
 echo ">>> bench: mode=$MODE conduit=$CONDUIT steps=$STEPS reps=$REPS alpha=$ALPHA -> $OUTDIR"
 
-# launcher env for a given locale count: cluster delegates to run-env.sh's set_run_env; local no-op
 set_launcher_env() {
     [[ "$MODE" == "local" ]] && return 0
     set_run_env "$1"
 }
 
-# run REPS reps of one configuration; logs -> $dir/<prefix>-r<NN>.log
 run_point() {
     local bin="$1" cube="$2" threads="$3" nl="$4" dir="$5" prefix="$6"
     mkdir -p "$dir"
     export CHPL_RT_NUM_THREADS_PER_LOCALE="$threads"
     set_launcher_env "$nl"
-    local r rr LOG
+    local r base ts LOG
+    base="$(basename "$bin")"
     for r in $(seq 1 "$REPS"); do
-        rr="$(printf 'r%02d' "$r")"
-        LOG="$dir/${prefix}-${rr}.log"
+        ts="$(date +%Y%m%d-%H%M%S)"
+        LOG="$dir/${base}-${ts}.log"
         if [[ "$DRY_RUN" == true ]]; then
-            echo "DRY: (cd $WORKDIR; CHPL_RT_NUM_THREADS_PER_LOCALE=$threads ./$bin -nl $nl --nx=$cube --ny=$cube --nz=$cube --numSteps=$STEPS --alpha=$ALPHA --dumpEvery=$DUMPEVERY) -> $LOG"
+            echo "DRY: (cd $WORKDIR; CHPL_RT_NUM_THREADS_PER_LOCALE=$threads ./$bin -nl $nl --nx=$cube --ny=$cube --nz=$cube --numSteps=$STEPS --alpha=$ALPHA --dumpEvery=$DUMPEVERY) -> $dir/${base}-<timestamp>.log"
             continue
         fi
+        while [[ -e "$LOG" ]]; do sleep 1; ts="$(date +%Y%m%d-%H%M%S)"; LOG="$dir/${base}-${ts}.log"; done
         [[ -x "$WORKDIR/$bin" ]] || { echo "  ERROR: $WORKDIR/$bin not found/executable" >&2; return 1; }
+        local rc=0
         ( cd "$WORKDIR"
-          set -o pipefail
           {
             echo "[cfg] threadsPerLocale(requested)=$threads numLocales=$nl"
             ./"$bin" -nl "$nl" --nx="$cube" --ny="$cube" --nz="$cube" \
-                     --numSteps="$STEPS" --alpha="$ALPHA" --dumpEvery="$DUMPEVERY" 2>&1
-          } | tee "$LOG" >/dev/null )
-        echo "    ${prefix} ${rr}: $(grep -m1 'Execution time:' "$LOG" 2>/dev/null || echo 'NO EXEC TIME')"
+                     --numSteps="$STEPS" --alpha="$ALPHA" --dumpEvery="$DUMPEVERY"
+          } </dev/null >"$LOG" 2>&1 ) || rc=$?
+        if grep -q 'Execution time:' "$LOG" 2>/dev/null; then
+            local et; et="$(grep -m1 'Execution time:' "$LOG")"
+            if [[ $rc -ne 0 ]]; then
+                echo "    ${prefix} rep ${r}: ${et}   (launcher exit ${rc} ignored; run completed)"
+            else
+                echo "    ${prefix} rep ${r}: ${et}"
+            fi
+        else
+            echo "    ${prefix} rep ${r}: FAILED (launcher exit ${rc}, no Execution time) -- see ${LOG}" >&2
+        fi
     done
 }
 
-# aggregate a suite dir: group logs by the token before -rNN, emit RESULTS.tsv + summary.txt
 aggregate_suite() {
     local dir="$1" title="$2"
     [[ "$DRY_RUN" == true ]] && return 0
-    python3 - "$dir" "$title" <<'PY'
-import sys, glob, re, statistics as st, os
-d,title=sys.argv[1],sys.argv[2]
-groups={}
-for f in sorted(glob.glob(f"{d}/*-r*.log")):
-    b=os.path.basename(f)
-    m=re.match(r'(.+)-r\d+\.log$', b)
-    if not m: continue
-    key=m.group(1)
-    t=open(f).read()
-    em=re.search(r'Execution time:\s+([0-9.eE+-]+)', t)
-    if em: groups.setdefault(key,[]).append(float(em.group(1)))
-with open(f"{d}/RESULTS.tsv","w") as o:
-    o.write("point\trep\texec_s\n")
-    for k in sorted(groups):
-        for i,v in enumerate(groups[k],1): o.write(f"{k}\t{i}\t{v}\n")
-lines=[f"{title}",""]
-lines.append(f"{'point':<22}{'n':>3}{'median':>10}{'mean':>10}{'min':>9}{'max':>9}{'std':>8}")
-lines.append("-"*71)
-def keyf(k):
-    m=re.search(r'(\d+)',k); return (int(m.group(1)) if m else 0, k)
-for k in sorted(groups,key=keyf):
-    xs=groups[k]
-    lines.append(f"{k:<22}{len(xs):>3}{st.median(xs):>10.3f}{st.mean(xs):>10.3f}{min(xs):>9.3f}{max(xs):>9.3f}{(st.pstdev(xs) if len(xs)>1 else 0):>8.3f}")
-open(f"{d}/summary.txt","w").write("\n".join(lines)+"\n")
-print("\n".join(lines))
-PY
+    python3 "$SCRIPT_DIR/../data/aggregate_bench.py" "$dir" "$title"
 }
 
-# ---------------------------------------------------------------- suites
 suite_threads() {
     local dir="$OUTDIR/threads"
     echo ">>> [threads] cube=$CUBE_BASE nl=$NODES_FIXED threads: $THREADS"
@@ -233,7 +202,6 @@ suite_llvm() {
     aggregate_suite "$dir" "compiler backend  (${CUBE_BASE}^3, -nl ${NODES_FIXED}, ${THREAD_FIXED} threads, ${STEPS} steps)  Execution time (s)"
 }
 
-# ---------------------------------------------------------------- main
 [[ "$SUITE" == "all" ]] && SUITE="threads,cube,nodes,llvm"
 IFS=',' read -ra WANT <<< "$SUITE"
 for s in "${WANT[@]}"; do

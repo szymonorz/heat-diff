@@ -8,3 +8,8 @@ vm.log
 *.tmp
 
 *.mp4
+
+scripts/run-nl.sh
+scripts/setup-vm.sh
+scripts/start-vm.sh
+scripts/start-cluster.sh

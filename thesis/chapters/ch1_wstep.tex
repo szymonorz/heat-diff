@@ -1,4 +1,6 @@
-\chapter{Wstęp}
+\chapter*{Wstęp}
+\addcontentsline{toc}{chapter}{Wstęp}
+\markboth{Wstęp}{Wstęp}
 \label{ch:wstep}
 
 Symulacje zjawisk opisanych równaniami różniczkowymi cząstkowymi należą do najczęściej
@@ -12,8 +14,7 @@ są trudne do zrównoleglenia: niską intensywność arytmetyczną
 oraz konieczność wymiany danych brzegowych między częściami dziedziny w~każdym kroku
 czasowym~\cite{datta-stencil}. Program symulujący równanie ciepła nadaje się dobrze do badania granic skalowalności.
 Choć wzorzec komunikacji jest tu prosty i~ograniczony do wymiany z~najbliższymi sąsiadami,
-a~nie do komunikacji każdy z~każdym jak w~przekształceniach Fouriera, to właśnie przy
-licznych węzłach każda taka wymiana obciąża to samo, współdzielone łącze sieciowe,
+to właśnie przy licznych węzłach każda taka wymiana obciąża to samo, współdzielone łącze sieciowe,
 co czyni problem dobrym obiektem do ujawniania ograniczeń komunikacyjnych klastra.
 
 Równoległe programowanie systemów rozproszonych tradycyjnie realizuje się za pomocą interfejsu
@@ -26,6 +27,10 @@ jednym z~bardziej rozwiniętych języków w~tej grupie~\cite{chapel-overview}. U
 rozproszonych w~notacji zbliżonej do sekwencyjnej: z~globalnym widokiem tablic, wysokopoziomowymi
 iteratorami równoległymi i~gotowymi rozkładami dziedzin. Szczegóły komunikacji pozostawia
 warstwie wykonawczej, opartej na bibliotece GASNet.
+
+Zbliżoną tematykę, choć na~innej platformie sprzętowej, podjęto w~pracy współautorskiej
+poświęconej równoległej symulacji przewodnictwa ciepła na~klastrze Raspberry~Pi oraz
+porównaniu implementacji w~językach Chapel, C\# i~Julia~\cite{falkowski2026parallel}.
 
 Celem niniejszej pracy było zaprojektowanie, zaimplementowanie i~wdrożenie na~klastrze
 programu symulującego równanie przewodnictwa ciepła w~Chapel oraz

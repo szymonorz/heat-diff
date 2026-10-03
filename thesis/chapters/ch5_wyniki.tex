@@ -137,6 +137,11 @@ razie skromny, około dwudziestoprocentowy zysk, a~wydajność szybko załamuje 
 wraz ze wzrostem liczby wątków. Bezpośrednią przyczyną jest ograniczenie
 pasmem pamięci. Sytuacja ta pogłębia się dopiero przy skalowaniu na~wiele węzłów.
 
+Większy rozstęp przy dwóch wątkach na~\cref{fig:threads-1000} bierze się z~kilku wolniejszych
+przebiegów, w~których procesor na~chwilę obniżył taktowanie. To samo zjawisko opisano
+w~\cref{sec:procedura}. Takie przebiegi podnoszą średnią, ale nie zmieniają mediany, dlatego
+jako wynik przyjęto medianę.
+
 \section{Skalowanie i ograniczenia komunikacji}
 \label{sec:skalowanie-komunikacja}
 
@@ -275,6 +280,11 @@ Lewy panel: rozkład czasu wykonania. Prawy panel: średni czas obliczeń na kro
 w~funkcji liczby wątków, rosnący wskutek rywalizacji o~zasoby współdzielone.}
 \label{fig:threads-9n}
 \end{figure}
+
+Przy dziewięciu węzłach pojedyncze przebiegi bardziej się od~siebie różnią, najbardziej przy
+dwóch wątkach. Wynika to z~samej komunikacji, bo~wszystkie węzły dzielą jedno łącze
+\SI{1}{\giga\bit\per\second} i~jego obciążenie bywa różne w~kolejnych przebiegach. Liczba
+wątków nie ma tu większego znaczenia, więc mediana pozostaje zbliżona.
 
 \subsection{Skalowanie rozmiaru zadania}
 \label{subsec:skalowanie-rozmiar}

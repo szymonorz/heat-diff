@@ -319,14 +319,15 @@ na~każdy przesłany bajt.
 \subsection{Miary skalowalności}
 
 Do~ilościowej oceny efektywności zrównoleglenia stosuje się standardowy aparat
-pojęciowy. \emph{Przyspieszenie} (ang.\ \emph{speedup}) przy użyciu \(p\)
+pojęciowy. \emph{Przyspieszenie względne} (ang.\ \emph{relative speedup}) przy użyciu \(p\)
 jednostek obliczeniowych definiuje się jako stosunek czasu wykonania programu na~jednej
 jednostce do~czasu wykonania tego samego programu na~\(p\) jednostkach:
 \begin{equation}
   S(p) = \frac{T(1)}{T(p)},
   \label{eq:speedup}
 \end{equation}
-a~\emph{efektywność równoległą} (ang.\ \emph{parallel efficiency}) jako
+gdzie \(T(1)\) jest czasem wykonania tego samego programu na~jednej jednostce i~stanowi
+punkt odniesienia. \emph{Efektywność równoległą} (ang.\ \emph{parallel efficiency}) definiuje się jako
 przyspieszenie znormalizowane liczbą jednostek:
 \begin{equation}
   E(p) = \frac{S(p)}{p} = \frac{T(1)}{p\,T(p)}.

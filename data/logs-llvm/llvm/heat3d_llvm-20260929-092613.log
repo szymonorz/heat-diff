@@ -1,0 +1,122 @@
+[cfg] threadsPerLocale(requested)=20 numLocales=9
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+warning: QTHREADS: Reduced numThreadsPerLocale=20 to 16 to prevent oversubscription of the system.
+Initialization time: 0.290932 s
+[cfg] locale 0 maxTaskPar=16
+[cfg] locale 1 maxTaskPar=16
+[cfg] locale 2 maxTaskPar=16
+[cfg] locale 3 maxTaskPar=16
+[cfg] locale 4 maxTaskPar=16
+[cfg] locale 5 maxTaskPar=16
+[cfg] locale 6 maxTaskPar=16
+[cfg] locale 7 maxTaskPar=16
+[cfg] locale 8 maxTaskPar=16
+step 1  updateFluff=0.193503 s  compute=0.001897 s  save=0.0 s
+step 2  updateFluff=0.196723 s  compute=0.00181 s  save=0.0 s
+step 3  updateFluff=0.196147 s  compute=0.001822 s  save=0.0 s
+step 4  updateFluff=0.195557 s  compute=0.001916 s  save=0.0 s
+step 5  updateFluff=0.196525 s  compute=0.001808 s  save=0.0 s
+step 6  updateFluff=0.194424 s  compute=0.00189 s  save=0.0 s
+step 7  updateFluff=0.194422 s  compute=0.00181 s  save=0.0 s
+step 8  updateFluff=0.196366 s  compute=0.001889 s  save=0.0 s
+step 9  updateFluff=0.194345 s  compute=0.001905 s  save=0.0 s
+step 10  updateFluff=0.195304 s  compute=0.001824 s  save=0.0 s
+step 11  updateFluff=0.195773 s  compute=0.001873 s  save=1e-06 s
+step 12  updateFluff=0.195473 s  compute=0.001823 s  save=0.0 s
+step 13  updateFluff=0.195155 s  compute=0.001878 s  save=0.0 s
+step 14  updateFluff=0.195649 s  compute=0.00415 s  save=0.0 s
+step 15  updateFluff=0.195029 s  compute=0.001809 s  save=0.0 s
+step 16  updateFluff=0.196074 s  compute=0.00197 s  save=0.0 s
+step 17  updateFluff=0.195124 s  compute=0.001828 s  save=0.0 s
+step 18  updateFluff=0.195057 s  compute=0.00176 s  save=0.0 s
+step 19  updateFluff=0.194813 s  compute=0.001956 s  save=1e-06 s
+step 20  updateFluff=0.195725 s  compute=0.001843 s  save=0.0 s
+step 21  updateFluff=0.197466 s  compute=0.001808 s  save=0.0 s
+step 22  updateFluff=0.196645 s  compute=0.001948 s  save=0.0 s
+step 23  updateFluff=0.196104 s  compute=0.001811 s  save=0.0 s
+step 24  updateFluff=0.195187 s  compute=0.001865 s  save=0.0 s
+step 25  updateFluff=0.194701 s  compute=0.001914 s  save=0.0 s
+step 26  updateFluff=0.194863 s  compute=0.001827 s  save=0.0 s
+step 27  updateFluff=0.195094 s  compute=0.001845 s  save=0.0 s
+step 28  updateFluff=0.195844 s  compute=0.001822 s  save=0.0 s
+step 29  updateFluff=0.194359 s  compute=0.001882 s  save=0.0 s
+step 30  updateFluff=0.195799 s  compute=0.001881 s  save=0.0 s
+step 31  updateFluff=0.194181 s  compute=0.001897 s  save=0.0 s
+step 32  updateFluff=0.19681 s  compute=0.001855 s  save=0.0 s
+step 33  updateFluff=0.194381 s  compute=0.001862 s  save=0.0 s
+step 34  updateFluff=0.195996 s  compute=0.00183 s  save=0.0 s
+step 35  updateFluff=0.194749 s  compute=0.001892 s  save=0.0 s
+step 36  updateFluff=0.194628 s  compute=0.001886 s  save=0.0 s
+step 37  updateFluff=0.195583 s  compute=0.001927 s  save=0.0 s
+step 38  updateFluff=0.195384 s  compute=0.001856 s  save=0.0 s
+step 39  updateFluff=0.196325 s  compute=0.001862 s  save=0.0 s
+step 40  updateFluff=0.19597 s  compute=0.00187 s  save=0.0 s
+step 41  updateFluff=0.197892 s  compute=0.001714 s  save=0.0 s
+step 42  updateFluff=0.196392 s  compute=0.001887 s  save=0.0 s
+step 43  updateFluff=0.194349 s  compute=0.001837 s  save=0.0 s
+step 44  updateFluff=0.197297 s  compute=0.001977 s  save=0.0 s
+step 45  updateFluff=0.194965 s  compute=0.001884 s  save=0.0 s
+step 46  updateFluff=0.195631 s  compute=0.001914 s  save=0.0 s
+step 47  updateFluff=0.195892 s  compute=0.001859 s  save=0.0 s
+step 48  updateFluff=0.197329 s  compute=0.001874 s  save=0.0 s
+step 49  updateFluff=0.197314 s  compute=0.001749 s  save=0.0 s
+step 50  updateFluff=0.194842 s  compute=0.001804 s  save=0.0 s
+step 51  updateFluff=0.195445 s  compute=0.001869 s  save=0.0 s
+step 52  updateFluff=0.198752 s  compute=0.001881 s  save=0.0 s
+step 53  updateFluff=0.19502 s  compute=0.001865 s  save=0.0 s
+step 54  updateFluff=0.195267 s  compute=0.001853 s  save=0.0 s
+step 55  updateFluff=0.194592 s  compute=0.001819 s  save=0.0 s
+step 56  updateFluff=0.198121 s  compute=0.001891 s  save=0.0 s
+step 57  updateFluff=0.195383 s  compute=0.001884 s  save=0.0 s
+step 58  updateFluff=0.194382 s  compute=0.001865 s  save=0.0 s
+step 59  updateFluff=0.196447 s  compute=0.001815 s  save=0.0 s
+step 60  updateFluff=0.195911 s  compute=0.001759 s  save=0.0 s
+step 61  updateFluff=0.196298 s  compute=0.001877 s  save=0.0 s
+step 62  updateFluff=0.196268 s  compute=0.001885 s  save=0.0 s
+step 63  updateFluff=0.1959 s  compute=0.001754 s  save=0.0 s
+step 64  updateFluff=0.196744 s  compute=0.001949 s  save=0.0 s
+step 65  updateFluff=0.196026 s  compute=0.00187 s  save=0.0 s
+step 66  updateFluff=0.196196 s  compute=0.001809 s  save=0.0 s
+step 67  updateFluff=0.195327 s  compute=0.001934 s  save=0.0 s
+step 68  updateFluff=0.1955 s  compute=0.00176 s  save=0.0 s
+step 69  updateFluff=0.194178 s  compute=0.001952 s  save=0.0 s
+step 70  updateFluff=0.194559 s  compute=0.001883 s  save=0.0 s
+step 71  updateFluff=0.194718 s  compute=0.001806 s  save=0.0 s
+step 72  updateFluff=0.194768 s  compute=0.001905 s  save=0.0 s
+step 73  updateFluff=0.196426 s  compute=0.001862 s  save=0.0 s
+step 74  updateFluff=0.194022 s  compute=0.001807 s  save=0.0 s
+step 75  updateFluff=0.195775 s  compute=0.001895 s  save=0.0 s
+step 76  updateFluff=0.194587 s  compute=0.001858 s  save=0.0 s
+step 77  updateFluff=0.195794 s  compute=0.001908 s  save=0.0 s
+step 78  updateFluff=0.195844 s  compute=0.001838 s  save=0.0 s
+step 79  updateFluff=0.196941 s  compute=0.001858 s  save=0.0 s
+step 80  updateFluff=0.195645 s  compute=0.001905 s  save=0.0 s
+step 81  updateFluff=0.195217 s  compute=0.001875 s  save=0.0 s
+step 82  updateFluff=0.19673 s  compute=0.001816 s  save=0.0 s
+step 83  updateFluff=0.196663 s  compute=0.001879 s  save=0.0 s
+step 84  updateFluff=0.195206 s  compute=0.001858 s  save=0.0 s
+step 85  updateFluff=0.196268 s  compute=0.001805 s  save=0.0 s
+step 86  updateFluff=0.196089 s  compute=0.001754 s  save=0.0 s
+step 87  updateFluff=0.196168 s  compute=0.001733 s  save=0.0 s
+step 88  updateFluff=0.196212 s  compute=0.001908 s  save=0.0 s
+step 89  updateFluff=0.198643 s  compute=0.00186 s  save=0.0 s
+step 90  updateFluff=0.195478 s  compute=0.001825 s  save=1e-06 s
+step 91  updateFluff=0.196103 s  compute=0.001875 s  save=0.0 s
+step 92  updateFluff=0.195881 s  compute=0.001919 s  save=0.0 s
+step 93  updateFluff=0.197203 s  compute=0.001879 s  save=0.0 s
+step 94  updateFluff=0.194921 s  compute=0.001825 s  save=0.0 s
+step 95  updateFluff=0.195444 s  compute=0.001879 s  save=0.0 s
+step 96  updateFluff=0.194623 s  compute=0.001876 s  save=0.0 s
+step 97  updateFluff=0.195214 s  compute=0.001865 s  save=0.0 s
+step 98  updateFluff=0.194921 s  compute=0.001809 s  save=0.0 s
+step 99  updateFluff=0.195134 s  compute=0.001943 s  save=0.0 s
+step 100  updateFluff=0.194879 s  compute=0.001951 s  save=0.028454 s
+final field: min=1.0 max=2.0 sum=1.04808e+06
+Execution time:    19.9276 s

@@ -1,11 +1,4 @@
 #!/usr/bin/env bash
-#
-# Build Chapel locally on THIS node only (no distribution). For build+distribute across a
-# cluster use distribute-chapel.sh instead.
-#
-# Portable: does NOT assume a package manager. It verifies the required build tools are present
-# and tells you the install command for your distro if any are missing.
-#
 set -eo pipefail
 
 CHAPEL_VERSION="${CHAPEL_VERSION:-2.9.0}"
@@ -54,7 +47,6 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Version-derived paths (computed after parsing so --chapel-version takes effect)
 CHAPEL_TAR="chapel-${CHAPEL_VERSION}.tar.gz"
 CHAPEL_URL="https://github.com/chapel-lang/chapel/releases/download/${CHAPEL_VERSION}/${CHAPEL_TAR}"
 INSTALL_DIR="$PWD/chapel-${CHAPEL_VERSION}"
@@ -62,7 +54,6 @@ INSTALL_DIR="$PWD/chapel-${CHAPEL_VERSION}"
 [[ "$LLVM" == "none" || "$LLVM" == "system" || "$LLVM" == "bundled" ]] || { echo "Error: --llvm must be none, system or bundled." >&2; exit 1; }
 [[ -z "$MPI_DIR" ]] && MPI_DIR="$PWD/mpi"
 
-# system LLVM: resolve llvm-config and expose it so Chapel's build picks the right toolchain
 if [[ "$LLVM" == "system" ]]; then
     [[ -z "$LLVM_CONFIG" ]] && LLVM_CONFIG="$(command -v llvm-config || true)"
     if [[ -z "$LLVM_CONFIG" || ! -x "$LLVM_CONFIG" ]]; then
@@ -73,9 +64,6 @@ if [[ "$LLVM" == "system" ]]; then
     echo ">>> Using system LLVM: $("$LLVM_CONFIG" --version) ($LLVM_CONFIG)"
 fi
 
-# ──────────────────────────────────────────────
-# 1. Verify build dependencies (portable; no auto-install without root)
-# ──────────────────────────────────────────────
 echo ">>> Checking build dependencies..."
 MISSING=()
 for c in gcc g++ make m4 perl python3 cmake wget gzip; do
@@ -98,18 +86,12 @@ if [[ -z "$CMAKE_CUR" ]] || [[ "$(printf '%s\n' "$CMAKE_MIN" "$CMAKE_CUR" | sort
     export PATH="$HOME/.local/bin:$PATH"
 fi
 
-# ──────────────────────────────────────────────
-# 2. (mpi) Build MPICH from source
-# ──────────────────────────────────────────────
 if [[ "$CONDUIT" == "mpi" ]]; then
     bash "$SCRIPT_DIR/build-mpi.sh" --prefix "$MPI_DIR"
     export PATH="$MPI_DIR/bin:$PATH"
     export MPI_CC="$MPI_DIR/bin/mpicc"
 fi
 
-# ──────────────────────────────────────────────
-# 3. Download + extract Chapel
-# ──────────────────────────────────────────────
 if [[ -f "$CHAPEL_TAR" ]] && ! gzip -t "$CHAPEL_TAR" 2>/dev/null; then
     echo ">>> Existing tarball corrupt, removing..."; rm -f "$CHAPEL_TAR"
 fi
@@ -118,9 +100,6 @@ fi
 
 cd "$INSTALL_DIR"
 
-# ──────────────────────────────────────────────
-# 4. chplconfig from the chosen conduit
-# ──────────────────────────────────────────────
 echo ">>> Writing chplconfig (CHPL_COMM_SUBSTRATE=$CONDUIT, CHPL_LLVM=$LLVM, CHPL_TARGET_CPU=$TARGET_CPU)..."
 cat > chplconfig <<CHPLCFG
 CHPL_COMM=gasnet
@@ -130,11 +109,7 @@ CHPL_TARGET_CPU=$TARGET_CPU
 CHPLCFG
 cat chplconfig
 
-# ──────────────────────────────────────────────
-# 5. Build
-# ──────────────────────────────────────────────
 export CHPL_HOME="$INSTALL_DIR"
-# Export as env vars too (they override chplconfig, which some hosts do not honor for these keys).
 export CHPL_LLVM="$LLVM"
 source "$CHPL_HOME/util/setchplenv.bash"
 echo ">>> Building Chapel ${CHAPEL_VERSION} ($CONDUIT conduit, LLVM=$LLVM; this will take a while)..."

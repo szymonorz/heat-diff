@@ -80,7 +80,6 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Version-derived paths (computed after parsing so --chapel-version takes effect)
 CHAPEL_TAR="chapel-${CHAPEL_VERSION}.tar.gz"
 CHAPEL_URL="https://github.com/chapel-lang/chapel/releases/download/${CHAPEL_VERSION}/${CHAPEL_TAR}"
 CHAPEL_DIR="chapel-${CHAPEL_VERSION}"
@@ -127,9 +126,6 @@ if [[ -z "$MPI_DIR" ]]; then
     MPI_DIR="$(dirname "$INSTALL_DIR")/mpi"
 fi
 
-# ──────────────────────────────────────────────
-# 0. (mpi only) Build MPICH locally and prepare env so Chapel's gasnet build finds it
-# ──────────────────────────────────────────────
 if [[ "$CONDUIT" == "mpi" ]]; then
     echo ">>> MPI prefix: $MPI_DIR"
     bash "$SCRIPT_DIR/build-mpi.sh" --prefix "$MPI_DIR"
@@ -137,9 +133,6 @@ if [[ "$CONDUIT" == "mpi" ]]; then
     export MPI_CC="$MPI_DIR/bin/mpicc"
 fi
 
-# ──────────────────────────────────────────────
-# 1. Build Chapel locally
-# ──────────────────────────────────────────────
 if [[ "$SKIP_BUILD" == true ]]; then
     if [[ ! -f "$ARCHIVE" ]]; then
         echo "Error: --skip-build specified but $ARCHIVE not found." >&2
@@ -165,7 +158,6 @@ else
 
     LOCAL_CHPL_HOME="$(cd "$CHAPEL_DIR" && pwd)"
 
-    # system LLVM: resolve llvm-config on the BUILD node (LLVM is only a compile-time dependency).
     if [[ "$LLVM" == "system" ]]; then
         [[ -z "$LLVM_CONFIG" ]] && LLVM_CONFIG="$(command -v llvm-config || true)"
         if [[ -z "$LLVM_CONFIG" || ! -x "$LLVM_CONFIG" ]]; then
@@ -176,7 +168,6 @@ else
         echo ">>> Using system LLVM: $("$LLVM_CONFIG" --version) ($LLVM_CONFIG)"
     fi
 
-    # Generate chplconfig from the chosen conduit + backend (overwrites any stale one).
     echo ">>> Writing chplconfig (CHPL_COMM_SUBSTRATE=$CONDUIT, CHPL_LLVM=$LLVM, CHPL_TARGET_CPU=$TARGET_CPU)..."
     cat > "$CHAPEL_DIR/chplconfig" <<CHPLCFG
 CHPL_COMM=gasnet
@@ -196,7 +187,6 @@ CHPLCFG
 
     export CHPL_HOME="$LOCAL_CHPL_HOME"
     export MANPATH="${MANPATH:-}"
-    # Export as env vars too (they override chplconfig, which some hosts do not honor for these keys).
     export CHPL_LLVM="$LLVM"
     source "$CHPL_HOME/util/setchplenv.bash"
 
@@ -217,9 +207,6 @@ REMOTE_CHPL_HOME="${INSTALL_DIR}/${CHAPEL_DIR}"
 MPI_PARENT="$(dirname "$MPI_DIR")"
 MPI_BASE="$(basename "$MPI_DIR")"
 
-# ──────────────────────────────────────────────
-# 2. Distribute to all nodes
-# ──────────────────────────────────────────────
 echo ""
 echo ">>> Distributing to ${#HOSTS[@]} node(s)..."
 echo "    Chapel path: $REMOTE_CHPL_HOME"
@@ -236,7 +223,6 @@ for host in "${HOSTS[@]}"; do
         FAILED+=("$host"); continue
     fi
 
-    # 2a. (mpi) ship the MPICH tree to the identical absolute path (skip if already there)
     if [[ "$CONDUIT" == "mpi" ]]; then
         if ssh $SSH_OPTS "$SSH_USER@$host" "[ -x '$MPI_DIR/bin/mpicc' ]" 2>/dev/null; then
             echo "    MPI: already present, skipping"
@@ -248,12 +234,10 @@ for host in "${HOSTS[@]}"; do
         fi
     fi
 
-    # 2b. ship the Chapel archive
     if ! scp -P "$SSH_PORT" -o StrictHostKeyChecking=no "$ARCHIVE" "$SSH_USER@$host:$INSTALL_DIR/$ARCHIVE"; then
         echo "    FAILED: scp to $host"; FAILED+=("$host"); continue
     fi
 
-    # 2c. unpack + write a SILENCED env block (unsilenced setchplenv corrupts scp/GASNet spawn)
     if ! ssh $SSH_OPTS "$SSH_USER@$host" \
             CONDUIT="$CONDUIT" REMOTE_CHPL_HOME="$REMOTE_CHPL_HOME" \
             INSTALL_DIR="$INSTALL_DIR" CHAPEL_DIR="$CHAPEL_DIR" \

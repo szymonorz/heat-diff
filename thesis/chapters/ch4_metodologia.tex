@@ -50,10 +50,29 @@ to dwa różne mechanizmy równoległości, współdzielenie pamięci przez
 wątki jednego locale oraz rozproszenie danych między locale połączone z~komunikacją sieciową.
 Dopiero zestawienie obu perspektyw pozwala zidentyfikować czynnik ograniczający wydajność.
 
-W~scenariuszach wielowęzłowych liczbę wątków na~locale pozostawiono wartości domyślnej
-warstwy qthreads, która dla dwudziestowątkowych węzłów ustala \num{16} wątków efektywnych,
-rezerwując pozostałe rdzenie dla wątku komunikacyjnego GASNet. Jedyną zmienną niezależną
-była odpowiednio liczba węzłów lub rozmiar dziedziny.
+Górny pułap \num{16} wątków w~powyższych scenariuszach wynika z~architektury węzłów oraz
+z~domyślnego zachowania warstwy wykonawczej Chapel. Procesor Intel~Core~i7-12700K jest
+układem hybrydowym: ma 8~rdzeni wydajnościowych z~wielowątkowością współbieżną, co daje
+\num{16} wątków sprzętowych, oraz 4~rdzenie energooszczędne bez wielowątkowości, łącznie
+12~rdzeni fizycznych i~20 wątków logicznych. Skrypt uruchomieniowy żąda liczby wątków na~locale
+równej wynikowi polecenia \texttt{nproc}, czyli 20. Warstwa qthreads, korzystająca z~biblioteki
+hwloc, przy domyślnym ustawieniu \texttt{CHPL\_RT\_USE\_PU\_KIND=performance} wykorzystuje jednak
+wyłącznie jednostki wykonawcze rdzeni wydajnościowych i~pomija rdzenie energooszczędne, co na~tych
+węzłach daje \num{16} dostępnych wątków logicznych. Żądanie 20~wątków przekracza tę liczbę, więc
+warstwa wykonawcza ogranicza ją do~\num{16} i~zgłasza komunikat \texttt{Reduced
+numThreadsPerLocale=20 to 16 to prevent oversubscription}~\cite{chapel-docs}. Każdy węzeł pracuje
+zatem efektywnie na~\num{16} wątkach i~tę wartość ustalono we~wszystkich przebiegach wielowęzłowych.
+
+Z~tego samego powodu skalowanie wątkowe w~obrębie węzła prowadzono w~potęgach dwójki
+$1/2/4/8/16$. Kolejne podwojenia dają równomiernie rozmieszczone punkty na~osi logarytmicznej,
+a~górny punkt \num{16} pokrywa się z~pułapem narzuconym przez warstwę wykonawczą oraz z~liczbą
+wątków na~locale używaną w~przebiegach wielowęzłowych, dzięki czemu obie serie pozostają
+porównywalne. Nie uwzględniono 20~wątków, ponieważ rdzenie energooszczędne są domyślnie pomijane,
+a~samo żądanie 20 i~tak jest redukowane do~\num{16}. Nie uwzględniono też 12~wątków
+odpowiadających liczbie rdzeni fizycznych, ponieważ warstwa wykonawcza liczy jednostki wykonawcze
+rdzeni wydajnościowych wraz z~wielowątkowością, a~nie same rdzenie fizyczne, a~ponadto 12 nie jest
+potęgą dwójki. Jedyną zmienną niezależną w~tych scenariuszach była odpowiednio liczba węzłów lub
+rozmiar dziedziny.
 
 Wszystkie przebiegi wykorzystują ten sam zestaw parametrów numerycznych. Współczynnik
 dyfuzji przyjęto bezwymiarowo $\alpha=\num{0.25}$, a~gorącą warstwę startową o~grubości
@@ -110,6 +129,47 @@ oraz bliskie zeru, gdy dominują obliczenia. Uzupełniająco rejestrowano objęt
 w~bajtach na~krok, obliczaną analitycznie przez procedurę \texttt{haloBytesPerStep} jako łączną
 liczbę komórek warstw brzegowych wszystkich locale pomnożoną przez rozmiar elementu.
 
+\subsection{Wybór backendu kompilatora}
+\label{sec:backend}
+
+Chapel generuje kod wynikowy jedną z~dwóch dróg: przez backend C (\texttt{CHPL\_LLVM=none})
+albo przez backend LLVM (\texttt{CHPL\_LLVM=system}). Aby sprawdzić, czy wybór backendu wpływa
+na~wydajność w~docelowym środowisku rozproszonym, ten sam program zbudowano w~obu wariantach
+i~porównano na~dziewięciu węzłach klastra Pionier. Każdy wariant uruchomiono dziesięciokrotnie
+dla kostki $100^3$, przez \num{100} kroków, z~warstwą komunikacyjną mpi-conduit. Backend LLVM
+korzystał z~systemowej instalacji LLVM w~wersji 19.1.7. Wyniki zestawiono w~\cref{tab:llvm}.
+
+\begin{table}[htbp]
+\centering
+\caption{Porównanie backendu kompilatora C (\texttt{CHPL\_LLVM=none}) i~LLVM
+(\texttt{CHPL\_LLVM=system}, LLVM 19.1.7) dla kostki $100^3$ na~dziewięciu węzłach klastra
+Pionier, \num{100} kroków, \num{10} powtórzeń. Kolumny mediana, średnia, min i~max dotyczą
+czasu wykonania, a~kolumny updateFluff i~compute podają medianę czasu danej fazy na~krok.}
+\label{tab:llvm}
+\small
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Backend & mediana & średnia & min & max & updateFluff & compute \\
+        & [s] & [s] & [s] & [s] & [s/krok] & [s/krok] \\
+\midrule
+C (\texttt{none}) & \num{20.015} & \num{19.995} & \num{19.883} & \num{20.096} & \num{0.1966} & \num{0.00185} \\
+LLVM 19.1.7       & \num{19.910} & \num{19.908} & \num{19.842} & \num{19.962} & \num{0.1955} & \num{0.00185} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Mediany czasu wykonania różnią się o~\SI{0.105}{\second}, czyli około \SI{0.5}{\percent}, co
+mieści się w~granicach rozrzutu między powtórzeniami. Wyjaśnia tę różnicę rozkład czasu
+pojedynczego kroku: wymiana halo zajmuje około \SI{99}{\percent} kroku, a~same obliczenia około
+\SI{1}{\percent}, więc udział komunikacji \texttt{comm\_frac} według~\eqref{eq:commfrac} jest
+bliski jedności. Backend kompilatora wpływa wyłącznie na~lokalny kod obliczeniowy, którego czas
+jest w~obu wariantach praktycznie taki sam i~stanowi niewielką część kroku, dlatego nie przekłada
+się na~całkowity czas wykonania.
+
+Z~tego powodu we~wszystkich dalszych pomiarach używano backendu C (\texttt{CHPL\_LLVM=none}),
+który w~komunikacyjnie ograniczonym środowisku wielowęzłowym nie powoduje mierzalnej straty
+wydajności.
+
 \section{Procedura i narzędzia pomiarowe}
 \label{sec:procedura}
 
@@ -126,7 +186,8 @@ taktowania. Skutkowało to podwyższonym odchyleniem
 standardowym przy praktycznie niezmienionej medianie.
 
 Przebiegi danej serii wykonywano sekwencyjnie, po~jednym naraz, aby uniknąć wzajemnej
-rywalizacji o~pamięć i~pasmo. Wszystkie pomiary wydajności prowadzono na~środowisku Chapel~2.9
+rywalizacji o~pamięć i~pasmo. Serie pomiarowe wykonywano zautomatyzowanym skryptem
+\path{bench.sh} opisanym w~\cref{sec:uruchamianie}. Wszystkie pomiary wydajności prowadzono na~środowisku Chapel~2.9
 z~warstwą komunikacyjną w~wariancie mpi-conduit. Liczbę wątków na~locale ustawiano zmienną
 środowiskową \texttt{CHPL\_RT\_NUM\_THREADS\_PER\_LOCALE}.
 

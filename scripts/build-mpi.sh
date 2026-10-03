@@ -1,15 +1,4 @@
 #!/usr/bin/env bash
-#
-# Build MPICH from source into a self-contained prefix (no root, no package manager).
-# Used by distribute-chapel.sh when --conduit mpi is requested, but can be run standalone.
-#
-# Why from source: the GASNet mpi-conduit needs an MPI whose version is IDENTICAL on every
-# node of a job. Distro packages can't guarantee that across a heterogeneous cluster
-# (e.g. Fedora openmpi 5.0.5 vs Void openmpi 5.0.10), so we build one tree and ship it.
-#
-# ch3:sock device = plain TCP sockets: simple, dependency-free, and gives TCP flow control
-# (the whole point — it survives the packet loss / incast that makes the udp conduit abort).
-#
 set -eo pipefail
 
 MPICH_VERSION="${MPICH_VERSION:-4.2.3}"
@@ -43,14 +32,12 @@ done
 
 [[ -n "$PREFIX" ]] || { echo "Error: --prefix is required." >&2; exit 1; }
 
-# Idempotent: already built?
 if [[ -x "$PREFIX/bin/mpicc" && -x "$PREFIX/bin/mpirun" ]]; then
     echo ">>> MPICH already present at $PREFIX (skipping build)"
     "$PREFIX/bin/mpichversion" | head -1 || true
     exit 0
 fi
 
-# Minimal dep check (no install — fail fast with guidance).
 MISSING=()
 for c in gcc make wget; do command -v "$c" >/dev/null 2>&1 || MISSING+=("$c"); done
 if [[ ${#MISSING[@]} -gt 0 ]]; then
