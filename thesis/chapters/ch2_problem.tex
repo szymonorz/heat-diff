@@ -25,7 +25,9 @@ gdzie \(\nabla^2\) oznacza operator Laplace'a, natomiast
 diffusivity}), wyrażony w~jednostkach \si{\metre\squared\per\second}. Wielkość
 \(\alpha\) łączy przewodność cieplną ośrodka z~jego pojemnością cieplną i~gęstością.
 Im większa jej wartość, tym szybciej lokalne różnice temperatury ulegają
-wygładzeniu.
+wygładzeniu. W~symulacji przyjęto znormalizowaną, bezwymiarową wartość \(\alpha\),
+nieodpowiadającą konkretnej wartości fizycznej. Wpływa ona jedynie na~tempo
+wygładzania pola i~nie ma wpływu na~wyniki pomiarów wydajności.
 
 \subsection{Warunki początkowe i brzegowe}
 
@@ -36,7 +38,7 @@ dziedzinie, w~którym umieszczono nagrzaną warstwę przylegającą do~ściany
 \(y=0\), o~podwyższonej wartości \(u=2\). Warstwa ta modeluje gorącą ścianę,
 od~której ciepło rozchodzi się w~głąb sześcianu.
 
-Na~brzegu dziedziny przyjęto warunki Dirichleta o~ustalonych wartościach: cała
+Na~brzegu dziedziny przyjęto warunki Dirichleta o~ustalonych wartościach. Cała
 zewnętrzna warstwa komórek siatki nigdy nie jest aktualizowana i~zachowuje swoje
 wartości początkowe przez cały czas symulacji. W~praktyce oznacza to,
 że aktualizowane jest wyłącznie wnętrze dziedziny, a~warstwa gorąca przy
@@ -45,7 +47,7 @@ ciepła. Pozostałe ściany, utrzymywane na~poziomie
 \(u=1\), działają jak zbiorniki ciepła o~ustalonej temperaturze. Taki dobór
 warunków daje pole, które monotonnie ewoluuje i~z~czasem dąży do~stanu ustalonego,
 z~gradientem między gorącą a~zimnymi ścianami. \Cref{fig:diffusion} ilustruje jakościowo charakter tej
-ewolucji na~dwuwymiarowym przykładzie: podtrzymywane źródło ciepła stopniowo
+ewolucji na~dwuwymiarowym przykładzie. Podtrzymywane źródło ciepła stopniowo
 traci ostre krawędzie, a~ciepło rozchodzi się w~otoczenie. Dla czytelności wizualnej
 ilustracja ta posługuje się źródłem ciepła
 w~kształcie grzebienia w~przestrzeni dwuwymiarowej, które ukazuje ten sam mechanizm rozchodzenia się ciepła,
@@ -59,7 +61,7 @@ lecz w~układzie innym niż trójwymiarowa gorąca ściana rozważana w~niniejsz
   \num{160}$\times$\num{160}). Od~lewej: początkowe, podtrzymywane źródło ciepła
   w~kształcie grzebienia, a~następnie stopniowe wygładzanie ostrych szczegółów
   i~propagacja ciepła w~otoczenie, aż do~ukształtowania się gładkiego gradientu.
-  Barwa odwzorowuje temperaturę: błękit oznacza zimno, czerwień gorąco. Ta
+  Barwa odwzorowuje temperaturę. Błękit oznacza zimno, czerwień gorąco. Ta
   sama zasada obowiązuje w~przypadku trójwymiarowym rozważanym w~pracy.}
   \label{fig:diffusion}
 \end{figure}
@@ -111,7 +113,7 @@ siedmiopunktowy stencil (ang.\ \emph{7-point stencil}):
   \label{eq:update}
 \end{align}
 Nowa wartość w~każdym węźle zależy wyłącznie od~wartości w~tym węźle oraz
-w~jego sześciu bezpośrednich sąsiadach z~poprzedniego kroku czasowego: dwóch
+w~jego sześciu bezpośrednich sąsiadach z~poprzedniego kroku czasowego, po~dwóch
 wzdłuż każdej z~trzech osi. Ten wzorzec dostępu do~pamięci, komórka centralna
 plus sześć sąsiadów, przedstawiono na~rysunku~\ref{fig:stencil}. Zależność od~stanu
 wyłącznie z~poprzedniego kroku jest cechą schematu jawnego i~czyni każdy krok
@@ -160,8 +162,8 @@ czasowy w~pełni równoległym względem węzłów siatki.
 \subsection{Stabilność numeryczna i warunek CFL}
 \label{sec:cfl}
 
-Zaletą schematów jawnych jest prostota i~niski koszt pojedynczego kroku: nie wymagają one rozwiązywania układów równań, w~przeciwieństwie do~schematów
-niejawnych. Ceną za~tę prostotę jest jednak warunkowa stabilność: krok czasowy
+Zaletą schematów jawnych jest prostota i~niski koszt pojedynczego kroku. Nie wymagają one rozwiązywania układów równań, w~przeciwieństwie do~schematów
+niejawnych. Ceną za~tę prostotę jest jednak warunkowa stabilność. Krok czasowy
 \(\Delta t\) nie może być dowolnie duży~\cite{leveque,morton-mayers}. Zbyt duży krok powoduje, że błędy
 zaokrągleń i~składowe wysokoczęstotliwościowe rozwiązania numerycznego są
 wzmacniane w~każdej iteracji zamiast tłumione, co prowadzi do~gwałtownej,
@@ -179,7 +181,7 @@ amplituda tego modu rośnie lub maleje w~jednym kroku, wynosi
 \end{equation}
 a~żądanie \(\lvert g\rvert\le 1\) dla~najbardziej niekorzystnego modu o~naprzemiennym
 znaku między sąsiednimi węzłami redukuje się do~nierówności
-\(a_x+a_y+a_z\le\tfrac12\): sumaryczna waga dyfuzyjna nie może przekraczać jednej
+\(a_x+a_y+a_z\le\tfrac12\). Sumaryczna waga dyfuzyjna nie może przekraczać jednej
 drugiej, co wyznacza maksymalny dopuszczalny krok czasowy:
 \begin{equation}
   \Delta t_{\max}
@@ -187,7 +189,7 @@ drugiej, co wyznacza maksymalny dopuszczalny krok czasowy:
     + \dfrac{1}{(\Delta y)^2} + \dfrac{1}{(\Delta z)^2}\right)}.
   \label{eq:cfl}
 \end{equation}
-Zależność~\eqref{eq:cfl} ma praktyczne konsekwencje: dwukrotne
+Zależność~\eqref{eq:cfl} ma praktyczne konsekwencje, ponieważ dwukrotne
 zagęszczenie siatki wymusza czterokrotne
 zmniejszenie kroku czasowego, a~więc czterokrotny wzrost liczby kroków
 potrzebnych do~przebycia tego samego przedziału czasu fizycznego. Wraz
@@ -204,7 +206,7 @@ Obliczenia stencilowe należą do~klasy problemów zrównoleglanych przez podzia
 danych (ang.\ \emph{data parallelism}). Ponieważ aktualizacja
 każdego węzła według~\eqref{eq:update} jest niezależna w~obrębie jednego kroku
 czasowego, naturalną strategią jest dekompozycja dziedziny (ang.\ \emph{domain
-decomposition}): globalna siatka zostaje podzielona na~rozłączne podobszary,
+decomposition}). Globalna siatka zostaje podzielona na~rozłączne podobszary,
 z~których każdy przypisany jest do~osobnej jednostki obliczeniowej, w~rozważanym
 przypadku do~osobnego węzła klastra. Każdy węzeł oblicza aktualizację wyłącznie
 dla~przydzielonych mu komórek.
@@ -270,11 +272,11 @@ kroku sąsiedniego węzła. Ta wymiana danych z~najbliższymi sąsiadami
 (ang.\ \emph{nearest-neighbour} lub \emph{halo exchange}) jest jedynym rodzajem
 komunikacji między węzłami wymaganym przez schemat jawny. W~każdym kroku odbywa się ona
 na~początku kroku, przed~pętlą aktualizującą wnętrze dziedziny. Na~więcej niż jednym locale wymiana ta jest obowiązkowa
-dla~poprawności: jej pominięcie sprawia, że~komórki otoczki zachowują wartości
+dla~poprawności. Jej pominięcie sprawia, że~komórki otoczki zachowują wartości
 z~poprzedniego kroku, przez co obliczenie przebiega szybciej, lecz daje wynik
 cicho błędny.
 
-Prowadzi to do~wyraźnego rozdziału każdego kroku czasowego na~dwie fazy:
+Prowadzi to do~wyraźnego rozdziału każdego kroku czasowego na~dwie fazy,
 fazę komunikacji, czyli odświeżenie warstw brzegowych, oraz fazę obliczeń, czyli wykonanie
 formuły~\eqref{eq:update} dla~wszystkich komórek wnętrza.
 
@@ -299,10 +301,10 @@ na~podstawie intensywności arytmetycznej zadania oraz przepustowości pamięci,
 obliczeń stencilowych leży w~obszarze ograniczonym przepustowością pamięci, a~nie
 szczytową wydajnością obliczeniową. Na~pojedynczym
 węźle oznacza to ograniczenie przepustowością pamięci (ang.\ \emph{memory-bandwidth
-bound}): dodawanie kolejnych rdzeni obliczeniowych przynosi coraz mniejsze
+bound}). Dodawanie kolejnych rdzeni obliczeniowych przynosi coraz mniejsze
 korzyści, gdy magistrala pamięci ulega nasyceniu. W~obliczeniach rozproszonych,
 gdzie warstwy brzegowe muszą przejść przez sieć, zadanie staje się ograniczone
-komunikacją (ang.\ \emph{communication bound}): o~całkowitym czasie decyduje
+komunikacją (ang.\ \emph{communication bound}). O~całkowitym czasie decyduje
 przepustowość i~opóźnienie połączeń sieciowych między węzłami, a~nie szybkość
 samych obliczeń.
 
@@ -411,7 +413,7 @@ co zapewnia lokalność obliczeń bez~jawnego zarządzania nią przez programist
 Równoległość zadaniową między węzłami wyraża konstrukcja
 \texttt{coforall \ldots on loc}, która tworzy osobne zadanie dla~każdego locale
 i~umieszcza jego wykonanie na~odpowiednim węźle. W~programie wzorzec ten
-wykorzystywany jest między innymi do~równoległego zapisu klatek wynikowych: każdy węzeł niezależnie zapisuje swój lokalny podobszar. \Cref{lst:coforall}
+wykorzystywany jest między innymi do~równoległego zapisu klatek wynikowych, gdzie każdy węzeł niezależnie zapisuje swój lokalny podobszar. \Cref{lst:coforall}
 ilustruje ten idiom.
 
 \begin{lstlisting}[language=Chapel,caption={Równoległość zadaniowa między węzłami:
@@ -471,7 +473,7 @@ on Locales[1] do
 \end{lstlisting}
 
 Do synchronizacji producenta z~konsumentem służą zmienne \texttt{single} (tak zwane
-zmienne synchronizujące): zapis do~takiej zmiennej wstrzymuje wykonanie, dopóki nie zostanie
+zmienne synchronizujące). Zapis do~takiej zmiennej wstrzymuje wykonanie, dopóki nie zostanie
 odczytana, a~odczyt wstrzymuje je, dopóki nie zostanie zapisana. Dają one semantykę jednorazowego
 przekazania wartości między zadaniami bez jawnych zamków (ang.~\emph{locks}).
 \Cref{lst:sync} przedstawia ten mechanizm.
@@ -570,6 +572,6 @@ Wybór kanału komunikacyjnego ma istotne znaczenie dla~rozproszonej symulacji.
 Jak wykazano w~\cref{sec:parallel}, przy skalowaniu na~wiele węzłów zadanie
 jest ograniczone komunikacją, a~jedyną komunikacją w~kroku jest wymiana
 \emph{halo} realizowana przez \texttt{updateFluff()}. O~osiąganej skalowalności
-decydują w~praktyce właściwości warstwy komunikacyjnej: przepustowość,
+decydują w~praktyce właściwości warstwy komunikacyjnej, czyli przepustowość,
 opóźnienie i~odporność na~przeciążenie. Dlatego dobór kanału komunikacyjnego jest jednym
 z~głównych pytań badawczych w~tej pracy.

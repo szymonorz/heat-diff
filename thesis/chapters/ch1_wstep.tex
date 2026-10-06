@@ -10,7 +10,7 @@ funkcją wartości z punktów sąsiadujących.
 
 Trójwymiarowe równanie przewodnictwa ciepła jest tradycyjnym przykładem takiego problemu.
 Jego jawna dyskretyzacja różnicowa ma dokładnie te cechy, które sprawiają, że obliczenia stencilowe
-są trudne do zrównoleglenia: niską intensywność arytmetyczną
+są trudne do zrównoleglenia, czyli niską intensywność arytmetyczną
 oraz konieczność wymiany danych brzegowych między częściami dziedziny w~każdym kroku
 czasowym~\cite{datta-stencil}. Program symulujący równanie ciepła nadaje się dobrze do badania granic skalowalności.
 Choć wzorzec komunikacji jest tu prosty i~ograniczony do wymiany z~najbliższymi sąsiadami,
@@ -18,13 +18,13 @@ to właśnie przy licznych węzłach każda taka wymiana obciąża to samo, wsp�
 co czyni problem dobrym obiektem do ujawniania ograniczeń komunikacyjnych klastra.
 
 Równoległe programowanie systemów rozproszonych tradycyjnie realizuje się za pomocą interfejsu
-przekazywania komunikatów MPI (ang.~\emph{Message Passing Interface}), co daje wysoką wydajność kosztem znacznej złożoności kodu:
+przekazywania komunikatów MPI (ang.~\emph{Message Passing Interface}), co daje wysoką wydajność kosztem znacznej złożoności kodu, gdyż
 programista jawnie zarządza podziałem danych, buforami wymiany oraz synchronizacją~\cite{mpi-standard}. Alternatywę
 oferują języki i~biblioteki oparte na modelu \emph{PGAS} (ang.\ \emph{Partitioned Global Address
 Space})~\cite{pgas}. Język Chapel,
 rozwijany pierwotnie przez firmę Cray, jest
 jednym z~bardziej rozwiniętych języków w~tej grupie~\cite{chapel-overview}. Umożliwia zapisywanie obliczeń
-rozproszonych w~notacji zbliżonej do sekwencyjnej: z~globalnym widokiem tablic, wysokopoziomowymi
+rozproszonych w~notacji zbliżonej do sekwencyjnej, z~globalnym widokiem tablic, wysokopoziomowymi
 iteratorami równoległymi i~gotowymi rozkładami dziedzin. Szczegóły komunikacji pozostawia
 warstwie wykonawczej, opartej na bibliotece GASNet.
 
