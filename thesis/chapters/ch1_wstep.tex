@@ -9,16 +9,15 @@ obliczenia \emph{stencilowe}, czyli takie, w~których nowa wartość w~każdym p
 funkcją wartości z punktów sąsiadujących.
 
 Trójwymiarowe równanie przewodnictwa ciepła jest tradycyjnym przykładem takiego problemu.
-Jego jawna dyskretyzacja różnicowa ma dokładnie te cechy, które sprawiają, że obliczenia stencilowe
-są trudne do zrównoleglenia, czyli niską intensywność arytmetyczną
+Jego jawna dyskretyzacja różnicowa posiada niską intensywność arytmetyczną
 oraz konieczność wymiany danych brzegowych między częściami dziedziny w~każdym kroku
-czasowym~\cite{datta-stencil}. Program symulujący równanie ciepła nadaje się dobrze do badania granic skalowalności.
-Choć wzorzec komunikacji jest tu prosty i~ograniczony do wymiany z~najbliższymi sąsiadami,
-to właśnie przy licznych węzłach każda taka wymiana obciąża to samo, współdzielone łącze sieciowe,
-co czyni problem dobrym obiektem do ujawniania ograniczeń komunikacyjnych klastra.
+czasowym~\cite{datta-stencil} co sprawia, że obliczenia stencilowe
+są trudne do zrównoleglenia. Program symulujący to równanie nadaje się dobrze do badania granic skalowalności, ponieważ jego prosty wzorzec komunikacji, ograniczony do wymiany z~najbliższymi sąsiadami,
+przy licznych węzłach i~tak obciąża współdzielone łącze sieciowe,
+co ujawnia ograniczenia komunikacyjne klastra.
 
-Równoległe programowanie systemów rozproszonych tradycyjnie realizuje się za pomocą interfejsu
-przekazywania komunikatów MPI (ang.~\emph{Message Passing Interface}), co daje wysoką wydajność kosztem znacznej złożoności kodu, gdyż
+Programowanie równoległe tradycyjnie realizuje się za pomocą interfejsu
+przekazywania komunikatów MPI (ang.~\emph{Message Passing Interface}), zyskując wysoką wydajność kosztem znacznej złożoności kodu, gdyż
 programista jawnie zarządza podziałem danych, buforami wymiany oraz synchronizacją~\cite{mpi-standard}. Alternatywę
 oferują języki i~biblioteki oparte na modelu \emph{PGAS} (ang.\ \emph{Partitioned Global Address
 Space})~\cite{pgas}. Język Chapel,
