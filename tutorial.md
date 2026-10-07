@@ -1,72 +1,76 @@
-# End-to-end: build, distribute & run heat3d on the cluster
+# Od początku do końca: budowa, dystrybucja i uruchomienie heat3d na klastrze
 
-Walkthrough for building and distributing Chapel, compiling and distributing the `heat3d`
-program, and running it across the cluster — all driven by the repo's scripts. Everything runs
-from the **master node**, where this repository is checked out (so `scripts/`, `src/` and
-`data/` are present).
+Przewodnik po budowie i dystrybucji Chapela, kompilacji i dystrybucji programu `heat3d` oraz
+uruchomieniu go na całym klastrze, w całości sterowany skryptami z repozytorium. Wszystko dzieje się
+z **węzła głównego**, na którym to repozytorium jest sklonowane (więc `scripts/`, `src/` i `data/`
+są dostępne).
 
-Target cluster: 9 identical nodes (Intel Core i7-12700K, 12c/20t, 32 GiB, 1 Gbit/s Ethernet,
-homogeneous Ubuntu), reachable over SSH on port 22. Because the interconnect is a single
-1 Gbit/s link, use the **mpi conduit** (`--conduit mpi`): the udp conduit `ECONGESTION`-aborts
-under the many-to-one halo-exchange incast at scale. The nodes are homogeneous, so one build
-on the master runs everywhere.
+Klaster docelowy: 9 identycznych węzłów (Intel Core i7-12700K, 12c/20t, 32 GiB, Ethernet 1 Gbit/s,
+jednorodne Ubuntu), dostępnych przez SSH na porcie 22. Ponieważ sieć to pojedyncze łącze 1 Gbit/s,
+użyj **kanału mpi** (`--conduit mpi`): kanał udp przerywa działanie błędem `ECONGESTION` pod
+obciążeniem typu incast (wiele do jednego) przy wymianie warstw brzegowych w skali. Węzły są
+jednorodne, więc jedna budowa na węźle głównym działa wszędzie.
 
-Shell settings used throughout (adjust the user and install path to your account):
+Ustawienia powłoki używane w całym przewodniku (dostosuj użytkownika i ścieżkę instalacji do swojego
+konta):
 
 ```bash
 NODE_USER=pionier
-INSTALL_DIR=/home/pionier/chapel        # the same absolute path on every node
+INSTALL_DIR=/home/pionier/chapel        # ta sama sciezka bezwzgledna na kazdym wezle
 ```
 
-The install path must be **identical on all nodes**: Chapel's runtime bakes it into the
-binaries' `rpath`, so a mismatch breaks shared-library loading at launch.
+Ścieżka instalacji musi być **identyczna na wszystkich węzłach**: warstwa uruchomieniowa Chapela
+wpisuje ją w `rpath` binarek, więc rozbieżność psuje ładowanie bibliotek współdzielonych przy
+starcie.
 
-## 1. Host files
+## 1. Pliki z adresami węzłów
 
-`distribute-chapel.sh` ships the toolchain to the **worker** nodes; `compile-and-distribute.sh`
-needs **all** nodes, master first.
+`distribute-chapel.sh` wysyła zestaw narzędzi na węzły **robocze**; `compile-and-distribute.sh`
+potrzebuje **wszystkich** węzłów, master jako pierwszy.
 
 ```bash
-# workers only (every node except the master)
+# tylko robocze (kazdy wezel oprocz mastera)
 printf 'lab8-2\nlab8-3\nlab8-4\nlab8-5\nlab8-6\nlab8-7\nlab8-8\nlab8-9\n' > hosts.txt
 
-# all nodes, master first
+# wszystkie wezly, master jako pierwszy
 printf 'lab8-1\nlab8-2\nlab8-3\nlab8-4\nlab8-5\nlab8-6\nlab8-7\nlab8-8\nlab8-9\n' > hosts-both.txt
 ```
 
-## 2. Build & distribute Chapel (+ MPICH)
+## 2. Budowa i dystrybucja Chapela (+ MPICH)
 
-Builds Chapel 2.9.0 and MPICH 4.2.3 from source on the master and ships both to every worker
-under `$INSTALL_DIR`. **~20–40 min** the first time; re-runs skip the MPICH build.
+Buduje Chapel 2.9.0 i MPICH 4.2.3 ze źródeł na masterze i wysyła oba na każdy węzeł roboczy pod
+`$INSTALL_DIR`. **~20–40 min** za pierwszym razem; ponowne uruchomienia pomijają budowę MPICH.
 
 ```bash
 CHAPEL_SSH_USER=$NODE_USER \
   bash scripts/distribute-chapel.sh --conduit mpi -f hosts.txt -d "$INSTALL_DIR"
 ```
 
-To bake in the LLVM backend instead of the default C backend, add
-`--llvm system --llvm-config /usr/bin/llvm-config-<N>` (only the build node needs the LLVM dev
-packages — see step 6).
+Aby wbudować backend LLVM zamiast domyślnego backendu C, dodaj
+`--llvm system --llvm-config /usr/bin/llvm-config-<N>` (tylko węzeł budujący potrzebuje pakietów
+deweloperskich LLVM, zobacz krok 6).
 
-## 3. Compile & distribute the program
+## 3. Kompilacja i dystrybucja programu
 
-Compiles `heat3d` plus the `aggregate3d` post-processor and distributes the binaries to all
-nodes. Use the **same `--conduit`/`--llvm`** as step 2, and a `-d` distinct from the repo
-working copy so the install tree and the sources never overlap.
+Kompiluje `heat3d` wraz z post-procesorem `aggregate3d` i rozsyła binarki na wszystkie węzły. Użyj
+**tych samych `--conduit`/`--llvm`** co w kroku 2 oraz `-d` różnego od roboczej kopii repozytorium,
+aby katalog instalacji i źródła nigdy się nie nakładały.
 
 ```bash
 CHAPEL_SSH_USER=$NODE_USER \
   bash scripts/compile-and-distribute.sh --conduit mpi -f hosts-both.txt -d "$INSTALL_DIR"
 ```
 
-Both `<bin>` and `<bin>_real` are copied to every node (multilocale needs both). This also
-generates, in `$INSTALL_DIR`, the shared launcher env **`run-env.sh`** plus the `run-heat3d.sh`
-and `aggregate-heat3d.sh` wrappers. Re-run this step whenever `src/*.chpl` changes.
+Oba pliki, `<bin>` i `<bin>_real`, są kopiowane na każdy węzeł (uruchomienie wielolokalowe wymaga
+obu). Ten krok generuje też w `$INSTALL_DIR` wspólne środowisko launchera **`run-env.sh`** oraz
+wrappery `run-heat3d.sh` i `aggregate-heat3d.sh`. Powtarzaj ten krok za każdym razem, gdy zmienia
+się `src/*.chpl`.
 
-## 4. Run across the nodes
+## 4. Uruchomienie na węzłach
 
-The generated wrapper sets the conduit launcher env and runs the program on all locales. Pass
-`--dumpDir` an **absolute** path, since workers have a different working directory:
+Wygenerowany wrapper ustawia środowisko launchera dla kanału i uruchamia program na wszystkich
+locale. Przekaż `--dumpDir` jako ścieżkę **bezwzględną**, ponieważ węzły robocze mają inny katalog
+roboczy:
 
 ```bash
 cd "$INSTALL_DIR"
@@ -74,23 +78,23 @@ CHPL_RT_NUM_THREADS_PER_LOCALE=16 ./run-heat3d.sh \
     --nx=1000 --ny=1000 --nz=1000 --numSteps=100 --dumpDir="$INSTALL_DIR/frames"
 ```
 
-Each locale writes only its own slab to its local disk. Merge the slabs and (optionally) render
-a movie afterward:
+Każde locale zapisuje tylko swoją warstwę na swój lokalny dysk. Scal warstwy i (opcjonalnie)
+wyrenderuj film później:
 
 ```bash
 ./aggregate-heat3d.sh --render=true
 ```
 
-Frames are gzip-compressed by default; on a large grid with many steps, thin them with
-`--dumpEvery=N` (and then pass the aggregator `--numFrames = numSteps/N`) to avoid filling the
-node's disk (`ENOSPC`).
+Kadry są domyślnie kompresowane gzipem; na dużej siatce z wieloma krokami przerzedź je przez
+`--dumpEvery=N` (a następnie przekaż agregatorowi `--numFrames = numSteps/N`), aby nie zapełnić
+dysku węzła (`ENOSPC`).
 
-## 5. Benchmark suites
+## 5. Serie pomiarowe
 
-`bench.sh` drives the thesis benchmark families (thread scaling, cube-size sweep, node scaling,
-and the compiler-backend comparison) and writes, per suite, the per-run logs plus a
-`RESULTS.tsv` and `summary.txt`. Run it on the master in `--mode cluster`: it sources the
-`run-env.sh` from step 3 for the conduit and host list and varies `-nl` across the sweep itself.
+`bench.sh` prowadzi rodziny testów z pracy (skalowanie wątkowe, przemiatanie rozmiaru kostki,
+skalowanie węzłowe oraz porównanie backendów kompilatora) i zapisuje, per seria, logi poszczególnych
+przebiegów oraz `RESULTS.tsv` i `summary.txt`. Uruchom go na masterze w `--mode cluster`: wczytuje
+`run-env.sh` z kroku 3 dla kanału i listy węzłów, a `-nl` zmienia samodzielnie w ramach przemiatania.
 
 ```bash
 bash scripts/bench.sh --mode cluster \
@@ -99,38 +103,39 @@ bash scripts/bench.sh --mode cluster \
      --outdir "$INSTALL_DIR/bench-out"
 ```
 
-Each run is repeated (`--reps`, default 10) and executed sequentially. Logs are named
-`<binary>-<timestamp>.log`, the same convention as `data/logs-*`. `--dry-run` prints the planned
-runs without executing; `bash scripts/bench.sh --help` lists every flag (steps, reps, alpha,
-thread/cube/node lists, …).
+Każdy przebieg jest powtarzany (`--reps`, domyślnie 10) i wykonywany sekwencyjnie. Logi noszą nazwy
+`<binary>-<timestamp>.log`, zgodnie z tą samą konwencją co `data/logs-*`. `--dry-run` wypisuje
+zaplanowane przebiegi bez wykonywania; `bash scripts/bench.sh --help` wymienia każdą flagę (kroki,
+powtórzenia, alpha, listy wątków/kostek/węzłów, …).
 
-## 6. Compare compiler backends (optional)
+## 6. Porównanie backendów kompilatora (opcjonalne)
 
-LLVM is a compile-time backend. Build a second program binary with the LLVM backend alongside
-the default C one, then run the `llvm` suite. Only the **master** needs LLVM installed — the
-shipped binaries do not link `libLLVM`, so workers run them without it.
+LLVM to backend czasu kompilacji. Zbuduj drugą binarkę programu z backendem LLVM obok domyślnej
+binarki z backendem C, a następnie uruchom serię `llvm`. Tylko **master** potrzebuje zainstalowanego
+LLVM, bo wysłane binarki nie linkują `libLLVM`, więc węzły robocze uruchamiają je bez niego.
 
 ```bash
-# one-time: LLVM dev packages on the master, a major version in Chapel 2.9's range (14–22)
+# jednorazowo: pakiety deweloperskie LLVM na masterze, glowna wersja w zakresie Chapel 2.9 (14-22)
 sudo apt-get install -y llvm-16-dev clang-16 libclang-16-dev libclang-cpp16-dev
 
-# rebuild the toolchain WITH the LLVM backend and reship it:
+# przebuduj zestaw narzedzi Z backendem LLVM i rozeslij ponownie:
 CHAPEL_SSH_USER=$NODE_USER \
   bash scripts/distribute-chapel.sh --conduit mpi --llvm system \
        --llvm-config /usr/bin/llvm-config-16 -f hosts.txt -d "$INSTALL_DIR-llvm"
 
-# compile the program with the LLVM backend, under a distinct name:
+# skompiluj program z backendem LLVM, pod odrebna nazwa:
 CHAPEL_SSH_USER=$NODE_USER \
   bash scripts/compile-and-distribute.sh --conduit mpi --llvm system \
        --llvm-config /usr/bin/llvm-config-16 -o heat3d_llvm \
        -f hosts-both.txt -d "$INSTALL_DIR-llvm"
 
-# compare the two backends (build heat3d with the C backend into the same dir as well):
+# porownaj oba backendy (zbuduj tez heat3d z backendem C do tego samego katalogu):
 bash scripts/bench.sh --mode cluster --run-env "$INSTALL_DIR-llvm/run-env.sh" \
      --workdir "$INSTALL_DIR-llvm" --suite llvm \
      --llvm-binaries "heat3d:none heat3d_llvm:llvm" --outdir "$INSTALL_DIR-llvm/bench-llvm"
 ```
 
-Use a distinct `-d` per backend (`none`/`system`) so the two installs coexist. On the 3D solver
-the LLVM backend gives only a small win on the compute loop and none on communication, because
-the stencil is memory-bandwidth-bound and the multi-node runtime is dominated by halo exchange.
+Użyj odrębnego `-d` per backend (`none`/`system`), aby obie instalacje współistniały. Na programie
+3D backend LLVM daje tylko niewielki zysk na pętli obliczeniowej i zero na komunikacji, ponieważ
+stencil jest ograniczony przepustowością pamięci, a czas działania wielowęzłowego jest zdominowany
+przez wymianę warstw brzegowych.

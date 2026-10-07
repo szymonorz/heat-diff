@@ -1,55 +1,56 @@
-# Benchmark logs
+# Logi pomiarowe
 
-Runtime logs from the `heat3d` solver on the **Pionier cluster** (9 identical nodes, Intel Core
-i7-12700K 12c/20t, 32 GiB, 1 Gbit/s Ethernet, homogeneous Ubuntu), gathered with
-`scripts/bench.sh` over the **mpi conduit**. Each log is named `<binary>-<YYYYmmdd-HHMMSS>.log`
-and is self-describing: it opens with a `[cfg] threadsPerLocale(requested)=N numLocales=M` line,
-records per-step `updateFluff` / `compute` / `save` timings, and ends with `Execution time:` and
-the `final field: … sum=…`. The swept parameter is recovered from this content, so it does not
-appear in the filename. `analyze_logs.py` turns these directories into the box-and-whisker and
-derived-metric plots; `aggregate_bench.py` produces the per-suite `RESULTS.tsv` / `summary.txt`.
+Logi czasu działania programu `heat3d` na **klastrze Pionier** (9 identycznych węzłów, Intel Core
+i7-12700K 12c/20t, 32 GiB, Ethernet 1 Gbit/s, jednorodne Ubuntu), zebrane skryptem
+`scripts/bench.sh` przez **kanał mpi**. Każdy log nosi nazwę `<binary>-<YYYYmmdd-HHMMSS>.log` i jest
+samoopisujący: otwiera go wiersz `[cfg] threadsPerLocale(requested)=N numLocales=M`, zapisuje czasy
+`updateFluff` / `compute` / `save` per krok, a kończy wierszami `Execution time:` oraz
+`final field: … sum=…`. Przemiatany parametr odtwarza się z tej zawartości, więc nie pojawia się w
+nazwie pliku. `analyze_logs.py` zamienia te katalogi na wykresy pudełkowe i wykresy metryk
+pochodnych; `aggregate_bench.py` produkuje `RESULTS.tsv` / `summary.txt` dla każdej serii.
 
-The `-clean` suffix means outlier or aborted runs were pruned, so a configuration may have
-slightly fewer than its nominal ten repetitions.
+Przyrostek `-clean` oznacza, że usunięto przebiegi odstające lub przerwane, więc konfiguracja może
+mieć nieco mniej niż nominalne dziesięć powtórzeń.
 
-**Common parameters** (unless a directory note says otherwise): Chapel 2.9.0, C backend
-(`CHPL_LLVM=none`), `--alpha 0.25`, `--numSteps 100`, no frame I/O (`--dumpEvery` > steps), and
-**ten repetitions per configuration** (the thesis reports the median). Pionier nodes expose 20
-hardware threads, but qthreads caps a locale at **16** (the eight P-cores, 2-way SMT), so a
-requested count of 20 runs as 16 effective threads.
+**Wspólne parametry** (o ile uwaga przy katalogu nie mówi inaczej): Chapel 2.9.0, backend C
+(`CHPL_LLVM=none`), `--alpha 0.25`, `--numSteps 100`, brak wejścia-wyjścia kadrów (`--dumpEvery` >
+liczba kroków) oraz **dziesięć powtórzeń na konfigurację** (praca raportuje medianę). Węzły Pionier
+udostępniają 20 wątków sprzętowych, ale qthreads ogranicza locale do **16** (osiem rdzeni P, 2-drożny
+SMT), więc żądana liczba 20 działa jako 16 efektywnych wątków.
 
-All runs below are launched from the master node in `--mode cluster`; `bench.sh` reads the
-conduit and host list from the `run-env.sh` that `compile-and-distribute.sh` generated
-(`--run-env <install>/run-env.sh --workdir <install>`, omitted here for brevity).
+Wszystkie poniższe przebiegi uruchamiane są z węzła głównego w `--mode cluster`; `bench.sh` czyta
+kanał i listę węzłów z pliku `run-env.sh` wygenerowanego przez `compile-and-distribute.sh`
+(`--run-env <install>/run-env.sh --workdir <install>`, pominięte tu dla zwięzłości).
 
-## logs-cpu-clean — thread scaling
+## logs-cpu-clean — skalowanie wątkowe
 
-Threads-per-locale swept `1 2 4 8 16` at a fixed 1000³ grid on all 9 nodes.
+Liczba wątków na locale przemiatana `1 2 4 8 16` przy stałej siatce 1000³ na wszystkich 9 węzłach.
 
 ```bash
 ./scripts/bench.sh --mode cluster --suite threads --cube-base 1000 --threads "1 2 4 8 16"
 ```
 
-## logs-cube-size-clean — cube-size sweep
+## logs-cube-size-clean — przemiatanie rozmiaru kostki
 
-Grid edge swept `125 250 500 1000 2000` on all 9 nodes at the default thread count (20 → 16).
+Krawędź siatki przemiatana `125 250 500 1000 2000` na wszystkich 9 węzłach przy domyślnej liczbie
+wątków (20 → 16).
 
 ```bash
 ./scripts/bench.sh --mode cluster --suite cube --cubes "125 250 500 1000 2000"
 ```
 
-## logs-node-scaling-clean — node (locale) scaling
+## logs-node-scaling-clean — skalowanie węzłowe (locale)
 
-Locale count swept `1 … 9` at a fixed 1000³ grid and the default thread count (20 → 16).
+Liczba locale przemiatana `1 … 9` przy stałej siatce 1000³ i domyślnej liczbie wątków (20 → 16).
 
 ```bash
 ./scripts/bench.sh --mode cluster --suite nodes --cube-base 1000 --nodes "1 2 3 4 5 6 7 8 9"
 ```
 
-## logs-test-clean — single-node thread scaling
+## logs-test-clean — jednowęzłowe skalowanie wątkowe
 
-Single-locale thread scaling: 1 locale, 1000³, **10 steps**, threads `1 2 4 8 16`. This is the
-data behind the single-node thread-scaling figure (`thesis/figures/threads_1000.pdf`, plotted by
+Jednolokalowe skalowanie wątkowe: 1 locale, 1000³, **10 kroków**, wątki `1 2 4 8 16`. To dane stojące
+za wykresem jednowęzłowego skalowania wątkowego (`thesis/figures/threads_1000.pdf`, rysowanym przez
 `plot_threads_1000.py`).
 
 ```bash
@@ -57,11 +58,11 @@ data behind the single-node thread-scaling figure (`thesis/figures/threads_1000.
     --cube-base 1000 --threads "1 2 4 8 16" --steps 10
 ```
 
-## logs-llvm — compiler-backend comparison
+## logs-llvm — porównanie backendów kompilatora
 
-Two binaries of the same program run on all 9 nodes at 100³, 100 steps, 10 reps: `none/` is the
-C backend (`CHPL_LLVM=none`), `llvm/` is the LLVM backend (`CHPL_LLVM=system`, LLVM 19.1.7).
-Build the second binary with `--llvm system` (see the repo README), then:
+Dwie binarki tego samego programu uruchomione na wszystkich 9 węzłach przy 100³, 100 kroków, 10
+powtórzeń: `none/` to backend C (`CHPL_LLVM=none`), `llvm/` to backend LLVM (`CHPL_LLVM=system`,
+LLVM 19.1.7). Zbuduj drugą binarkę z `--llvm system` (zobacz README repozytorium), a następnie:
 
 ```bash
 ./scripts/bench.sh --mode cluster --suite llvm --cube-base 100 \
